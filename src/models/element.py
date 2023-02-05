@@ -1,43 +1,37 @@
 from .section import Section
+from ..interface.searcher import Searcher
 
 class Element(Section):
    def __init__(self):
+      super().__init__()
       self.dat_template = '\n%ELEMENT\n{}\n\n%ELEMENT.{}\n{}\n{}'
       self.inp_keyword = '\*Element, type=(.*)'
+      self.element_relations = Searcher.get_database('element_relations')
 
-      # Definindo Correspondência entre Elementos inp e Elementos dat
-      self.types = {
-         'C3D8': [
-            'BRICK8',
-            '{0}   1  1   {5}   {1}   {2}   {6}   {8}   {4}   {3}   {7}\n'
-         ]
-      }
-   
-   def convert(self, inp_data: str) -> str:
-      # Buscando Seção dos Elementos nos Dados .inp
-      inp_elements, matches = self.find_data(inp_data)
-
-      # Tratando Dados Encontrados
-      inp_elements = inp_elements.strip()
-      inp_elements = inp_elements.split('\n')
-      
+   def build_dat_section(self):
       # Determinando Tipo dos Elementos
-      inp_element_type = matches[0].groups()[0]
+      inp_element_type = self.matches[0].groups()[0]
 
       # Relacionando Elementos inp com Elementos dat
       try:
-         dat_element_type, line = self.types[inp_element_type]
+         dat_element_type = self.element_relations['inp_to_dat'][inp_element_type]
+         dat_reformat = self.element_relations['dat_reformat'][dat_element_type]
+         self.inp_format = self.element_relations['inp_format'][inp_element_type]
       except KeyError:
          print(f'Element {inp_element_type} in .inp file is not supported in this version.')
 
-      # Formatando Informações de Cada Elemento
-      n_elements = len(inp_elements)
-      description = ''
-      for element in inp_elements:
-         info = list(map(int, element.split(',')))
-         description += line.format(*info)
+      # Extraindo Dados da Seção inp
+      self.extract_raw_data()
 
-      return self.dat_template.format(
+      # Tratando Dados e Construindo a Seção dat
+      n_elements = len(self.raw_data)
+      description = ''
+
+      for element in self.raw_data:
+         info = list(map(int, element))
+         description += dat_reformat.format(*info) + '\n'
+
+      self.dat_section = self.dat_template.format(
          n_elements,
          dat_element_type,
          n_elements,

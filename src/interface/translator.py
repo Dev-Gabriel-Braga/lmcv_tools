@@ -28,7 +28,7 @@ class Translator:
 
    @staticmethod
    def convert_syntax(inp_data: str):
-      # Definindo Estrutura Básica do .dat
+      # Iniciando Estrutura do .dat
       dat_data = '%HEADER\n'
 
       # Convertendo Nodes
@@ -36,6 +36,9 @@ class Translator:
 
       # Convertendo Elementos
       dat_data += Translator.element.convert(inp_data)
+
+      # Finalizando Estrutura do .dat
+      dat_data += '\n%END'
 
       return dat_data
 
