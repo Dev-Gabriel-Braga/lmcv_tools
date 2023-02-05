@@ -5,7 +5,8 @@ class Node(Section):
       super().__init__()
       self.dat_template = '\n%NODE\n{}\n\n%NODE.COORD\n{}\n{}'
       self.inp_keyword = '\*Node'
-      self.inp_format = '(\d+),\s*(-?\d+.\d*),\s*(-?\d+.\d*),\s*(-?\d+.\d*)'
+      n = '(-?\d+.\d*e?-?\+?\d*)'
+      self.inp_format = f'(\d+),\s*{n},\s*{n},\s*{n}'
    
    def build_dat_section(self):
       # Extraindo Dados da Seção inp
