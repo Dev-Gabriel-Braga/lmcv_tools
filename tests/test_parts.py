@@ -1,8 +1,7 @@
 import unittest
 import os
 
-class Test3DForms(unittest.TestCase):
-
+class DefaultTest(unittest.TestCase):
    def default_test(self, part_name: str):
       # Definindo paths
       inp_path = 'tests/benchmark/' + part_name + '.inp'
@@ -22,6 +21,23 @@ class Test3DForms(unittest.TestCase):
       exp_file.close()
       self.assertEqual(dat_data, exp_data, 'A tradução está incorreta.')
 
+class Test2DParts(DefaultTest):
+   def test_square_S4_1x1(self):
+      self.default_test('Square_S4_1x1')
+   
+   def test_square_S8_2x2(self):
+      self.default_test('Square_S4_2x2')
+
+   def test_square_S8R_1x1(self):
+      self.default_test('Square_S8R_1x1')
+   
+   def test_square_S8R_2x2(self):
+      self.default_test('Square_S8R_2x2')
+   
+   def test_complex_part_S8R_2x2(self):
+      self.default_test('ComplexPart_S8R')
+
+class Test3DParts(DefaultTest):
    def test_cube_C3D8_1x1x1(self):
       self.default_test('Cube_C3D8_1x1x1')
 

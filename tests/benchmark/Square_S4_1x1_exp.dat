@@ -1,0 +1,20 @@
+%HEADER
+
+%NODE
+4
+
+%NODE.COORD
+4
+1   1.0   1.0   0.0
+2   0.0   1.0   0.0
+3   1.0   0.0   0.0
+4   0.0   0.0   0.0
+
+%ELEMENT
+1
+
+%ELEMENT.PLSTRESS.Q4
+1
+1   1  1   4   3   1   2
+
+%END
