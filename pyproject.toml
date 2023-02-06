@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fast-translator"
+version = "0.0.1"
+authors = [
+  { name = "Dev-Gabriel-Braga", email="gabriel.braga.matos@gmail.com" },
+]
+description = "Command line tool to translate .inp files in .dat files"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+   "Development Status :: 3 - Alpha",
+   "Environment :: Console",
+   "Intended Audience :: Science/Research",
+   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+   "Operating System :: OS Independent",
+   "Programming Language :: Python :: 3",
+   "License :: OSI Approved :: MIT License",
+   "Operating System :: OS Independent",
+   "Topic :: Scientific/Engineering"
+]
+
+[project.scripts]
+ftrans = "ftrans.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ftrans"]

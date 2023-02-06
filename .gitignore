@@ -9,3 +9,6 @@ pyvenv.cfg
 
 # Visual Studio Code
 .vscode
+
+# Build
+dist

@@ -9,7 +9,7 @@ class DefaultTest(unittest.TestCase):
       exp_path = inp_path[:-4] + '_exp.dat'
 
       # Traduzindo Benchmark de 1 Cubo com 1 Elemento C3D8
-      code = os.system(f'ftrans -t {inp_path}')
+      code = os.system(f'python -m ftrans -t {inp_path}')
       self.assertEqual(code, 0, 'A tradução falhou.')
 
       # Comparando Tradução com o Resultado Esperado
@@ -20,6 +20,9 @@ class DefaultTest(unittest.TestCase):
       dat_file.close()
       exp_file.close()
       self.assertEqual(dat_data, exp_data, 'A tradução está incorreta.')
+
+      # Removendo Arquivo .dat Gerado
+      os.remove(dat_path)
 
 class Test2DParts(DefaultTest):
    def test_square_S4_1x1(self):
