@@ -1,4 +1,5 @@
 from .translator import Translator
+from .messenger import Messenger
 
 class Core:
    # Atributos Estáticos
@@ -7,11 +8,11 @@ class Core:
    # Métodos Estáticos
    @staticmethod
    def show_version():
-      print(f'FAST Translator - v{Core.version}')
+      Messenger.show(f'FAST Translator - v{Core.version}')
 
    @staticmethod
    def unknown_args():
-      print('Unknown arguments. Please, read help text (ftrans -h).')
+      Messenger.show('Unknown arguments. Please, read help text (ftrans -h).')
    
    @staticmethod
    def show_welcome():
@@ -22,7 +23,7 @@ in .dat files for FAST (Finite element AnalysiS Tool). Use the command bellow to
 get help:
 
 [ftrans -h]  or  [ftrans  --help]'''
-      print(message)
+      Messenger.show(message)
 
    @staticmethod
    def show_help():
@@ -40,7 +41,7 @@ Possible args:
                       |   Example: ftrans -t [path/to/.inp] [path/to/.dat]
                       |   If the path to the .dat is not given, it will be the 
                       |   same as the .inp.'''
-      print(message)
+      Messenger.show(message)
 
    @staticmethod
    def translate(file_paths: list[str]):
@@ -48,7 +49,7 @@ Possible args:
       try:
          inp_path = file_paths[0]
       except IndexError:
-         print('The Path to .inp file is required.')
+         Messenger.error('The Path to .inp file is required.')
 
       # Verificando Path do .dat
       try:

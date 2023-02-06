@@ -1,5 +1,6 @@
 from .section import Section
 from ..interface.searcher import Searcher
+from ..interface.messenger import Messenger
 
 class Element(Section):
    def __init__(self):
@@ -18,7 +19,7 @@ class Element(Section):
          dat_reformat = self.element_relations['dat_reformat'][dat_element_type]
          self.inp_format = self.element_relations['inp_format'][inp_element_type]
       except KeyError:
-         print(f'Element {inp_element_type} in .inp file is not supported in this version.')
+         Messenger.error(f'Element {inp_element_type} in .inp file is not supported in this version.')
 
       # Extraindo Dados da Seção inp
       self.extract_raw_data()

@@ -1,3 +1,4 @@
+from .messenger import Messenger
 from ..models.node import Node
 from ..models.element import Element
 
@@ -13,7 +14,7 @@ class Translator:
          inp_file = open(inp_path, 'r')
          inp_data = inp_file.read()
       except OSError:
-         print('Error reading .inp file.')
+         Messenger.error('Could not open the .inp file.')
       inp_file.close()
       return inp_data
 
@@ -23,7 +24,7 @@ class Translator:
          dat_file = open(dat_path, 'w')
          dat_file.write(dat_data)
       except OSError:
-         print('Error writing .dat file.')
+         Messenger.error('Could not create the .dat file.')
       dat_file.close()
 
    @staticmethod
