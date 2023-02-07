@@ -1,6 +1,6 @@
-from .section import Section
+from .entity import Entity
 
-class Node(Section):
+class Node(Entity):
    def __init__(self):
       super().__init__()
       self.dat_template = '\n%NODE\n{}\n\n%NODE.COORD\n{}\n{}'
@@ -8,7 +8,7 @@ class Node(Section):
       n = '(-?\d+.\d*e?-?\+?\d*)'
       self.inp_format = f'(\d+),\s*{n},\s*{n},\s*{n}'
    
-   def build_dat_section(self):
+   def build_dat_entity(self):
       # Extraindo Dados da Seção inp
       self.extract_raw_data()
 
@@ -21,4 +21,4 @@ class Node(Section):
          info[0] = int(info[0])
          coords += '{0}   {1}   {2}   {3}\n'.format(*info)
       
-      self.dat_section = self.dat_template.format(n_nodes, n_nodes, coords)
+      self.dat_entity = self.dat_template.format(n_nodes, n_nodes, coords)

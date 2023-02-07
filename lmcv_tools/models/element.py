@@ -1,15 +1,15 @@
-from .section import Section
+from .entity import Entity
 from ..interface.searcher import Searcher
 from ..interface.messenger import Messenger
 
-class Element(Section):
+class Element(Entity):
    def __init__(self):
       super().__init__()
       self.dat_template = '\n%ELEMENT\n{}\n\n%ELEMENT.{}\n{}\n{}'
       self.inp_keyword = '\*Element, type=(.*)'
       self.element_relations = Searcher.get_database('element_relations')
 
-   def build_dat_section(self):
+   def build_dat_entity(self):
       # Determinando Tipo dos Elementos
       inp_element_type = self.matches[0].groups()[0]
 
@@ -32,7 +32,7 @@ class Element(Section):
          info = list(map(int, element))
          description += dat_reformat.format(*info) + '\n'
 
-      self.dat_section = self.dat_template.format(
+      self.dat_entity = self.dat_template.format(
          n_elements,
          dat_element_type,
          n_elements,
