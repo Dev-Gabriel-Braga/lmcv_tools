@@ -2,14 +2,14 @@ import unittest
 import os
 
 class DefaultTest(unittest.TestCase):
-   def default_test(self, part_name: str):
+   def default_test(self, benchmark_name: str):
       # Definindo paths
-      inp_path = 'tests/benchmark/' + part_name + '.inp'
+      inp_path = 'tests/benchmark/' + benchmark_name + '.inp'
       dat_path = inp_path[:-3] + 'dat'
       exp_path = inp_path[:-4] + '_exp.dat'
 
       # Traduzindo Benchmark de 1 Cubo com 1 Elemento C3D8
-      code = os.system(f'python -m ftrans -t {inp_path}')
+      code = os.system(f'python -m lmcv_tools translate {inp_path}')
       self.assertEqual(code, 0, 'A tradução falhou.')
 
       # Comparando Tradução com o Resultado Esperado
@@ -24,7 +24,7 @@ class DefaultTest(unittest.TestCase):
       # Removendo Arquivo .dat Gerado
       os.remove(dat_path)
 
-class Test2DParts(DefaultTest):
+class Test2D(DefaultTest):
    def test_square_S4_1x1(self):
       self.default_test('Square_S4_1x1')
    
@@ -40,7 +40,7 @@ class Test2DParts(DefaultTest):
    def test_complex_part_S8R_2x2(self):
       self.default_test('ComplexPart_S8R')
 
-class Test3DParts(DefaultTest):
+class Test3D(DefaultTest):
    def test_cube_C3D8_1x1x1(self):
       self.default_test('Cube_C3D8_1x1x1')
 

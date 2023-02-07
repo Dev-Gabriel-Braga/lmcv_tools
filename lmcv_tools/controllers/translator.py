@@ -1,4 +1,4 @@
-from .messenger import Messenger
+from ..interface.messenger import Messenger
 from ..models.node import Node
 from ..models.element import Element
 

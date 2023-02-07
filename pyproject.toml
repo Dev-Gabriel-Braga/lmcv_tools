@@ -3,12 +3,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fast-translator"
-version = "0.0.1"
+name = "lmcv_tools"
+version = "0.0.2"
 authors = [
   { name = "Dev-Gabriel-Braga", email = "gabriel.braga.matos@gmail.com" },
 ]
-description = "Command line tool to translate .inp files in .dat files"
+description = "Command line tool that provides useful functionalities to LMCV Members"
 readme = "README.md"
 license = "GPL-3.0"
 requires-python = ">=3.7"
@@ -25,7 +25,7 @@ classifiers = [
 ]
 
 [project.scripts]
-ftrans = "ftrans.__main__:main"
+lmcv_tools = "lmcv_tools.__main__:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["ftrans"]
+packages = ["lmcv_tools"]
