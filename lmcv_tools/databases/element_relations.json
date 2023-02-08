@@ -1,5 +1,7 @@
 {
    "inp_to_dat": {
+      "S3": "PLSTRESS.T3",
+      "STRI65": "PLSTRESS.T6",
       "S4": "PLSTRESS.Q4",
       "S4R": "PLSTRESS.Q4",
       "S8": "PLSTRESS.Q8",
@@ -10,6 +12,14 @@
       "C3D20R": "BRICK20"
    },
    "dat_reference": {
+      "PLSTRESS.T3": {
+         "n_nodes": 3,
+         "reorder": [ 2, 3, 1 ]
+      },
+      "PLSTRESS.T6": {
+         "n_nodes": 6,
+         "reorder": [ 2, 5, 3, 6, 1, 4 ]
+      },
       "PLSTRESS.Q4": {
          "n_nodes": 4,
          "reorder": [ 3, 4, 1, 2 ]
