@@ -5,33 +5,22 @@ class Entity:
    def __init__(self):
       self.dat_template = ''
       self.dat_entity = ''
-      self.inp_keyword = ''
       self.inp_format = ''
-      self.inp_entity = ''
-      self.matches = None
-      self.raw_data = []
+      self.inp_entities = []
    
-   def find_inp_entity(self, inp_data: str):
-      # Buscando a Localização da Entidade
-      match_1 = re.search(self.inp_keyword, inp_data)
-      index_start = match_1.end()
-
-      match_2 = re.search('\*', inp_data[index_start:])
-      index_end = index_start + match_2.start()
-
-      self.inp_entity = inp_data[index_start:index_end]
-      self.matches = [match_1, match_2]
+   def extract_inp_entities(self, inp_data: str):
+      self.inp_entities = re.findall(self.inp_format, inp_data)
    
-   def extract_raw_data(self):
-      self.raw_data = re.findall(self.inp_format, self.inp_entity)
+   def extract_raw_data(self, format: str, raw_data: str):
+      return re.findall(format, raw_data)
 
    # Deve ser Implementado nas Sub-Classes
    def build_dat_entity(self):
       pass
    
    def convert(self, inp_data: str) -> str:
-      # Buscando Seção nos Dados .inp
-      self.find_inp_entity(inp_data)
+      # Buscando Entidade nos Dados .inp
+      self.extract_inp_entities(inp_data)
 
       # Tratando os Dados Extraidos e Constrindo Seção .dat
       self.build_dat_entity()
