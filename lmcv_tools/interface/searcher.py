@@ -3,7 +3,7 @@ from importlib.resources import files
 
 class Searcher:
    # Atributos Estáticos
-   databases_files = files('ftrans.databases')
+   databases_files = files('lmcv_tools.databases')
 
    # Métodos Estáticos
    @staticmethod
