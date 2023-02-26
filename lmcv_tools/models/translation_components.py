@@ -1,13 +1,66 @@
-from .entity import Entity
-from ..interface.searcher import Searcher
-from ..interface.messenger import Messenger
+import re
+from ..interface import messenger, searcher
+
+class Entity:
+   # Padrão a ser seguido nas Sub-Classes
+   def __init__(self):
+      self.dat_template = ''
+      self.dat_entity = ''
+      self.inp_format = ''
+      self.inp_entities = []
+   
+   def extract_inp_entities(self, inp_data: str):
+      self.inp_entities = re.findall(self.inp_format, inp_data)
+   
+   def extract_raw_data(self, format: str, raw_data: str):
+      return re.findall(format, raw_data)
+
+   # Deve ser Implementado nas Sub-Classes
+   def build_dat_entity(self):
+      pass
+   
+   def convert(self, inp_data: str) -> str:
+      # Buscando Entidade nos Dados .inp
+      self.extract_inp_entities(inp_data)
+
+      # Tratando os Dados Extraidos e Constrindo Seção .dat
+      self.build_dat_entity()
+
+      return self.dat_entity
+
+class Node(Entity):
+   def __init__(self):
+      super().__init__()
+      self.dat_template = '\n%NODE\n{}\n\n%NODE.COORD\n{}\n{}'
+      self.inp_format = '\*Node\n([^*]*)'
+   
+   def build_dat_entity(self):
+      # Extraindo Dados Brutos da Entidade Inp
+      entity = self.inp_entities[0]
+      n = '(-?\d+.\d*e?-?\+?\d*)'
+      format = f'(\d+),\s*{n},\s*{n},\s*{n}'
+      nodes = self.extract_raw_data(format, entity)
+
+      # Tratando Dados e Construindo a Seção dat
+      n_nodes = len(nodes)
+      span = len(str(n_nodes))
+      coords = ''
+
+      for node in nodes:
+         info = list(map(float, node))
+         info[0] = int(info[0])
+         offset = span - len(str(info[0]))
+         offset = ' ' * offset
+         coords += '{0}{4}   {1:+.8e}   {2:+.8e}   {3:+.8e}\n'.format(*info, offset)
+      
+      self.dat_entity = self.dat_template.format(n_nodes, n_nodes, coords)
 
 class Element(Entity):
    def __init__(self):
       super().__init__()
       self.dat_template = '\n%ELEMENT\n{}\n'
       self.inp_format = '\*Element, type=(.*)\n([^*]*)'
-      self.element_relations = Searcher.get_database('element_relations')
+      self.element_relations = searcher.get_database('element_relations')
 
    def build_dat_entity(self):
       # Analisando Entitades de Elementos Caso a Caso
@@ -23,7 +76,7 @@ class Element(Entity):
             dat_element_type = self.element_relations['inp_to_dat'][inp_element_type]
             dat_reference = self.element_relations['dat_reference'][dat_element_type]
          except KeyError:
-            Messenger.error(f'Element {inp_element_type} in .inp file is not supported in this version.')
+            messenger.error(f'Element {inp_element_type} in .inp file is not supported in this version.')
 
          # Extraindo Dados da Seção inp
          int_id = '(\d+)'
