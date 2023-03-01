@@ -1,29 +1,15 @@
-from ..interface import messenger
-from ..models.translation_components import Node, Element
-
-# Objetos Globais
-node = Node()
-element = Element()
+from ..interface import filer
+from ..models.translation_entities import (
+   Node, 
+   Element
+)
 
 # Funções Globais
-def read_inp_file(inp_path: str) -> str:
-   try:
-      inp_file = open(inp_path, 'r')
-      inp_data = inp_file.read()
-   except OSError:
-      messenger.error('Could not open the .inp file.')
-   inp_file.close()
-   return inp_data
+def translate(inp_data: str):
+   # Instanciando Objetos
+   node = Node()
+   element = Element()
 
-def write_dat_file(dat_path: str, dat_data: str):
-   try:
-      dat_file = open(dat_path, 'w')
-      dat_file.write(dat_data)
-   except OSError:
-      messenger.error('Could not create the .dat file.')
-   dat_file.close()
-
-def convert_syntax(inp_data: str):
    # Iniciando Estrutura do .dat
    dat_data = '%HEADER\n'
 
@@ -40,10 +26,10 @@ def convert_syntax(inp_data: str):
 
 def start(inp_path: str, dat_path: str):
    # Lendo Arquivo .inp
-   inp_data = read_inp_file(inp_path)
+   inp_data = filer.read(inp_path)
 
    # Convertendo Sintaxe dos Dados do .inp
-   dat_data = convert_syntax(inp_data)
+   dat_data = translate(inp_data)
 
    # Escrevendo Tradução no .dat
-   write_dat_file(dat_path, dat_data)
+   filer.write(dat_path, dat_data)

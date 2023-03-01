@@ -3,10 +3,10 @@ from ..interface import messenger, searcher
 
 class Entity:
    # Padrão a ser seguido nas Sub-Classes
-   def __init__(self):
-      self.dat_template = ''
+   def __init__(self, dat_template: str = '', inp_format: str = ''):
+      self.dat_template = dat_template
       self.dat_entity = ''
-      self.inp_format = ''
+      self.inp_format = inp_format
       self.inp_entities = []
    
    def extract_inp_entities(self, inp_data: str):
@@ -30,9 +30,10 @@ class Entity:
 
 class Node(Entity):
    def __init__(self):
-      super().__init__()
-      self.dat_template = '\n%NODE\n{}\n\n%NODE.COORD\n{}\n{}'
-      self.inp_format = '\*Node\n([^*]*)'
+      super().__init__(
+         dat_template = '\n%NODE\n{}\n\n%NODE.COORD\n{}\n{}',
+         inp_format = '\*Node\n([^*]*)'
+      )
    
    def build_dat_entity(self):
       # Extraindo Dados Brutos da Entidade Inp
@@ -57,9 +58,10 @@ class Node(Entity):
 
 class Element(Entity):
    def __init__(self):
-      super().__init__()
-      self.dat_template = '\n%ELEMENT\n{}\n'
-      self.inp_format = '\*Element, type=(.*)\n([^*]*)'
+      super().__init__(
+         dat_template = '\n%ELEMENT\n{}\n',
+         inp_format = '\*Element, type=(.*)\n([^*]*)'
+      )
       self.element_relations = searcher.get_database('element_relations')
 
    def build_dat_entity(self):

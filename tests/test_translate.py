@@ -4,11 +4,11 @@ import os
 class DefaultTest(unittest.TestCase):
    def default_test(self, benchmark_name: str):
       # Definindo paths
-      inp_path = 'tests/benchmark/' + benchmark_name + '.inp'
+      inp_path = 'tests/benchmark/translate/' + benchmark_name + '.inp'
       dat_path = inp_path[:-3] + 'dat'
       exp_path = inp_path[:-4] + '_exp.dat'
 
-      # Traduzindo Benchmark de 1 Cubo com 1 Elemento C3D8
+      # Traduzindo Benchmark
       code = os.system(f'python -m lmcv_tools translate {inp_path}')
       self.assertEqual(code, 0, 'A tradução falhou.')
 
