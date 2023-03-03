@@ -4,7 +4,7 @@ def read(file_path: str) -> str:
       file = open(file_path, 'r')
       file_data = file.read()
    except OSError:
-      raise Exception('File', f'Could not open or read the {file_path}')
+      raise OSError(f'Could not open or read the {file_path}')
    file.close()
    return file_data
 
@@ -13,5 +13,5 @@ def write(file_path: str, file_data: str):
       file = open(file_path, 'w')
       file.write(file_data)
    except OSError:
-      raise Exception('File', f'Could not write the {file_path}')
+      raise OSError(f'Could not write the {file_path}')
    file.close()

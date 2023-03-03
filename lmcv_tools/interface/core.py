@@ -44,7 +44,7 @@ def pre_translate(file_paths: list[str]):
    try:
       inp_path = file_paths[0]
    except IndexError:
-      messenger.error('The Path to .inp file is required.')
+      messenger.error('The Path to .inp file is required.', name="CommandSyntaxError")
 
    # Verificando Path do .dat
    try:
@@ -69,9 +69,9 @@ def start(args: list[str]):
          elif command_name == 'translate':
             pre_translate(args[1:])
          else:
-            messenger.error('Unknown command.', help=True)
+            messenger.error('Unknown command.', name="CommandSyntaxError", help=True)
    except Exception as exc:
       # Exibindo Mensagem de Erro com o Contexto da Exceção
-      context = exc.args[0]
-      message = ' ' + exc.args[1] if len(exc.args) > 1 else 'Something Wrong.'
-      messenger.error(message, context)
+      name = exc.__class__.__name__
+      message = exc.args[0]
+      messenger.error(message, name)

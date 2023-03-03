@@ -1,5 +1,5 @@
 import re
-from ..interface import messenger, searcher
+from ..interface import searcher
 
 class Entity:
    # Padrão a ser seguido nas Sub-Classes
@@ -78,7 +78,7 @@ class Element(Entity):
             dat_element_type = self.element_relations['inp_to_dat'][inp_element_type]
             dat_reference = self.element_relations['dat_reference'][dat_element_type]
          except KeyError:
-            messenger.error(f'Element {inp_element_type} in .inp file is not supported in this version.')
+            raise KeyError(f'Element {inp_element_type} in .inp file is not supported in this version.')
 
          # Extraindo Dados da Seção inp
          int_id = '(\d+)'
