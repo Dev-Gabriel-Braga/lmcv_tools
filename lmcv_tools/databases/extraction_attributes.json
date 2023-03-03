@@ -23,6 +23,30 @@
          "line": "^(?P<value>\\d+)"
       }
    },
+   "node.x": {
+      "data_type": "float",
+      "related_attributes": ["node.id"],
+      "format": {
+         "keywords": "%NODE\\.COORD\n\\d+\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
+      }
+   },
+   "node.y": {
+      "data_type": "float",
+      "related_attributes": ["node.id"],
+      "format": {
+         "keywords": "%NODE\\.COORD\n\\d+\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
+      }
+   },
+   "node.z": {
+      "data_type": "float",
+      "related_attributes": ["node.id"],
+      "format": {
+         "keywords": "%NODE\\.COORD\n\\d+\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?:[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
+      }
+   },
    "node.displacement.u": {
       "data_type": "float",
       "related_attributes": ["step.id", "node.id"],
