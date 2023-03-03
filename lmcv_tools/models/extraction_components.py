@@ -3,31 +3,45 @@ from ..interface import searcher
 
 class ResultTable:
    def __init__(self, header: list[str], data: list[list] = []):
-      self.header = header.copy()
-      self.data = data.copy()
+      self._header = header.copy()
+      self._data = data.copy()
+      self.join_fail = False
+
+   # Métodos para Acesso Seguro
+   def header_index(self, column_name: str) -> int:
+      try:
+         return self._header.index(column_name)
+      except ValueError:
+         raise KeyError(f'The Column name "{column_name}" does not belong in the Result Table header.')
    
+   def verify_row_index(self, index: int):
+      if index > (len(self._data) - 1):
+         raise IndexError(f'The Row index {index} is out of the Result Table range.')
+
+   # Métodos de Linhas e Colunas
    def column_count(self) -> int:
-      return len(self.header)
+      return len(self._header)
 
    def row_count(self) -> int:
-      return len(self.data)
+      return len(self._data)
 
    def column(self, name: str) -> list:
-      index = self.header.index(name)
-      column_data = [row[index] for row in self.data]
+      index = self.header_index(name)
+      column_data = [row[index] for row in self._data]
       return column_data
       
    def row(self, index: int) -> dict:
-      row_data = {key: value for key, value in zip(self.header, self.data[index])}
+      self.verify_row_index(index)
+      row_data = {key: value for key, value in zip(self._header, self._data[index])}
       return row_data
    
    def cell(self, column_name: str, row_index) -> str:
       row = self.row(row_index)
-      cell = row.column(column_name)
-      return cell.data[0][0]
+      cell = row[column_name]
+      return cell
    
    def columns(self):
-      for name in self.header:
+      for name in self._header:
          yield self.column(name)
 
    def rows(self):
@@ -36,29 +50,25 @@ class ResultTable:
 
    def add_row(self, row_data: dict):
       try:
-         data_list = [row_data[column_name] for column_name in self.header]
+         data_list = [row_data[column_name] for column_name in self._header]
       except KeyError:
-         raise KeyError('ResultTable row data dict() must contain all header keys.')
-      self.data.append(data_list)
+         raise KeyError('The Result Table Row Data must contain all header keys.')
+      self._data.append(data_list)
 
-   def add_column(self, name: str, default_data = None):
-      self.header.append(name)
-      for row in self.data:
+   def add_column(self, name: str, default_data):
+      self._header.append(name)
+      for row in self._data:
          row.append(default_data)
 
    def delete_row(self, index: int):
-      del self.data[index]
+      self.verify_row_index(index)
+      del self._data[index]
    
    def delete_column(self, name: str):
-      index = self.header.index(name)
-      del self.header[index]
-      for row in self.data:
+      index = self.header_index(name)
+      del self._header[index]
+      for row in self._data:
          del row[index]
-
-   def reorder(self, names: list[str]):
-      data = [[row[name] for name in names] for row in self.rows()]
-      self.header = names.copy()
-      self.data = data.copy()
 
    def filter_rows(self, values: dict) -> list[dict]:
       result_rows = self.rows()
@@ -66,25 +76,35 @@ class ResultTable:
          result_rows = list(filter(lambda row: row[column] == value, result_rows))
       return result_rows
 
+   # Métodos de Interação com Tabela
+   def reorder(self, names: list[str]):
+      data = [[row[name] for name in names] for row in self.rows()]
+      self._header = names.copy()
+      self._data = data.copy()
+
    def join(self, table):
+      # Initializando Variável de Controle para a Falha do Método
+      self.join_fail = False
+
       # Tradando Caso Simples de Tabela Vazia
       if self.column_count() == 0:
          return table
 
       # Avaliando Atributos Compartilhados pelas Tabelas
       table_1, table_2 = self, table
-      attributes_1 = set(table_1.header)
-      attributes_2 = set(table_2.header)
+      attributes_1 = set(table_1._header)
+      attributes_2 = set(table_2._header)
       shared_attributes = list(attributes_1 & attributes_2)
       
       # Conservando Tabela Atual Caso não Haja Atributos Compartilhados
       if len(shared_attributes) == 0:
+         self.join_fail = True
          return table_1
 
       # Avaliando se uma das Tabelas já Contém a Outra
-      if len(self.header) == len(shared_attributes):
+      if len(self._header) == len(shared_attributes):
          return table
-      if len(table.header) == len(shared_attributes):
+      if len(table._header) == len(shared_attributes):
          return self
       
       # Instanciando Nova Tabela com todos os Atributos
@@ -101,8 +121,9 @@ class ResultTable:
 
       return joined_table
 
+   # Métodos de Conversão de Dados da Tabela
    def to_csv(self):
-      csv_data = ','.join(self.header)
+      csv_data = ','.join(self._header)
       for row in self.rows():
          csv_data += '\n' + ','.join(row.values())
       return csv_data
@@ -137,7 +158,7 @@ class Operator:
          self.type = operator['type']
          self.evaluate = operator['evaluate']
       except KeyError:
-         raise Exception('Syntax', f'Unsupported operator "{symbol}" was used.')
+         raise KeyError(f'Unsupported operator "{symbol}" was used.')
    
 class Condition:
    def __init__(self, condition_expression: str = None, conditioned_attributes: set = set()):
@@ -153,7 +174,7 @@ class Condition:
             if len(operands) > 1:
                break
          else:
-            raise Exception('Syntax', 'A Condition has not a supported operator.')
+            raise KeyError('A Condition has not a supported operator.')
          
          # Instanciando Operador e Operandos
          self.operator = Operator(supported_operator)
@@ -208,7 +229,7 @@ class Attribute:
             self.related_attributes[related_attribute] = type_class
 
       except KeyError:
-         raise Exception('Syntax', f'Unsupported attribute "{name}" was used.')
+         raise KeyError('Syntax', f'Unsupported attribute "{name}" was used.')
 
    def extract_from(self, pos_data: str, condition: Condition):
       # Instanciando Tabela de Resultado
