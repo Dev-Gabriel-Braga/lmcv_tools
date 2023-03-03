@@ -1,0 +1,249 @@
+import re
+from ..interface import searcher
+
+class ResultTable:
+   def __init__(self, header: list[str], data: list[list] = []):
+      self.header = header.copy()
+      self.data = data.copy()
+   
+   def column_count(self) -> int:
+      return len(self.header)
+
+   def row_count(self) -> int:
+      return len(self.data)
+
+   def column(self, name: str) -> list:
+      index = self.header.index(name)
+      column_data = [row[index] for row in self.data]
+      return column_data
+      
+   def row(self, index: int) -> dict:
+      row_data = {key: value for key, value in zip(self.header, self.data[index])}
+      return row_data
+   
+   def cell(self, column_name: str, row_index) -> str:
+      row = self.row(row_index)
+      cell = row.column(column_name)
+      return cell.data[0][0]
+   
+   def columns(self):
+      for name in self.header:
+         yield self.column(name)
+
+   def rows(self):
+      for index in range(self.row_count()):
+         yield self.row(index)
+
+   def add_row(self, row_data: dict):
+      try:
+         data_list = [row_data[column_name] for column_name in self.header]
+      except KeyError:
+         raise KeyError('ResultTable row data dict() must contain all header keys.')
+      self.data.append(data_list)
+
+   def add_column(self, name: str, default_data = None):
+      self.header.append(name)
+      for row in self.data:
+         row.append(default_data)
+
+   def delete_row(self, index: int):
+      del self.data[index]
+   
+   def delete_column(self, name: str):
+      index = self.header.index(name)
+      del self.header[index]
+      for row in self.data:
+         del row[index]
+
+   def reorder(self, names: list[str]):
+      data = [[row[name] for name in names] for row in self.rows()]
+      self.header = names.copy()
+      self.data = data.copy()
+
+   def filter_rows(self, values: dict) -> list[dict]:
+      result_rows = self.rows()
+      for column, value in values.items():
+         result_rows = list(filter(lambda row: row[column] == value, result_rows))
+      return result_rows
+
+   def join(self, table):
+      # Tradando Caso Simples de Tabela Vazia
+      if self.column_count() == 0:
+         return table
+
+      # Avaliando Atributos Compartilhados pelas Tabelas
+      table_1, table_2 = self, table
+      attributes_1 = set(table_1.header)
+      attributes_2 = set(table_2.header)
+      shared_attributes = list(attributes_1 & attributes_2)
+      
+      # Conservando Tabela Atual Caso não Haja Atributos Compartilhados
+      if len(shared_attributes) == 0:
+         return table_1
+
+      # Avaliando se uma das Tabelas já Contém a Outra
+      if len(self.header) == len(shared_attributes):
+         return table
+      if len(table.header) == len(shared_attributes):
+         return self
+      
+      # Instanciando Nova Tabela com todos os Atributos
+      joined_columns = list(attributes_1 | attributes_2)
+      joined_table = ResultTable(joined_columns)
+      
+      # Juntando Linhas
+      for row_1 in table_1.rows():
+         values = {a: row_1[a] for a in shared_attributes}
+         rows_2 = table_2.filter_rows(values)
+         for row_2 in rows_2:
+            row_1.update(row_2)
+            joined_table.add_row(row_1)
+
+      return joined_table
+
+   def to_csv(self):
+      csv_data = ','.join(self.header)
+      for row in self.rows():
+         csv_data += '\n' + ','.join(row.values())
+      return csv_data
+
+class Operator:
+   supported_operators = {
+      'and': {
+         'type': 'logical',
+         'evaluate': lambda c1, c2, av, at: c1.approve(av, at) and c2.approve(av, at)
+      },
+      'or': {
+         'type': 'logical',
+         'evaluate': lambda c1, c2, av, at: c1.approve(av, at) or c2.approve(av, at)
+      },
+      '=': {
+         'type': 'relational',
+         'evaluate': lambda value, test: value == test
+      },
+      '>': {
+         'type': 'relational',
+         'evaluate': lambda value, test: value > test
+      },
+      '<': {
+         'type': 'relational',
+         'evaluate': lambda value, test: value < test
+      }
+   }
+
+   def __init__(self, symbol: str):
+      try:
+         operator = Operator.supported_operators[symbol]
+         self.type = operator['type']
+         self.evaluate = operator['evaluate']
+      except KeyError:
+         raise Exception('Syntax', f'Unsupported operator "{symbol}" was used.')
+   
+class Condition:
+   def __init__(self, condition_expression: str = None, conditioned_attributes: set = set()):
+      # Verificando se a Condição é Nula
+      self.is_none_condition = condition_expression is None
+      if not self.is_none_condition:
+         # Inicializando Conjunto Compartilhado de Atributos Condicionados
+         self.conditioned_attributes = conditioned_attributes
+
+         # Buscando Operador na Expressão
+         for supported_operator in Operator.supported_operators.keys():
+            operands = condition_expression.split(f' {supported_operator} ', 1)
+            if len(operands) > 1:
+               break
+         else:
+            raise Exception('Syntax', 'A Condition has not a supported operator.')
+         
+         # Instanciando Operador e Operandos
+         self.operator = Operator(supported_operator)
+         if self.operator.type == 'logical':
+            self.operand_1 = Condition(operands[0], self.conditioned_attributes)
+            self.operand_2 = Condition(operands[1], self.conditioned_attributes)
+         else:
+            self.conditioned_attributes.add(operands[0])
+            self.operand_1 = operands[0]
+            self.operand_2 = operands[1]
+      
+   def approve(self, attribute_values: dict, attribute_types: dict) -> bool:
+      # Verificando se a Condição é Nula
+      if not self.is_none_condition:
+         # Avaliando Condição Lógica
+         if self.operator.type == 'logical':
+            return self.operator.evaluate(self.operand_1, self.operand_2, attribute_values, attribute_types)
+         
+         # Avaliando Condição Relacional
+         else:
+            if self.operand_1 in attribute_values.keys():
+               type_class = attribute_types[self.operand_1]
+               value = type_class(attribute_values[self.operand_1])
+               test = type_class(self.operand_2)
+               return self.operator.evaluate(value, test)
+      
+      # Retornando True por Padrão
+      return True
+
+class Attribute:
+   type_relations = {
+      'str': str,
+      'int': int,
+      'float': float
+   }
+   extraction_attributes = searcher.get_database('extraction_attributes')
+
+   def __init__(self, name: str):
+      self.name = name
+
+      # Extraindo Informações do Atributo da Database
+      try:
+         info = Attribute.extraction_attributes[name]
+         self.type = Attribute.type_relations[info['data_type']]
+         self.format = info['format']
+         
+         # Organizado Atributos Relacionados
+         self.related_attributes = dict()
+         for related_attribute in info['related_attributes']:
+            data_type =  Attribute.extraction_attributes[related_attribute]['data_type']
+            type_class = Attribute.type_relations[data_type]
+            self.related_attributes[related_attribute] = type_class
+
+      except KeyError:
+         raise Exception('Syntax', f'Unsupported attribute "{name}" was used.')
+
+   def extract_from(self, pos_data: str, condition: Condition):
+      # Instanciando Tabela de Resultado
+      result_table = ResultTable([self.name, *self.related_attributes])
+
+      # Extraindo Dados a partir das Keywords
+      keyword_matches = re.finditer(self.format['keywords'], pos_data)
+      for keyword_match in keyword_matches:
+         # Identificando Atributos Relacionados ao Atual a Nível de Keyword
+         keyword_related = keyword_match.groupdict()
+         line_data = keyword_related.pop('line')
+         line_matches = re.finditer(self.format['line'], line_data, re.MULTILINE)
+
+         # Extraindo Dados a partir das Linhas de Keyword
+         for line_match in line_matches:
+            # Identificando Atributos Relacionados ao Atual a Nível de Linha
+            line_related = line_match.groupdict()
+            value = line_related.pop('value')
+
+            # Combinando Atributos Relacionados
+            line_related.update(keyword_related)
+
+            # Criando Dicionários com Todos os Valores do Atributo (Próprio e Relacionados)
+            attribute_values = dict()
+            attribute_values[self.name] = value
+            for key, value in line_related.items():
+               attribute_values[key.replace('_', '.')] = value
+
+            # Criando Dicionários com Todos os Tipos do Atributo (Próprio e Relacionados)
+            attribute_types = dict()
+            attribute_types[self.name] = self.type
+            attribute_types.update(self.related_attributes)
+
+            # Aprovando ou Não Valores para a Tabela de Resultado com Base na Condição
+            if condition.approve(attribute_values, attribute_types):
+               result_table.add_row(attribute_values)
+      
+      return result_table
