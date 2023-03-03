@@ -129,6 +129,23 @@ class ResultTable:
       return csv_data
 
 class Operator:
+   # Métodos de Avaliação dos Operadores
+   def in_evaluate(value, test: str, type_class):
+      params = test.split(':')
+      len_params = len(params)
+
+      # Caso Onde o Formato dos Parâmetros do Valor de Teste é Inválido
+      if len_params > 3 or len_params < 2:
+         raise ValueError('The right operand of the "in" operator has a invalid format (it must be [start]:[stop] or [start]:[stop]:[step], all of these integers).')
+      
+      # Verificando se Todos os Parâmetros são Inteiros
+      try:
+         params = list(map(int, params))
+      except ValueError:
+         raise ValueError('All numbers in the right operand of the "in" operator must be integers.')
+      
+      return type_class(value) in range(*params)
+
    supported_operators = {
       'and': {
          'type': 'logical',
@@ -140,15 +157,31 @@ class Operator:
       },
       '=': {
          'type': 'relational',
-         'evaluate': lambda value, test: value == test
+         'evaluate': lambda v, t, tc: tc(v) == tc(t)
       },
       '>': {
          'type': 'relational',
-         'evaluate': lambda value, test: value > test
+         'evaluate': lambda v, t, tc: tc(v) > tc(t)
       },
       '<': {
          'type': 'relational',
-         'evaluate': lambda value, test: value < test
+         'evaluate': lambda v, t, tc: tc(v) < tc(t)
+      },
+      '<=': {
+         'type': 'relational',
+         'evaluate': lambda v, t, tc: tc(v) <= tc(t)
+      },
+      '>=': {
+         'type': 'relational',
+         'evaluate': lambda v, t, tc: tc(v) >= tc(t)
+      },
+      '!=': {
+         'type': 'relational',
+         'evaluate': lambda v, t, tc: tc(v) != tc(t)
+      },
+      'in': {
+         'type': 'relational',
+         'evaluate': in_evaluate
       }
    }
 
@@ -197,9 +230,9 @@ class Condition:
          else:
             if self.operand_1 in attribute_values.keys():
                type_class = attribute_types[self.operand_1]
-               value = type_class(attribute_values[self.operand_1])
-               test = type_class(self.operand_2)
-               return self.operator.evaluate(value, test)
+               value = attribute_values[self.operand_1]
+               test = self.operand_2
+               return self.operator.evaluate(value, test, type_class)
       
       # Retornando True por Padrão
       return True
