@@ -47,7 +47,7 @@
          "line": "^(?P<node_id>\\d+)\\s+(?:[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?:[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
       }
    },
-   "node.displacement.u": {
+   "step.node.u": {
       "data_type": "float",
       "related_attributes": ["step.id", "node.id"],
       "format": {
@@ -55,7 +55,7 @@
          "line": "^(?P<node_id>\\d)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    },
-   "node.displacement.v": {
+   "step.node.v": {
       "data_type": "float",
       "related_attributes": ["step.id", "node.id"],
       "format": {
@@ -63,7 +63,7 @@
          "line": "^(?P<node_id>\\d)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    },
-   "node.displacement.w": {
+   "step.node.w": {
       "data_type": "float",
       "related_attributes": ["step.id", "node.id"],
       "format": {
