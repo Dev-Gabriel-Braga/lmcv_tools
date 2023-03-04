@@ -39,6 +39,7 @@ For more complex commands, check out the detailed descriptions in the next secti
 
 Considering that the routine activities for which LMCV Tools was developed are quite varied, specific commands were developed for each one of them. These commands are:
 - translate (in implementation)
+- extract (in implementation)
 
 ### 2.1 - Translate
 
@@ -56,4 +57,76 @@ If you need to specify the .dat output path, another possible way is:
 
 ```text
 $ lmcv_tools translate [relative path to .inp file] [relative path to .dat file]
+```
+
+### 2.2 - Extract
+
+The command **extract**, in short, aims to extract data from .pos files generate by FAST and save this data in CSV format).
+
+Files with extension ".pos" are the standard output from FAST simulations. They can store data about nodal displacements, element stresses, gauss points stresses and other informations, all distributed over a series of steps. In some contexts, it is necessary to obtain specific data from these files, but the manual search can take a lot of time and still fail. Alternatively, this command allows to extract entire set of related atributes by a simple expression.
+
+An extraction expression can be broken down into terms:
+- Keywords
+- Attributes
+- Condition
+
+**Keywords** are a set of words that define the commmand syntax. In this command, the keywords are "from", "where" and "to" (the last two are optional). Examples of valid syntaxes are:
+
+```text
+$ lmcv_tools extract [atributes] from [path/to/.pos]
+$ lmcv_tools extract [atributes] from [path/to/.pos] to [path/to/.csv]
+$ lmcv_tools extract [atributes] from [path/to/.pos] where [condition]
+$ lmcv_tools extract [atributes] from [path/to/.pos] where [condition] to [path/to/.csv]
+```
+
+**Attributes** are names that represent a piece of data from a .pos file. They follow a simple pattern: "[set name].[attribute name]". The supported attributes are:
+
+| Attribute   | Meaning                                                        |
+| ---         | ---                                                            |
+| step.id     | Integer that identify analisys step.                           |
+| step.factor | Float point factor of a step.                                  |
+| node.id     | Integer that identify a node.                                  |
+| node.x      | Float point coordinate on x-axis of a node.                    |
+| node.y      | Float point coordinate on y-axis of a node.                    |
+| node.z      | Float point coordinate on z-axis of a node.                    |
+| step.node.u | Float point displacement on x-axis of a node in specific step. |
+| step.node.v | Float point displacement on y-axis of a node in specific step. |
+| step.node.w | Float point displacement on z-axis of a node in specific step. |
+
+All attributes that belong the same set can be related by "[set name].id" and extracted together. To do this, type them separeted by space before "from" keyword. The attributes will be related in order which they were typed. Example:
+
+```text
+$ lmcv_tools extract step.id step.factor step.node.u from Example.pos
+```
+
+Some attributes belong to multiple sets at the same time (e.g. "step.node.u"). They can be used to relate attributes that would not normally be extracted together. Example:
+
+```text
+$ lmcv_tools extract step.id step.node.u node.x from Example.pos
+```
+
+**Condition** is a series of attribute constraints. They can be written intuitively using attributes, operators and test values after "from" keyword. The supported operators are:
+
+| Operator | Meaning                              |
+| ---      | ---                                  |
+| and      | Logical and.                         |
+| or       | Logical or.                          |
+| =        | Relational equal to.                 |
+| >        | Relational gerater than.             |
+| <        | Relational less than.                |
+| >=       | Relational gerater than or equal to. |
+| <=       | Relational less than or equal to.    |
+| !=       | Relational different from.           |
+| in       | Relational membership.               |
+
+Remembering that the symbols ">" and "<" must be encapsulated by quotes. Otherwise, they will be interpreted by the shell as ***redirection operators***.
+
+Examples:
+
+```text
+$ lmcv_tools extract step.factor from Example.pos where step.id ">" 2
+```
+
+```text
+$ lmcv_tools extract step.factor from Example.pos where step.id != 3 and step.factor ">" 3
 ```

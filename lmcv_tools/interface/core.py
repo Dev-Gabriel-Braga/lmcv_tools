@@ -23,6 +23,12 @@ translate   |   Translate .inp file in .dat file.
             |   Example: lmcv_tools translate [path/to/.inp] [path/to/.dat]
             |   If the path to the .dat is not given, it will be the same as the
             |   .inp file.
+
+extract     |   Extract attributes from .pos file to CSV format.
+            |   Example: lmcv_tools extract [attributes] from [path/to/.pos]
+            |   Additional Syntaxes:
+            |   [...] where [condition]
+            |   [...] to [path/to/.csv]
 '''
 
 # Funções Globais
@@ -55,6 +61,50 @@ def pre_translate(file_paths: list[str]):
    # Traduzindo Arquivo .inp
    translate.start(inp_path, dat_path)
 
+def pre_extract(terms: list[str]):
+   from ..commands import extract
+
+   # Verificando Sintaxe Básica da Sentença
+   if 'from' not in terms:
+      messenger.error('The keyword "from" is required.', help=True)
+   
+   # Verificando se ao menos 1 Atributo foi fornecido
+   index = terms.index('from')
+   attributes = terms[:index]
+   if len(attributes) == 0:
+      messenger.error('At least one attribute before "from" is required.')
+
+   # Verificando se o Path do Arquivo .pos foi fornecido
+   try:
+      pos_path = terms[index + 1]
+   except IndexError:
+      messenger.error('The path to .pos file after "from" is required.')
+   
+   # Verificando se um Path para o .csv foi fornecido
+   csv_path = pos_path[:-3] + 'csv'
+   index_to = 0
+   if 'to' in terms[index + 1:]:
+      index_to = terms.index('to')
+      try:
+         csv_path = terms[index_to + 1]
+      except IndexError:
+         messenger.error('The Syntax "to [path/to/.csv]" is optional, but it is incomplete.')
+   
+   # Verificando se uma Condição foi fornecida
+   condition = None
+   if 'where' in terms[index + 1:]:
+      index_where = terms.index('where')
+      if index_to > index_where:
+         condition = terms[index_where + 1:index_to]
+      else:
+         condition = terms[index_where + 1:]
+      if len(condition) == 0:
+         messenger.error('The Syntax "where [condition]" is optional, but it is incomplete.')
+      condition = ' '.join(condition)
+
+   # Extraindo Itens do Arquivo .pos
+   extract.start(attributes, pos_path, condition, csv_path)
+
 def start(args: list[str]):
    # Tratando Argumentos
    try:
@@ -68,6 +118,8 @@ def start(args: list[str]):
             show_help()
          elif command_name == 'translate':
             pre_translate(args[1:])
+         elif command_name == 'extract':
+            pre_extract(args[1:])
          else:
             messenger.error('Unknown command.', name="CommandSyntaxError", help=True)
    except Exception as exc:
