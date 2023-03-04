@@ -40,9 +40,9 @@ For more complex commands, check out the detailed descriptions in the next secti
 Considering that the routine activities for which LMCV Tools was developed are quite varied, specific commands were developed for each one of them. These commands are:
 - translate (in implementation)
 
-### 2.1 Translate
+### 2.1 - Translate
 
-The command **translate**, in short, aims convert .inp files created by Abaqus in .dat files for FAST.
+The command **translate**, in short, aims to convert .inp files created by Abaqus in .dat files for FAST.
 
 Abaqus is a suite for Finite Element Analysis (FEA) developed by "Dassault Systèmes", while FAST is a console based FEA tool developed by "Laboratório de Mecânica Computacional e Visualização" of "Universidade Federal do Ceará" (UFC). Both of these softwares can simulate complex problems, but FAST has a clear disadvantage: differently of Abaqus, it hasn't a native GUI to generate its meshes. With that in mind, this command specifically seeks to translate meshes generated in Abaqus and exported in .inp format into meshes in .dat format to be used in FAST simulations.
 
