@@ -52,7 +52,7 @@
       "related_attributes": ["step.id", "node.id"],
       "format": {
          "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:[+-]?\\d+\\.\\d+e[+-]\\d+)\n\n%RESULT.CASE.STEP.NODAL.DISPLACEMENT\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+         "line": "^(?P<node_id>\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    },
    "step.node.v": {
@@ -60,7 +60,7 @@
       "related_attributes": ["step.id", "node.id"],
       "format": {
          "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:[+-]?\\d+\\.\\d+e[+-]\\d+)\n\n%RESULT.CASE.STEP.NODAL.DISPLACEMENT\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    },
    "step.node.w": {
@@ -68,7 +68,7 @@
       "related_attributes": ["step.id", "node.id"],
       "format": {
          "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:[+-]?\\d+\\.\\d+e[+-]\\d+)\n\n%RESULT.CASE.STEP.NODAL.DISPLACEMENT\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    }
 }

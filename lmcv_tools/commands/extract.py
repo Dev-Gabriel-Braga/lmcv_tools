@@ -13,7 +13,7 @@ def extract(attributes: list[str], pos_data: str, condition: str = None) -> tupl
    failed_atributes = list()
    
    # Analisando cada Atributo
-   for index, attribute_name in enumerate(attributes):
+   for attribute_name in attributes:
       # Instanciando Atributo
       attribute = Attribute(attribute_name)
       
@@ -25,11 +25,11 @@ def extract(attributes: list[str], pos_data: str, condition: str = None) -> tupl
       
       # Verificando se há Atributos não Cruzados
       if result_table.join_fail:
-         failed_attribute = attributes.pop(index)
-         failed_atributes.append(failed_attribute)
+         failed_atributes.append(attribute_name)
    
-   # Reordenando Dados
-   result_table.reorder(attributes)
+   # Reordenando Dados (Não Falhos Apenas)
+   valid_attributes = [a for a in attributes if a not in failed_atributes]
+   result_table.reorder(valid_attributes)
    
    return result_table, failed_atributes
 

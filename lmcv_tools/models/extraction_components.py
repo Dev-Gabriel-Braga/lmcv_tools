@@ -8,11 +8,15 @@ class ResultTable:
       self.join_fail = False
 
    # Métodos para Acesso Seguro
+   @property
+   def header(self):
+      return self._header.copy()
+
    def header_index(self, column_name: str) -> int:
       try:
          return self._header.index(column_name)
       except ValueError:
-         raise KeyError(f'The Column name "{column_name}" does not belong in the Result Table header.')
+         raise ValueError(f'The Column name "{column_name}" does not belong in the Result Table Header.')
    
    def verify_row_index(self, index: int):
       if index > (len(self._data) - 1):
@@ -78,7 +82,10 @@ class ResultTable:
 
    # Métodos de Interação com Tabela
    def reorder(self, names: list[str]):
-      data = [[row[name] for name in names] for row in self.rows()]
+      try:
+         data = [[row[name] for name in names] for row in self.rows()]
+      except KeyError:
+         raise ValueError('Only column names belonging to the Result Table Header must be passed.')
       self._header = names.copy()
       self._data = data.copy()
 
@@ -224,7 +231,14 @@ class Condition:
       if not self.is_none_condition:
          # Avaliando Condição Lógica
          if self.operator.type == 'logical':
-            return self.operator.evaluate(self.operand_1, self.operand_2, attribute_values, attribute_types)
+            # Verificano se há Atributos Condicionáveis nos Valores Passados
+            set_attributes = set(attribute_values.keys())
+            set_conditioned = set(self.conditioned_attributes)
+            set_conditionable = set_attributes & set_conditioned
+
+            # Avaliar com Operador se Há Atributos Condicionáveis
+            if len(set_conditionable) > 0:
+               return self.operator.evaluate(self.operand_1, self.operand_2, attribute_values, attribute_types)
          
          # Avaliando Condição Relacional
          else:
