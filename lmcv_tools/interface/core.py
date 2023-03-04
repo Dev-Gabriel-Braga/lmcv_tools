@@ -23,6 +23,12 @@ translate   |   Translate .inp file in .dat file.
             |   Example: lmcv_tools translate [path/to/.inp] [path/to/.dat]
             |   If the path to the .dat is not given, it will be the same as the
             |   .inp file.
+
+extract     |   Extract attributes from .pos file to CSV format.
+            |   Example: lmcv_tools extract [attributes] from [path/to/.pos]
+            |   Additional Syntaxes:
+            |   [...] where [condition]
+            |   [...] to [path/to/.csv]
 '''
 
 # Funções Globais
