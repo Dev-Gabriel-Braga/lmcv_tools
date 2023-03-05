@@ -1,14 +1,19 @@
 from . import messenger
+from ..models.custom_errors import CommandError
 
 # Constantes Globais
 version = '0.0.3'
+in_interactive_mode = False
 message_welcome = '''
 LMCV Tools is a command line tool that provides a series of useful functionali-
 ties for the day-to-day simulations of the "Laboratório de Mecânica Computacio-
-nal e Visualização" of the "Universidade Federal do Ceará" (UFC). To get help, 
-use the command bellow:
+nal e Visualização" of the "Universidade Federal do Ceará" (UFC). 
 
-[lmcv_tools help]
+Since a command was not typed, interactive mode was started. Here, you can type
+multiple commands in sequence interactively:
+
+To get help | type the command "help"
+To exit     | type the command "exit"
 '''
 message_help = '''
 Usage: lmcv_tools [command] [args]
@@ -31,15 +36,11 @@ extract     |   Extract attributes from .pos file to CSV format.
             |   [...] to [path/to/.csv]
 '''
 
-# Funções Globais
-def show_version(args: list[str]):
+# Funções Pré-processamento de Comandos
+def show_version(args: list[str] = []):
    messenger.show(f'LMCV Tools - v{version}')
 
-def show_welcome():
-   show_version()
-   messenger.show(message_welcome)
-
-def show_help(args: list[str]):
+def show_help(args: list[str] = []):
    show_version()
    messenger.show(message_help)
 
@@ -50,7 +51,7 @@ def pre_translate(file_paths: list[str]):
    try:
       inp_path = file_paths[0]
    except IndexError:
-      messenger.error('The Path to .inp file is required.')
+      raise CommandError('The Path to .inp file is required.')
 
    # Verificando Path do .dat
    try:
@@ -66,19 +67,19 @@ def pre_extract(terms: list[str]):
 
    # Verificando Sintaxe Básica da Sentença
    if 'from' not in terms:
-      messenger.error('The keyword "from" is required.', help=True)
+      raise CommandError('The keyword "from" is required.', help=True)
    
    # Verificando se ao menos 1 Atributo foi fornecido
    index = terms.index('from')
    attributes = terms[:index]
    if len(attributes) == 0:
-      messenger.error('At least one attribute before "from" is required.')
+      raise CommandError('At least one attribute before "from" is required.')
 
    # Verificando se o Path do Arquivo .pos foi fornecido
    try:
       pos_path = terms[index + 1]
    except IndexError:
-      messenger.error('The path to .pos file after "from" is required.')
+      raise CommandError('The path to .pos file after "from" is required.')
    
    # Verificando se um Path para o .csv foi fornecido
    csv_path = pos_path[:-3] + 'csv'
@@ -88,7 +89,7 @@ def pre_extract(terms: list[str]):
       try:
          csv_path = terms[index_to + 1]
       except IndexError:
-         messenger.error('The Syntax "to [path/to/.csv]" is optional, but it is incomplete.')
+         raise CommandError('The Syntax "to [path/to/.csv]" is optional, but it is incomplete.')
    
    # Verificando se uma Condição foi fornecida
    condition = None
@@ -99,31 +100,65 @@ def pre_extract(terms: list[str]):
       else:
          condition = terms[index_where + 1:]
       if len(condition) == 0:
-         messenger.error('The Syntax "where [condition]" is optional, but it is incomplete.')
+         raise CommandError('The Syntax "where [condition]" is optional, but it is incomplete.')
       condition = ' '.join(condition)
 
    # Extraindo Itens do Arquivo .pos
    extract.start(attributes, pos_path, condition, csv_path)
 
-def start(args: list[str]):
-   # Tratando Argumentos
+# Relação Comando/Função
+commands = {
+   'version': show_version,
+   'help': show_help,
+   'translate': pre_translate,
+   'extract': pre_extract,
+}
+
+# Funções de Inicialização
+def execute_command(name: str, args: list[str]):
+   # Tentando Identificar o Comando
    try:
-      if len(args) == 0:
-         show_welcome()
-      else:
-         command_name = args[0]
-         if command_name == 'version':
-            show_version()
-         elif command_name == 'help':
-            show_help()
-         elif command_name == 'translate':
-            pre_translate(args[1:])
-         elif command_name == 'extract':
-            pre_extract(args[1:])
-         else:
-            messenger.error('Unknown command.', help=True)
+      command_function = commands[name]
+   except KeyError:
+      raise CommandError('Unknown command.', help=True)
+   
+   # Tentando Executar o Comando
+   try:
+      command_function(args)
    except Exception as exc:
       # Exibindo Mensagem de Erro com o Contexto da Exceção
       name = exc.__class__.__name__
       message = exc.args[0]
       messenger.error(message, name)
+
+def show_welcome():
+   show_version()
+   messenger.show(message_welcome)
+
+def start_interactive_mode():
+   # Informando que o Modo Interativo foi Iniciado
+   global in_interactive_mode
+   in_interactive_mode = True
+
+   # Exibindo Mensagem de Boas-Vindas
+   show_welcome()
+
+   # Iniciando Loop
+   while True:
+      # Lendo Argumentos
+      args = input('>> ').split()
+
+      # Executando Comando
+      command_name = args[0]
+      if command_name == 'exit':
+         break
+      execute_command(command_name, args[1:])
+
+def start(args: list[str]):
+   # Iniciando Modo Interativo (Se não houver Argumentos)
+   if len(args) == 0:
+      start_interactive_mode()
+
+   # Executando Comando Único
+   else:
+      execute_command(args[0], args[1:])

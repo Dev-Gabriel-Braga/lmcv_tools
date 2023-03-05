@@ -5,7 +5,10 @@ def show(message: str):
    print(message)
 
 def error(message: str, name: str = 'CommandError', help: bool = False):
-   if help:
-      message += '\nPlease, use help command (lmcv_tools help).'
+   # Exibindo Mensagem de Erro
    print(f'{name}: {message}')
-   exit(1)
+
+   # Terminando Processo (Se não Estiver no Modo Interativo)
+   from .core import in_interactive_mode
+   if not in_interactive_mode:
+      exit(1)
