@@ -32,14 +32,14 @@ extract     |   Extract attributes from .pos file to CSV format.
 '''
 
 # Funções Globais
-def show_version():
+def show_version(args: list[str]):
    messenger.show(f'LMCV Tools - v{version}')
 
 def show_welcome():
    show_version()
    messenger.show(message_welcome)
 
-def show_help():
+def show_help(args: list[str]):
    show_version()
    messenger.show(message_help)
 
@@ -50,7 +50,7 @@ def pre_translate(file_paths: list[str]):
    try:
       inp_path = file_paths[0]
    except IndexError:
-      messenger.error('The Path to .inp file is required.', name="CommandSyntaxError")
+      messenger.error('The Path to .inp file is required.')
 
    # Verificando Path do .dat
    try:
@@ -121,7 +121,7 @@ def start(args: list[str]):
          elif command_name == 'extract':
             pre_extract(args[1:])
          else:
-            messenger.error('Unknown command.', name="CommandSyntaxError", help=True)
+            messenger.error('Unknown command.', help=True)
    except Exception as exc:
       # Exibindo Mensagem de Erro com o Contexto da Exceção
       name = exc.__class__.__name__

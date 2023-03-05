@@ -4,7 +4,7 @@ from sys import exit
 def show(message: str):
    print(message)
 
-def error(message: str, name: str = 'RuntimeError', help: bool = False):
+def error(message: str, name: str = 'CommandError', help: bool = False):
    if help:
       message += '\nPlease, use help command (lmcv_tools help).'
    print(f'{name}: {message}')
