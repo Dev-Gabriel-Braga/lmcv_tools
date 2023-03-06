@@ -63,9 +63,9 @@ def show_help(args: list[str] = []):
                line = line[crop_index + 1:]
                messenger.show(f"{offset}|   {cropped_line}")
             messenger.show(f"{offset}|   {line}.")
-   
-   # Quebra de Linha Final
-   messenger.show('')
+
+      # Quebra de Linha Final do Tópico
+      messenger.show('')
 
 def pre_translate(file_paths: list[str]):
    from ..commands import translate
