@@ -1,0 +1,41 @@
+{
+   "default": {
+      "usage": "lmcv_tools [command] [args]",
+      "topics": {
+         "Possible Commands": {
+            "version": "Show version",
+            "help": "Show a help text. Without arguments, show this text. With a command name as argument, show a help text about this command",
+            "translate": "Translate .inp file in .dat file. Example: translate [path/to/.inp]",
+            "extract": "Extract attributes from .pos file to CSV format. Example: extract [attributes] from [path/to/.pos]"
+         }
+      }
+   },
+   "version": {
+      "usage": "version",
+      "topics": {
+         "Details": {
+            "No Arguments": "This command shows the version of this program"
+         }
+      }
+   },
+   "translate": {
+      "usage": "translate [path/to/.inp] [path/to/.dat]",
+      "topics": {
+         "Possible Arguments": {
+            "[path/to/.inp]": "Required argument. Relative path to .inp file",
+            "[path/to/.dat]": "Optional argument. Relative path to .dat file. If it is not given, it will be the same as the .inp file"
+         }
+      }
+   },
+   "extract": {
+      "usage": "extract [attributes] from [path/to/.pos] where [condition] to [path/to/.csv]",
+      "topics": {
+         "Possible Arguments": {
+            "[attributes]": "Required argument. List of names (at least one) that represent a piece of data from a .pos file. Supported attributes: step.id, step.factor, node.id, node.x, node.y, node.z, step.node.u, step.node.v, step.node.w",
+            "[path/to/.pos]": "Required argument. Relative path to .pos file",
+            "[condition]": "Optional argument. Series of attribute constraints, combining attribute names, operators and test values. Supported operators: and, or, =, >, <, >=, <=, !=, in. Remembering that the symbols '>' and '<' must be encapsulated by quotes. Otherwise, they will be interpreted by the shell as redirection operators. Example: [...] where step.id '>' 5 and step.factor '<' 1.0",
+            "[path/to/.csv]": "Optional argument. Relative path to .csv file. If it is not given, it will be the same as the .pos file"
+         }
+      }
+   }
+}
