@@ -154,8 +154,7 @@ Possible Syntaxes:
 
 ```text
 $ lmcv_tools generate [artifact name]
-$ lmcv_tools generate [artifact name] [path/to/artifact]
-$ lmcv_tools generate [artifact name] [path/to/artifact] [args]
+$ lmcv_tools generate [artifact name] [args] [path/to/artifact]
 ```
 
 Implemented artifacts are listed below:
@@ -173,7 +172,7 @@ $ lmcv_tools generate virtual_laminas
 Other syntax possible is based in a long and exaustive list of required arguments:
 
 ```text
-$ lmcv_tools generate virtual_laminas [path/to/artifact] [args]
+$ lmcv_tools generate virtual_laminas [args] [path/to/artifact]
 ```
 
 | Arguments             | Description                          |

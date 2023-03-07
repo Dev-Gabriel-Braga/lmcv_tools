@@ -57,18 +57,24 @@ def params_virtual_laminas(args: list[str]) -> dict:
       window = PromptGenerateVirtualLamina(params)
       window.start()
 
+      # Conferindo se Há um Caminho
+      if params.get('path') is not None:
+         if params['path'] != '':
+            args = [params['path']]
+         del params['path']
+
    # Tentando Coletar Parâmetros Dados 
    else:
       try:
          reference = dict(signature(generate_virtual_laminas).parameters)
          index = 0
          for name, param_obj in reference.items():
-            params[name] = param_obj.annotation(args[index])
+            params[name] = param_obj.annotation(args.pop(0))
             index += 1
       except IndexError:
          raise CommandError('Invalid number of arguments.', help=True)
    
-   return params
+   return params, args
 
 # Relação Artefato/Funções
 artifacts = {
@@ -79,11 +85,11 @@ artifacts = {
 }
 
 # Funções de Inicialização
-def start(artifact_name: str, path: str, args: list[str]) -> str:
+def start(artifact_name: str, args: list[str]) -> str:
    try:
       # Coletando Parâmetros
       params_function = artifacts[artifact_name]['params']
-      params = params_function(args)
+      params, args = params_function(args)
 
       # Gerando Artefato
       generate_function = artifacts[artifact_name]['generate']
@@ -95,6 +101,8 @@ def start(artifact_name: str, path: str, args: list[str]) -> str:
       raise CommandError('Not all arguments were correctly passed.')
 
    # Escrevendo Arquivo do Artefato
-   if path is None:
+   try:
+      path = args[0]
+   except IndexError:
       path = artifact.file_name
    filer.write(path, artifact.data)

@@ -135,16 +135,10 @@ def pre_generate(args: list[str]):
    # Verificando se um Artefato foi Dado
    if len(args) == 0:
       raise CommandError('An Artifact must be given.', help=True)
-   
-   # Tentando Coletar Artefato e Caminho
-   artifact = args[0]
-   try:
-      path = args[1]
-   except IndexError:
-      path = None
 
    # Iniciando Comando
-   generate.start(artifact, path, args[2:])
+   artifact = args[0]
+   generate.start(artifact, args[1:])
 
 # Relação Comando/Função
 commands = {
