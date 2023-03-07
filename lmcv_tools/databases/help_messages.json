@@ -40,12 +40,12 @@
       }
    },
    "generate": {
-      "usage": "generate [artifact name] [path/to/artifact] [args]",
+      "usage": "generate [artifact name] [args] [path/to/artifact]",
       "topics": {
          "Possible Arguments": {
             "[artifact name]": "Required argument. Name of the artifact. Supported artifacts: virtual_laminas",
-            "[path/to/artifact]": "Optional argument. Relative path to artifact output files. If it is not given, it will be the file with the same name of artifact in the current directory",
-            "[args]": "Series of arguments that depend on the artifact. See the topics bellow for more details."
+            "[args]": "Series of arguments that depend on the artifact. See the topics bellow for more details.",
+            "[path/to/artifact]": "Optional argument. Relative path to artifact output files. If it is not given, it will be the file with the same name of artifact in the current directory"
          },
          "Arguments for virtual_laminas": {
             "[Laminas Count]": "Required integer argument",

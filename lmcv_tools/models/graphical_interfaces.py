@@ -1,4 +1,4 @@
-from tkinter import Tk
+from tkinter import Tk, filedialog, END
 from tkinter.ttk import (
    Style,
    Frame,
@@ -217,7 +217,7 @@ class PromptGenerateVirtualLamina:
          text = 'ν1 = ',
          padding = (0, 5, 0, 5),
       )
-      self.label['nu1'].grid(row = 1, column = 2, sticky = 'w')
+      self.label['nu1'].grid(row = 1, column = 2, sticky = 'w', padx = 5)
 
       self.entry['nu1'] = Entry(
          master = self.frame['materials_params'], 
@@ -229,7 +229,6 @@ class PromptGenerateVirtualLamina:
       self.label['pho1'] = Label(
          master = self.frame['materials_params'],
          text = 'ρ1 = ',
-         # font = font_style,
          padding = (0, 5, 0, 5),
       )
       self.label['pho1'].grid(row = 1, column = 4, sticky = 'w', padx = 5)
@@ -261,7 +260,7 @@ class PromptGenerateVirtualLamina:
          text = 'ν2 = ',
          padding = (0, 5, 0, 5),
       )
-      self.label['nu2'].grid(row = 2, column = 2, sticky = 'w')
+      self.label['nu2'].grid(row = 2, column = 2, sticky = 'w', padx = 5)
 
       self.entry['nu2'] = Entry(
          master = self.frame['materials_params'], 
@@ -285,22 +284,48 @@ class PromptGenerateVirtualLamina:
       self.entry['pho2'].grid(row = 2, column = 5, sticky = 'w')
 
    def layout_action(self):
-      # Botão de Ação
       self.frame['action'] = Frame(
          master = self.root,
          padding = (10, 10),
       )
       self.frame['action'].pack(fill = 'x')
 
+      self.label['path'] = Label(
+         master = self.frame['action'],
+         text = 'Output File Path:',
+         padding = (0, 5, 0, 5),
+      )
+      self.label['path'].grid(row = 0, column = 0, sticky = 'w')
+
+      self.entry['path'] = Entry(
+         master = self.frame['action'], 
+         font = self.default_font,
+         width = 25,
+      )
+      self.entry['path'].grid(row = 1, column = 0, )
+
+      self.button['path'] = Button(
+         master = self.frame['action'],
+         text = 'Select Folder',
+         command = self.select_path,
+      )
+      self.button['path'].grid(row = 1, column = 1)
+
       self.button['generate'] = Button(
          master = self.frame['action'],
          text = 'Generate',
          command = self.validate,
       )
-      self.button['generate'].pack()
+      self.button['generate'].grid(row = 2, column = 0, columnspan = 2, pady=(5, 0))
 
    def start(self):
       self.root.mainloop()
+
+   def select_path(self):
+      path = filedialog.askdirectory()
+      if path:
+         self.entry['path'].delete(0, END)
+         self.entry['path'].insert(0, path)
 
    def validate(self):
       # Copiando Entradas para Validação
@@ -326,16 +351,20 @@ class PromptGenerateVirtualLamina:
          return messenger.show('"Micromechanical Model" is required.')
       self.params['micromechanical_model'] = micromechanical_model
 
+      # Atribuindo Caminho do Arquivo
+      self.params['path'] = entries['path'].get().strip()
+
       # Deletando Entradas Verificadas
       del entries['element_type']
       del entries['laminas_per_element']
       del entries['absolute_thickness']
       del entries['micromechanical_model']
+      del entries['path']
 
       # Verificando Demais Entradas
       for key, value in entries.items():
          if value.get() == '':
-            return messenger.show('All fieds are required, fill them.')
+            return messenger.show('All fieds are required (except "Output File Path"), fill them.')
          type_class = int if key in ['laminas_count', 'number_integration_points'] else float
          self.params[key] = type_class(value.get())
       
