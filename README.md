@@ -20,7 +20,7 @@ Once installed, the basic form of the LMCV Tools commands is:
 $ lmcv_tools [commands] [args]
 ```
 
-To check the installed version, use the command bellow:
+To check the installed version, use the command below:
 
 ```text
 $ lmcv_tools version
@@ -40,6 +40,7 @@ For more complex commands, check out the detailed descriptions in the next secti
 Considering that the routine activities for which LMCV Tools was developed are quite varied, specific commands were developed for each one of them. These commands are:
 - translate (in implementation)
 - extract (in implementation)
+- generate (in implementation)
 
 ### 2.1 - Translate
 
@@ -130,3 +131,49 @@ $ lmcv_tools extract step.factor from Example.pos where step.id ">" 2
 ```text
 $ lmcv_tools extract step.factor from Example.pos where step.id != 3 and step.factor ">" 3
 ```
+
+### 2.3 - Generate
+
+The command **generate**, in short, aims to create special artifacts.
+
+Artifact is a broad term for anything that can be useful for LMCV simulations. They can be file templates, dynamically generated file parts or anything else that needs a shortcut to create.
+
+Possible Syntaxes:
+
+```text
+$ lmcv_tools generate [artifact name]
+$ lmcv_tools generate [artifact name] [path/to/artifact]
+$ lmcv_tools generate [artifact name] [path/to/artifact] [args]
+```
+
+Implemented artifacts are listed below:
+- virtual_laminas
+
+#### 2.3.1 - Virtual Laminas
+Virtual Laminas (virtual_laminas) are a model that approximates the behavior of a Functionally Graded Material. The idea is to represent these materials as a stack of isotropic homogeneous laminas. The more laminas used, the more accurate the simulation results. However, tools like Abaqus or FAST do not have a fast and automated way to generate these laminas, so this artifact was developed as a solution.
+
+This syntax below will start a graphical interface to facilitate the process of passing arguments:
+
+```text
+$ lmcv_tools generate virtual_laminas
+```
+
+Other syntax possible is based in a long and exaustive list of required arguments:
+
+```text
+$ lmcv_tools generate virtual_laminas [path/to/artifact] [args]
+```
+
+| Parameters            | Description                          |
+| ---                   | ---                                  |
+| Laminas Count         | Total number of laminas.             |
+| Laminas Thickness     | Thinkcness of laminas.               |
+| Power Law Exponent    | Exponent of Power Law.               |
+| Micromechanical Model | Supported: voight, mori_tanaka.      |
+| Element Type          | Supported: Solid, Shell.             |
+| E1                    | Elastic Modulus of Material 1.       |
+| E2                    | Elastic Modulus of Material 2.       |
+| nu1                   | Poisson's Coefficient of Material 1. |
+| nu2                   | Poisson's Coefficient of Material 2. |
+| pho1                  | Density of Material 1.               |
+| pho2                  | Density of Material 2.               |
