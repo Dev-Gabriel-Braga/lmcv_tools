@@ -10,7 +10,7 @@ class DefaultTest(unittest.TestCase):
 
       # Gerando Artefato
       args_joined = ' '.join(args)
-      command = f'python -m lmcv_tools generate {artifact_name} {artifact_path} {args_joined}'
+      command = f'python -m lmcv_tools generate {artifact_name} {args_joined} {artifact_path}'
       code = os.system(command)
       self.assertEqual(code, 0, 'A geração falhou.')
 
