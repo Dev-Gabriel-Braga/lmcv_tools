@@ -1,0 +1,242 @@
+*Material, name=FGM-L1
+    *Density
+    1012.500,
+    *Elastic
+    374.177, 0.299
+*Material, name=FGM-L2
+    *Density
+    1037.500,
+    *Elastic
+    362.796, 0.298
+*Material, name=FGM-L3
+    *Density
+    1062.500,
+    *Elastic
+    351.754, 0.296
+*Material, name=FGM-L4
+    *Density
+    1087.500,
+    *Elastic
+    341.037, 0.295
+*Material, name=FGM-L5
+    *Density
+    1112.500,
+    *Elastic
+    330.629, 0.293
+*Material, name=FGM-L6
+    *Density
+    1137.500,
+    *Elastic
+    320.518, 0.292
+*Material, name=FGM-L7
+    *Density
+    1162.500,
+    *Elastic
+    310.691, 0.291
+*Material, name=FGM-L8
+    *Density
+    1187.500,
+    *Elastic
+    301.137, 0.289
+*Material, name=FGM-L9
+    *Density
+    1212.500,
+    *Elastic
+    291.844, 0.288
+*Material, name=FGM-L10
+    *Density
+    1237.500,
+    *Elastic
+    282.801, 0.287
+*Material, name=FGM-L11
+    *Density
+    1262.500,
+    *Elastic
+    274.000, 0.286
+*Material, name=FGM-L12
+    *Density
+    1287.500,
+    *Elastic
+    265.429, 0.285
+*Material, name=FGM-L13
+    *Density
+    1312.500,
+    *Elastic
+    257.081, 0.284
+*Material, name=FGM-L14
+    *Density
+    1337.500,
+    *Elastic
+    248.946, 0.283
+*Material, name=FGM-L15
+    *Density
+    1362.500,
+    *Elastic
+    241.017, 0.282
+*Material, name=FGM-L16
+    *Density
+    1387.500,
+    *Elastic
+    233.286, 0.281
+*Material, name=FGM-L17
+    *Density
+    1412.500,
+    *Elastic
+    225.745, 0.280
+*Material, name=FGM-L18
+    *Density
+    1437.500,
+    *Elastic
+    218.388, 0.279
+*Material, name=FGM-L19
+    *Density
+    1462.500,
+    *Elastic
+    211.208, 0.278
+*Material, name=FGM-L20
+    *Density
+    1487.500,
+    *Elastic
+    204.198, 0.277
+*Material, name=FGM-L21
+    *Density
+    1512.500,
+    *Elastic
+    197.353, 0.277
+*Material, name=FGM-L22
+    *Density
+    1537.500,
+    *Elastic
+    190.667, 0.276
+*Material, name=FGM-L23
+    *Density
+    1562.500,
+    *Elastic
+    184.134, 0.275
+*Material, name=FGM-L24
+    *Density
+    1587.500,
+    *Elastic
+    177.749, 0.274
+*Material, name=FGM-L25
+    *Density
+    1612.500,
+    *Elastic
+    171.508, 0.274
+*Material, name=FGM-L26
+    *Density
+    1637.500,
+    *Elastic
+    165.405, 0.273
+*Material, name=FGM-L27
+    *Density
+    1662.500,
+    *Elastic
+    159.435, 0.273
+*Material, name=FGM-L28
+    *Density
+    1687.500,
+    *Elastic
+    153.595, 0.272
+*Material, name=FGM-L29
+    *Density
+    1712.500,
+    *Elastic
+    147.881, 0.272
+*Material, name=FGM-L30
+    *Density
+    1737.500,
+    *Elastic
+    142.288, 0.271
+*Material, name=FGM-L31
+    *Density
+    1762.500,
+    *Elastic
+    136.812, 0.271
+*Material, name=FGM-L32
+    *Density
+    1787.500,
+    *Elastic
+    131.449, 0.271
+*Material, name=FGM-L33
+    *Density
+    1812.500,
+    *Elastic
+    126.198, 0.270
+*Material, name=FGM-L34
+    *Density
+    1837.500,
+    *Elastic
+    121.052, 0.270
+*Material, name=FGM-L35
+    *Density
+    1862.500,
+    *Elastic
+    116.011, 0.270
+*Material, name=FGM-L36
+    *Density
+    1887.500,
+    *Elastic
+    111.070, 0.270
+*Material, name=FGM-L37
+    *Density
+    1912.500,
+    *Elastic
+    106.226, 0.270
+*Material, name=FGM-L38
+    *Density
+    1937.500,
+    *Elastic
+    101.477, 0.270
+*Material, name=FGM-L39
+    *Density
+    1962.500,
+    *Elastic
+    96.820, 0.270
+*Material, name=FGM-L40
+    *Density
+    1987.500,
+    *Elastic
+    92.252, 0.270
+
+*Solid Section, elset=VirtualLaminas-1, composite, orientation=Ori-1, stack direction=3, layup=VirtualLaminas
+0.25, 3, FGM-L1, 0, Ply-1
+0.25, 3, FGM-L2, 0, Ply-2
+0.25, 3, FGM-L3, 0, Ply-3
+0.25, 3, FGM-L4, 0, Ply-4
+0.25, 3, FGM-L5, 0, Ply-5
+0.25, 3, FGM-L6, 0, Ply-6
+0.25, 3, FGM-L7, 0, Ply-7
+0.25, 3, FGM-L8, 0, Ply-8
+0.25, 3, FGM-L9, 0, Ply-9
+0.25, 3, FGM-L10, 0, Ply-10
+0.25, 3, FGM-L11, 0, Ply-11
+0.25, 3, FGM-L12, 0, Ply-12
+0.25, 3, FGM-L13, 0, Ply-13
+0.25, 3, FGM-L14, 0, Ply-14
+0.25, 3, FGM-L15, 0, Ply-15
+0.25, 3, FGM-L16, 0, Ply-16
+0.25, 3, FGM-L17, 0, Ply-17
+0.25, 3, FGM-L18, 0, Ply-18
+0.25, 3, FGM-L19, 0, Ply-19
+0.25, 3, FGM-L20, 0, Ply-20
+0.25, 3, FGM-L21, 0, Ply-21
+0.25, 3, FGM-L22, 0, Ply-22
+0.25, 3, FGM-L23, 0, Ply-23
+0.25, 3, FGM-L24, 0, Ply-24
+0.25, 3, FGM-L25, 0, Ply-25
+0.25, 3, FGM-L26, 0, Ply-26
+0.25, 3, FGM-L27, 0, Ply-27
+0.25, 3, FGM-L28, 0, Ply-28
+0.25, 3, FGM-L29, 0, Ply-29
+0.25, 3, FGM-L30, 0, Ply-30
+0.25, 3, FGM-L31, 0, Ply-31
+0.25, 3, FGM-L32, 0, Ply-32
+0.25, 3, FGM-L33, 0, Ply-33
+0.25, 3, FGM-L34, 0, Ply-34
+0.25, 3, FGM-L35, 0, Ply-35
+0.25, 3, FGM-L36, 0, Ply-36
+0.25, 3, FGM-L37, 0, Ply-37
+0.25, 3, FGM-L38, 0, Ply-38
+0.25, 3, FGM-L39, 0, Ply-39
+0.25, 3, FGM-L40, 0, Ply-40

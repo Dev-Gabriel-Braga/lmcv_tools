@@ -129,12 +129,30 @@ def pre_extract(terms: list[str]):
    # Extraindo Itens do Arquivo .pos
    extract.start(attributes, pos_path, condition, csv_path)
 
+def pre_generate(args: list[str]):
+   from ..commands import generate
+   
+   # Verificando se um Artefato foi Dado
+   if len(args) == 0:
+      raise CommandError('An Artifact must be given.', help=True)
+   
+   # Tentando Coletar Artefato e Caminho
+   artifact = args[0]
+   try:
+      path = args[1]
+   except IndexError:
+      path = None
+
+   # Iniciando Comando
+   generate.start(artifact, path, args[2:])
+
 # Relação Comando/Função
 commands = {
    'version': show_version,
    'help': show_help,
    'translate': pre_translate,
    'extract': pre_extract,
+   'generate': pre_generate
 }
 
 # Funções de Inicialização

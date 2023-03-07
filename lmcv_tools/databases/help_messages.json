@@ -6,7 +6,8 @@
             "version": "Show version",
             "help": "Show a help text. Without arguments, show this text. With a command name as argument, show a help text about this command",
             "translate": "Translate .inp file in .dat file. Example: translate [path/to/.inp]",
-            "extract": "Extract attributes from .pos file to CSV format. Example: extract [attributes] from [path/to/.pos]"
+            "extract": "Extract attributes from .pos file to CSV format. Example: extract [attributes] from [path/to/.pos]",
+            "generate": "Generate special artifacts. Example: generate [artifact name]"
          }
       }
    },
@@ -35,6 +36,30 @@
             "[path/to/.pos]": "Required argument. Relative path to .pos file",
             "[condition]": "Optional argument. Series of attribute constraints, combining attribute names, operators and test values. Supported operators: and, or, =, >, <, >=, <=, !=, in. Remembering that the symbols '>' and '<' must be encapsulated by quotes. Otherwise, they will be interpreted by the shell as redirection operators. Example: [...] where step.id '>' 5 and step.factor '<' 1.0",
             "[path/to/.csv]": "Optional argument. Relative path to .csv file. If it is not given, it will be the same as the .pos file"
+         }
+      }
+   },
+   "generate": {
+      "usage": "generate [artifact name] [path/to/artifact] [args]",
+      "topics": {
+         "Possible Arguments": {
+            "[artifact name]": "Required argument. Name of the artifact. Supported artifacts: virtual_laminas",
+            "[path/to/artifact]": "Optional argument. Relative path to artifact output files. If it is not given, it will be the file with the same name of artifact in the current directory",
+            "[args]": "Series of arguments that depend on the artifact. See the topics bellow for more details."
+         },
+         "Arguments for virtual_laminas": {
+            "[Laminas Count]": "Required integer argument",
+            "[Laminas Thickness]": "Required floatpoint argument",
+            "[Power Law Exponent]": "Required float point argument. Exponent of Power Law, a mathematical function that determines the volume fractions of the Functionally Graded Material represented by virtual laminas",
+            "[Micromechanical Model]": "Required string argument. Supported micromechanical models: voight, mori_tanaka",
+            "[Element Type]": "Required string argument. Supported element types: Solid, Shell",
+            "[Number of Integration Points]": "Required integer argument",
+            "[E1]": "Required float point argument. Elastic Modulus of Material 1",
+            "[E2]": "Required float point argument. Elastic Modulus of Material 2",
+            "[nu1]": "Required float point argument. Poisson's Coefficient of Material 1",
+            "[nu2]": "Required float point argument. Poisson's Coefficient of Material 2",
+            "[pho1]": "Required float point argument. Density of Material 1",
+            "[pho2]": "Required float point argument. Density of Material 2"
          }
       }
    }
