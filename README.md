@@ -17,7 +17,7 @@ $ pip install dist/[name of wheel file].whl
 Once installed, the basic form of the LMCV Tools commands is:
 
 ```text
-$ lmcv_tools [commands] [args]
+$ lmcv_tools [command] [args]
 ```
 
 To check the installed version, use the command below:
@@ -31,6 +31,18 @@ To get help, it's possible use the following command:
 ```text
 $ lmcv_tools help
 ```
+
+To start ***Interactive Mode***, do not type any command and then you can type multiple commands in sequence:
+
+```text
+$ lmcv_tools
+[Welcome Message]
+>> [command]
+output
+>> [other command]
+other output
+```
+
 For more complex commands, check out the detailed descriptions in the next section.
 
 ---
@@ -164,7 +176,7 @@ Other syntax possible is based in a long and exaustive list of required argument
 $ lmcv_tools generate virtual_laminas [path/to/artifact] [args]
 ```
 
-| Parameters            | Description                          |
+| Arguments             | Description                          |
 | ---                   | ---                                  |
 | Laminas Count         | Total number of laminas.             |
 | Laminas Thickness     | Thinkcness of laminas.               |
