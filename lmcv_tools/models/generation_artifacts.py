@@ -130,13 +130,15 @@ class VirtualLaminas(Artifact):
          index += 1
       
       # Gerando Lâminas no Formato Inp
+      inp_data += '*Part, name=Virtual_Part\n*Node\n    1, 1.0, 1.0, 0.0\n    2, 0.0, 1.0, 0.0\n    3, 0.0, 0.0, 0.0\n    4, 1.0, 0.0, 0.0\n*Element, type=S4R\n    1, 1, 2, 3, 4\n*Elset, elset=Virtual\n    1'
       element_type = self.element_configuration.type
       points = self.element_configuration.number_integration_points
       thickness = self.laminas_thickness
       rotation_angle = 0
-      inp_data += f'\n*{element_type} Section, elset=VirtualLaminas-1, composite, orientation=Ori-1, stack direction=3, layup=VirtualLaminas\n'
+      inp_data += f'\n*{element_type} Section, elset=Virtual, composite\n'
       for index, material in enumerate(material_names):
-         inp_data += f'{thickness}, {points}, {material}, {rotation_angle}, Ply-{index + 1}\n'
+         inp_data += f'    {thickness}, {points}, {material}, {rotation_angle}, Ply-{index + 1}\n'
+      inp_data += '*End Part'
 
       # Inseridos dados Inp no Atributo de Dados
       self.data = inp_data
