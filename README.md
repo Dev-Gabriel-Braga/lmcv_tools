@@ -94,17 +94,22 @@ $ lmcv_tools extract [atributes] from [path/to/.pos] where [condition] to [path/
 
 **Attributes** are names that represent a piece of data from a .pos file. They follow a simple pattern: "[set name].[attribute name]". The supported attributes are:
 
-| Attribute   | Meaning                                                        |
-| ---         | ---                                                            |
-| step.id     | Integer that identify analisys step.                           |
-| step.factor | Float point factor of a step.                                  |
-| node.id     | Integer that identify a node.                                  |
-| node.x      | Float point coordinate on x-axis of a node.                    |
-| node.y      | Float point coordinate on y-axis of a node.                    |
-| node.z      | Float point coordinate on z-axis of a node.                    |
-| step.node.u | Float point displacement on x-axis of a node in specific step. |
-| step.node.v | Float point displacement on y-axis of a node in specific step. |
-| step.node.w | Float point displacement on z-axis of a node in specific step. |
+| Attribute       | Meaning                                                                 |
+| ---             | ---                                                                     |
+| step.id         | Integer that identify analisys step.                                    |
+| step.factor     | Float point factor of a step.                                           |
+| node.id         | Integer that identify a node.                                           |
+| node.x          | Float point coordinate on x-axis of a node.                             |
+| node.y          | Float point coordinate on y-axis of a node.                             |
+| node.z          | Float point coordinate on z-axis of a node.                             |
+| step.node.u     | Float point displacement on x-axis of a node in specific step.          |
+| step.node.v     | Float point displacement on y-axis of a node in specific step.          |
+| step.node.w     | Float point displacement on z-axis of a node in specific step.          |
+| buckling.id     | Integer that identify analisys buckling mode.                           |
+| buckling.factor | Float point factor of a buckling mode.                                  |
+| buckling.node.u | Float point displacement on x-axis of a node in specific buckling mode. |
+| buckling.node.v | Float point displacement on y-axis of a node in specific buckling mode. |
+| buckling.node.w | Float point displacement on w-axis of a node in specific buckling mode. |
 
 All attributes that belong the same set can be related by "[set name].id" and extracted together. To do this, type them separeted by space before "from" keyword. The attributes will be related in order which they were typed. Example:
 

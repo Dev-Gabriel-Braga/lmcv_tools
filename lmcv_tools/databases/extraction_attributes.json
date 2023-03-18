@@ -51,7 +51,7 @@
       "data_type": "float",
       "related_attributes": ["step.id", "node.id"],
       "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:[+-]?\\d+\\.\\d+e[+-]\\d+)\n\n%RESULT.CASE.STEP.NODAL.DISPLACEMENT\n(?P<line>[^%]+)",
+         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.DISPLACEMENT\n(?P<line>[^%]+)",
          "line": "^(?P<node_id>\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    },
@@ -59,7 +59,7 @@
       "data_type": "float",
       "related_attributes": ["step.id", "node.id"],
       "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:[+-]?\\d+\\.\\d+e[+-]\\d+)\n\n%RESULT.CASE.STEP.NODAL.DISPLACEMENT\n(?P<line>[^%]+)",
+         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.DISPLACEMENT\n(?P<line>[^%]+)",
          "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    },
@@ -67,7 +67,47 @@
       "data_type": "float",
       "related_attributes": ["step.id", "node.id"],
       "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:[+-]?\\d+\\.\\d+e[+-]\\d+)\n\n%RESULT.CASE.STEP.NODAL.DISPLACEMENT\n(?P<line>[^%]+)",
+         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.DISPLACEMENT\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+      }
+   },
+   "buckling.id": {
+      "data_type": "int",
+      "related_attributes": [],
+      "format": {
+         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.MODES\n(?P<line>[^%]+)",
+         "line": "(?P<value>\\d+)"
+      }
+   },
+   "buckling.factor": {
+      "data_type": "float",
+      "related_attributes": ["buckling.id"],
+      "format": {
+         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.MODES\n(?P<buckling_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.BUCKLING\\.FACTOR\n(?P<line>[^%]+)",
+         "line": "(?P<value>[+-]?\\d+\\.\\d+e[+-]\\d+)"
+      }
+   },
+   "buckling.node.u": {
+      "data_type": "float",
+      "related_attributes": ["buckling.id", "node.id"],
+      "format": {
+         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.MODES\n(?P<buckling_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.BUCKLING\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+      }
+   },
+   "buckling.node.v": {
+      "data_type": "float",
+      "related_attributes": ["buckling.id", "node.id"],
+      "format": {
+         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.MODES\n(?P<buckling_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.BUCKLING\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+      }
+   },
+   "buckling.node.w": {
+      "data_type": "float",
+      "related_attributes": ["buckling.id", "node.id"],
+      "format": {
+         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.MODES\n(?P<buckling_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.BUCKLING\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
          "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    }
