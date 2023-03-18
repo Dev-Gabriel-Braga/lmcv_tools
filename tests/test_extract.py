@@ -82,6 +82,36 @@ class TestSingleAttributes(DefaultTest):
       attributes = ['step.node.w']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
+   
+   def test_buckling_id(self):
+      benchmark = ('SquarePlate', 'buckling_id')
+      attributes = ['buckling.id']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_buckling_factor(self):
+      benchmark = ('SquarePlate', 'buckling_factor')
+      attributes = ['buckling.factor']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_buckling_node_u(self):
+      benchmark = ('SquarePlate', 'buckling_node_u')
+      attributes = ['buckling.node.u']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_buckling_node_v(self):
+      benchmark = ('SquarePlate', 'buckling_node_v')
+      attributes = ['buckling.node.v']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_buckling_node_w(self):
+      benchmark = ('SquarePlate', 'buckling_node_w')
+      attributes = ['buckling.node.w']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
 
 class TestMultipleAttributes(DefaultTest):
    def test_multiple_1(self):
