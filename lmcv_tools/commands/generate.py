@@ -12,11 +12,12 @@ from ..models.custom_errors import CommandError
 # Funções de Geração de Artefatos
 def generate_virtual_laminas(
    laminas_count: int,
-   laminas_thickness: float,
+   element_type: str,
+   thickness: float,
+   number_integration_points: int,
+   adaptative_distribution: bool,
    power_law_exponent: float,
    micromechanical_model: str,
-   element_type: str,
-   number_integration_points: int,
    E1: float,
    E2: float,
    nu1: float,
@@ -38,12 +39,12 @@ def generate_virtual_laminas(
    # Instanciando Artefato de Lâminas Virtuais
    virtual_laminas = VirtualLaminas(
       laminas_count,
-      laminas_thickness,
+      thickness,
       power_law_exponent,
       element,
       model
    )
-   virtual_laminas.generate()
+   virtual_laminas.generate(adaptative_distribution)
 
    return virtual_laminas
 
@@ -69,7 +70,11 @@ def params_virtual_laminas(args: list[str]) -> dict:
          reference = dict(signature(generate_virtual_laminas).parameters)
          index = 0
          for name, param_obj in reference.items():
-            params[name] = param_obj.annotation(args.pop(0))
+            type_class = param_obj.annotation
+            if type_class is bool:
+               params[name] = False if args.pop(0) == 'False' else True
+            else:   
+               params[name] = type_class(args.pop(0))
             index += 1
       except IndexError:
          raise CommandError('Invalid number of arguments.', help=True)

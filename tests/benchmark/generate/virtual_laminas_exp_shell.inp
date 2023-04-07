@@ -19,6 +19,6 @@
 *Elset, elset=Virtual
     1
 *Shell Section, elset=Virtual, composite
-    0.25, 3, FGM-L1, 0, Ply-1
-    0.25, 3, FGM-L2, 0, Ply-2
+    2.50000000000E-01, 3, FGM-L1, 0, Ply-1
+    2.50000000000E-01, 3, FGM-L2, 0, Ply-2
 *End Part

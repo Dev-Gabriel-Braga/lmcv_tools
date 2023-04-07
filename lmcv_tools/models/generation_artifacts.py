@@ -89,14 +89,14 @@ class VirtualLaminas(Artifact):
    def __init__(
       self,
       laminas_count: int,
-      laminas_thickness: float,
+      thickness: float,
       power_law_exponent: float,
       element_configuration: ElementConfiguration,
       micromechanical_model: MicromechanicalModel
    ):
       super().__init__('virtual_laminas', 'inp')
       self.laminas_count = laminas_count
-      self.laminas_thickness = laminas_thickness
+      self.thickness = thickness
       self.power_law_exponent = power_law_exponent
       self.element_configuration = element_configuration
       self.micromechanical_model = micromechanical_model
@@ -104,16 +104,61 @@ class VirtualLaminas(Artifact):
    def volume_fraction(self, z: float):
       return (1 - z) ** self.power_law_exponent
 
-   def generate(self):
+   def equally_spaced_points(self):
+      step = 1 / self.laminas_count
+      points = [step / 2 + i * step for i in range(self.laminas_count)]
+      return points
+
+   def adapted_points(self):
+      # Variáveis Importantes
+      N = self.power_law_exponent
+      points = list()
+      slope = lambda z: abs(-N * (1 - z) ** (N - 1))
+      min_step = 1e-06
+      max_step = 2e-02
+
+      # Caso Especial (Grau 0)
+      if N == 0:
+         return [0.5]
+
+      # Defindo Ponto Inicial
+      z = max_step
+      if N < 1:
+         z = min_step
+      points.append(z)
+
+      while True:
+         # Calculando Próximo Ponto com base na Inclinação no Ponto Atual
+         step = max_step / slope(z)
+
+         # Verificando se o Passo está no Intervalo
+         if step > max_step:
+            step = max_step
+         elif step < min_step:
+            step = min_step
+         
+         # Incrementando e Adicionando Ponto
+         z += step
+         if z >= 1:
+            break
+         points.append(z)
+
+      return points
+
+   def generate(self, adaptative_distribution: bool = False):
       # Inicializando Dados
       inp_data = ''
+
+      # Gerando Pontos para Lâminas
+      if adaptative_distribution:
+         z_points = self.adapted_points()
+      else:
+         z_points = self.equally_spaced_points()
 
       # Gerando Materiais no Formato Inp
       material_names = list()
       index = 1
-      step = 1 / self.laminas_count
-      z = step / 2
-      while z < 1:
+      for z in z_points:
          # Gerando e Armazando Nome de Material
          name =  f'FGM-L{index}'
          material_names.append(name)
@@ -126,7 +171,6 @@ class VirtualLaminas(Artifact):
          # Adicionando Dados
          inp_data += f'*Material, name={name}\n    *Density\n    {pho:.3f},\n    *Elastic\n    {E:.3f}, {nu:.3f}\n'
          
-         z += step
          index += 1
       
       # Preparando para Escrever Lâminas
@@ -135,15 +179,21 @@ class VirtualLaminas(Artifact):
       points = self.element_configuration.number_integration_points
       rotation_angle = 0
 
-      # Adaptando Espessura ao Tipo Elemento
-      thickness = self.laminas_thickness
-      if self.element_configuration.type == 'Shell':
-         thickness /= self.laminas_count
-
-      # Escrevendo Lâmina por Lâmina   
+      # Escrevendo Lâmina por Lâmina
       inp_data += f'\n*{element_type} Section, elset=Virtual, composite\n'
-      for index, material in enumerate(material_names):
-         inp_data += f'    {thickness}, {points}, {material}, {rotation_angle}, Ply-{index + 1}\n'
+      if adaptative_distribution:
+         z_points.append(1)
+         for index, material in zip(range(0, len(z_points) - 1), material_names):
+            thickness = 2 * (z_points[index + 1] - z_points[index]) * self.thickness
+            inp_data += f'    {thickness:.11E}, {points}, {material}, {rotation_angle}, Ply-{index + 1}\n'
+      else:
+         # Adaptando Espessura ao Tipo Elemento
+         thickness = self.thickness
+         if self.element_configuration.type == 'Shell':
+            thickness /= self.laminas_count
+         
+         for index, material in enumerate(material_names):
+            inp_data += f'    {thickness:.11E}, {points}, {material}, {rotation_angle}, Ply-{index + 1}\n'
       inp_data += '*End Part'
 
       # Inseridos dados Inp no Atributo de Dados
