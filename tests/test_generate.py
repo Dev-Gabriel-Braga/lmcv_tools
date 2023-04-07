@@ -27,6 +27,20 @@ class DefaultTest(unittest.TestCase):
       os.remove(artifact_path)
 
 class TestVirtualLaminas(DefaultTest):
+   def test_shell_element(self):
+      name = 'virtual_laminas'
+      ext = 'inp'
+      test_id = 'shell'
+      args = ['2', '0.5', '1.0', 'voight', 'Shell', '3', '380.0', '90.0', '0.30', '0.27', '1000', '2000']
+      self.default_test(name, ext, test_id, args)
+
+   def test_solid_element(self):
+      name = 'virtual_laminas'
+      ext = 'inp'
+      test_id = 'solid'
+      args = ['2', '0.5', '1.0', 'voight', 'Solid', '3', '380.0', '90.0', '0.30', '0.27', '1000', '2000']
+      self.default_test(name, ext, test_id, args)
+
    def test_voight_model(self):
       name = 'virtual_laminas'
       ext = 'inp'

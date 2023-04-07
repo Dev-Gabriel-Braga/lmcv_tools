@@ -53,7 +53,7 @@ class MicromechanicalModel:
       E = (9 * K * G) / (3 * K + G)
       nu = (3 * K - 2 * G) / (2 * (3 * K + G))
 
-      # Densidade Calulada pelo Modelo de Voight
+      # Densidade Calculada pelo Modelo de Voight
       pho = V1 * M[0].pho + V2 * M[1].pho
 
       return E, nu, pho
@@ -129,12 +129,18 @@ class VirtualLaminas(Artifact):
          z += step
          index += 1
       
-      # Gerando Lâminas no Formato Inp
+      # Preparando para Escrever Lâminas
       inp_data += '*Part, name=Virtual_Part\n*Node\n    1, 1.0, 1.0, 0.0\n    2, 0.0, 1.0, 0.0\n    3, 0.0, 0.0, 0.0\n    4, 1.0, 0.0, 0.0\n*Element, type=S4R\n    1, 1, 2, 3, 4\n*Elset, elset=Virtual\n    1'
       element_type = self.element_configuration.type
       points = self.element_configuration.number_integration_points
-      thickness = self.laminas_thickness
       rotation_angle = 0
+
+      # Adaptando Espessura ao Tipo Elemento
+      thickness = self.laminas_thickness
+      if self.element_configuration.type == 'Shell':
+         thickness /= self.laminas_count
+
+      # Escrevendo Lâmina por Lâmina   
       inp_data += f'\n*{element_type} Section, elset=Virtual, composite\n'
       for index, material in enumerate(material_names):
          inp_data += f'    {thickness}, {points}, {material}, {rotation_angle}, Ply-{index + 1}\n'

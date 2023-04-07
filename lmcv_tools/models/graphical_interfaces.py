@@ -136,13 +136,13 @@ class PromptGenerateVirtualLamina:
       self.entry['element_type'].bind('<<ComboboxSelected>>', self.change_element_type)
       self.entry['element_type'].grid(row = 2, column = 0, sticky = 'w')
 
-      self.label['absolute_thickness'] = Label(
+      self.label['total_thickness'] = Label(
          master = self.frame['simulation_params'], 
-         text = 'Laminas Absolute\nThickness:',
+         text = 'Laminas Total\nThickness:',
          padding = (0, 5, 10, 5)
       )
 
-      self.entry['absolute_thickness'] = Spinbox(
+      self.entry['total_thickness'] = Spinbox(
          master = self.frame['simulation_params'], 
          from_ = 0.1,
          to = 100,
@@ -338,7 +338,7 @@ class PromptGenerateVirtualLamina:
 
       # Verificando Espessura com Base no Tipo do Elemento
       if element_type == 'Shell':
-         if (thickness := entries['absolute_thickness'].get()) == '':
+         if (thickness := entries['total_thickness'].get()) == '':
             return messenger.show('"Laminas Absolute Thickness" is required.')
          self.params['laminas_thickness'] = float(thickness)
       else:
@@ -357,7 +357,7 @@ class PromptGenerateVirtualLamina:
       # Deletando Entradas Verificadas
       del entries['element_type']
       del entries['laminas_per_element']
-      del entries['absolute_thickness']
+      del entries['total_thickness']
       del entries['micromechanical_model']
       del entries['path']
 
@@ -381,10 +381,10 @@ class PromptGenerateVirtualLamina:
       if value == 'Shell':
          self.label['laminas_per_element'].grid_forget()
          self.entry['laminas_per_element'].grid_forget()
-         self.label['absolute_thickness'].grid(row = 1, column = 1, sticky = 'w')
-         self.entry['absolute_thickness'].grid(row = 2, column = 1, sticky = 'w')
+         self.label['total_thickness'].grid(row = 1, column = 1, sticky = 'w')
+         self.entry['total_thickness'].grid(row = 2, column = 1, sticky = 'w')
       else:
-         self.label['absolute_thickness'].grid_forget()
-         self.entry['absolute_thickness'].grid_forget()
+         self.label['total_thickness'].grid_forget()
+         self.entry['total_thickness'].grid_forget()
          self.label['laminas_per_element'].grid(row = 1, column = 1, sticky = 'w')
          self.entry['laminas_per_element'].grid(row = 2, column = 1, sticky = 'w')
