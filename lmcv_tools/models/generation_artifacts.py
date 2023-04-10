@@ -92,7 +92,8 @@ class VirtualLaminas(Artifact):
       thickness: float,
       power_law_exponent: float,
       element_configuration: ElementConfiguration,
-      micromechanical_model: MicromechanicalModel
+      micromechanical_model: MicromechanicalModel,
+      smart: bool = False
    ):
       super().__init__('virtual_laminas', 'inp')
       self.laminas_count = laminas_count
@@ -100,73 +101,118 @@ class VirtualLaminas(Artifact):
       self.power_law_exponent = power_law_exponent
       self.element_configuration = element_configuration
       self.micromechanical_model = micromechanical_model
+      self.smart = smart
    
    def volume_fraction(self, z: float):
       return (1 - z) ** self.power_law_exponent
+   
+   def z_coordinate(self, V: float):
+      return 1 - V ** (1 / self.power_law_exponent)
 
-   def equally_spaced_points(self):
+   def equally_thickness_laminas(self):
       step = 1 / self.laminas_count
       points = [step / 2 + i * step for i in range(self.laminas_count)]
-      return points
+      fractions = [self.volume_fraction(z) for z in points]
+      if self.element_configuration.type == 'Solid':
+         thickness = [self.thickness for _ in range(self.laminas_count)]
+      else:
+         thickness = [step * self.thickness for _ in range(self.laminas_count)]
+      return fractions, thickness
 
-   def adapted_points(self):
-      # Variáveis Importantes
-      N = self.power_law_exponent
-      points = list()
-      slope = lambda z: abs(-N * (1 - z) ** (N - 1))
-      min_step = 1e-06
-      max_step = 2e-02
+   def smart_laminas(self):
+      # Variáveis Iniciais
+      n = self.laminas_count
+      p = self.power_law_exponent
+      V = self.volume_fraction
+      z = self.z_coordinate
+      fractions_z = list()
+      fractions_V = list()
+      thickness_z = list()
+      thickness_V = list()
+      
+      # Calculando Z de Referência
+      if p == 1:
+         z_ref = 0.5
+      else:
+         z_ref = 1 - p ** (-1 / (p - 1))
+      
+      # Decidindo se a Região de Prioridade z está à Esquerda ou Direita
+      V_ref = V(z_ref)
+      slope_tendency = p * (p - 1) * (1 - z_ref) ** (p - 2)
+      if slope_tendency > 0:
+         l_V = 1 - V_ref
+         l_z = 1 - z_ref
+      else:
+         l_V = V_ref
+         l_z = z_ref
 
-      # Caso Especial (Grau 0)
-      if N == 0:
-         return [0.5]
+      # Parâmetros da Região de Prioridade V
+      n_V = round(l_z * n)
+      step_V = l_V / n_V
+      if slope_tendency > 0:
+         z_0 = 0
+         V_i = 1 - step_V / 2
+      else:
+         z_0 = z_ref
+         V_i = V_ref - step_V / 2
 
-      # Defindo Ponto Inicial
-      z = max_step
-      if N < 1:
-         z = min_step
-      points.append(z)
+      # Gerando Laminas da Região de Prioridade V 
+      for _ in range(n_V):
+         # Calculando Espessura Variável
+         h_i = z(V_i - step_V / 2) - z_0
 
-      while True:
-         # Calculando Próximo Ponto com base na Inclinação no Ponto Atual
-         step = max_step / slope(z)
+         # Registrando Informações
+         fractions_V.append(V_i)
+         thickness_V.append(h_i)
 
-         # Verificando se o Passo está no Intervalo
-         if step > max_step:
-            step = max_step
-         elif step < min_step:
-            step = min_step
-         
-         # Incrementando e Adicionando Ponto
-         z += step
-         if z >= 1:
-            break
-         points.append(z)
+         # Atualizando Fração de Volume e Referência para Espessura
+         V_i -= step_V
+         z_0 += h_i
+      
+      # Parâmetros da Região de Prioridade z
+      n_z = n - n_V
+      step_z = l_z / n_z
+      if slope_tendency > 0:
+         z_i = z_ref + step_z / 2
+      else:
+         z_i = step_z / 2
 
-      return points
+      # Gerando Laminas da Região de Prioridade z
+      for _ in range(n_z):
+         fractions_z.append(V(z_i))
+         thickness_z.append(step_z)
+         z_i += step_z
+      
+      # Mesclando Regiões
+      if slope_tendency > 0:
+         fractions = fractions_V + fractions_z
+         thickness = thickness_V + thickness_z
+      else:
+         fractions = fractions_z + fractions_V
+         thickness = thickness_z + thickness_V
 
-   def generate(self, adaptative_distribution: bool = False):
+      # Corrigindo Espessura
+      thickness = [t * self.thickness for t in thickness]
+
+      return fractions, thickness
+
+   def generate(self):
       # Inicializando Dados
       inp_data = ''
 
-      # Gerando Pontos para Lâminas
-      if adaptative_distribution:
-         z_points = self.adapted_points()
-      else:
-         z_points = self.equally_spaced_points()
+      # Gerados Dados de Lâminas
+      laminas = self.smart_laminas() if self.smart else self.equally_thickness_laminas()
 
-      # Gerando Materiais no Formato Inp
+      # Escrevendo Materiais
       material_names = list()
       index = 1
-      for z in z_points:
+      for V in laminas[0]:
          # Gerando e Armazando Nome de Material
          name =  f'FGM-L{index}'
          material_names.append(name)
 
          # Homogeneizando Propriedades
-         volume_fractions = [self.volume_fraction(z)]
-         volume_fractions.append(1 - volume_fractions[0])
-         E, nu, pho = self.micromechanical_model.homogenize(volume_fractions)
+         E, nu, pho = self.micromechanical_model.homogenize([V, 1 - V])
 
          # Adicionando Dados
          inp_data += f'*Material, name={name}\n    *Density\n    {pho:.3f},\n    *Elastic\n    {E:.3f}, {nu:.3f}\n'
@@ -176,24 +222,15 @@ class VirtualLaminas(Artifact):
       # Preparando para Escrever Lâminas
       inp_data += '*Part, name=Virtual_Part\n*Node\n    1, 1.0, 1.0, 0.0\n    2, 0.0, 1.0, 0.0\n    3, 0.0, 0.0, 0.0\n    4, 1.0, 0.0, 0.0\n*Element, type=S4R\n    1, 1, 2, 3, 4\n*Elset, elset=Virtual\n    1'
       element_type = self.element_configuration.type
-      points = self.element_configuration.number_integration_points
+      int_points = self.element_configuration.number_integration_points
       rotation_angle = 0
 
       # Escrevendo Lâmina por Lâmina
       inp_data += f'\n*{element_type} Section, elset=Virtual, composite\n'
-      if adaptative_distribution:
-         z_points.append(1)
-         for index, material in zip(range(0, len(z_points) - 1), material_names):
-            thickness = 2 * (z_points[index + 1] - z_points[index]) * self.thickness
-            inp_data += f'    {thickness:.11E}, {points}, {material}, {rotation_angle}, Ply-{index + 1}\n'
-      else:
-         # Adaptando Espessura ao Tipo Elemento
-         thickness = self.thickness
-         if self.element_configuration.type == 'Shell':
-            thickness /= self.laminas_count
-         
-         for index, material in enumerate(material_names):
-            inp_data += f'    {thickness:.11E}, {points}, {material}, {rotation_angle}, Ply-{index + 1}\n'
+      index = 1
+      for h, material in zip(laminas[1], material_names):
+         inp_data += f'    {h:.11E}, {int_points}, {material}, {rotation_angle}, Ply-{index}\n'
+         index += 1
       inp_data += '*End Part'
 
       # Inseridos dados Inp no Atributo de Dados

@@ -36,35 +36,35 @@ class PromptGenerateVirtualLamina:
       self.style.configure('title.TLabel', font = ('sans-serif', 14, 'italic'))
 
       # Definindo Layout
-      self.layout_simulation_params()
+      self.layout_laminar_params()
       self.layout_grading_params()
       self.layout_materials_params()
       self.layout_action()
    
-   def layout_simulation_params(self):
-      self.frame['simulation_params'] = Frame(
+   def layout_laminar_params(self):
+      self.frame['laminar_params'] = Frame(
          master = self.root,
          padding = (10, 10),
       )
-      self.frame['simulation_params'].pack(fill = 'x')
+      self.frame['laminar_params'].pack(fill = 'x')
 
-      self.label['title_simulation'] = Label(
-         master = self.frame['simulation_params'],
-         text = 'Simulation Parameters',
+      self.label['title_laminar'] = Label(
+         master = self.frame['laminar_params'],
+         text = 'Laminar Parameters',
          style = 'title.TLabel',
          padding = (0, 0, 0, 10),
       )
-      self.label['title_simulation'].grid(row = 0, columnspan = 4, sticky = 'ws')
+      self.label['title_laminar'].grid(row = 0, columnspan = 4, sticky = 'ws')
 
       self.label['laminas_count'] = Label(
-         master = self.frame['simulation_params'], 
+         master = self.frame['laminar_params'], 
          text = 'Laminas Count:',
          padding = (0, 5, 10, 5),
       )
       self.label['laminas_count'].grid(row = 1, column = 0, sticky = 'w')
 
       self.entry['laminas_count'] = Spinbox(
-         master = self.frame['simulation_params'], 
+         master = self.frame['laminar_params'], 
          from_ = 1,
          to = 100.0,
          width = 3,
@@ -73,14 +73,14 @@ class PromptGenerateVirtualLamina:
       self.entry['laminas_count'].grid(row = 1, column = 1, sticky = 'w')
 
       self.label['element_type'] = Label(
-         master = self.frame['simulation_params'],
+         master = self.frame['laminar_params'],
          text = 'Element Type: ',
          padding = (0, 5, 0, 5),
       )
       self.label['element_type'].grid(row = 2, column = 0, sticky = 'w')
 
       self.entry['element_type'] = Combobox(
-         master = self.frame['simulation_params'],
+         master = self.frame['laminar_params'],
          state = 'readonly',
          values = ['Solid', 'Shell'],
          font = self.default_font,
@@ -90,13 +90,13 @@ class PromptGenerateVirtualLamina:
       self.entry['element_type'].grid(row = 2, column = 1, sticky = 'w')
 
       self.label['total_thickness'] = Label(
-         master = self.frame['simulation_params'], 
+         master = self.frame['laminar_params'], 
          text = 'Laminas Total\nThickness:',
          padding = (0, 5, 10, 5)
       )
 
       self.entry['total_thickness'] = Spinbox(
-         master = self.frame['simulation_params'], 
+         master = self.frame['laminar_params'], 
          from_ = 0.1,
          to = 100,
          increment = 0.1,
@@ -105,13 +105,13 @@ class PromptGenerateVirtualLamina:
       )
 
       self.label['total_elements'] = Label(
-         master = self.frame['simulation_params'], 
+         master = self.frame['laminar_params'], 
          text = 'Total Elements\nin Thickness:',
          padding = (0, 5, 10, 5)
       )
 
       self.entry['total_elements'] = Spinbox(
-         master = self.frame['simulation_params'], 
+         master = self.frame['laminar_params'], 
          from_ = 1,
          to = 100,
          increment = 1,
@@ -120,14 +120,14 @@ class PromptGenerateVirtualLamina:
       )
 
       self.label['number_integration_points'] = Label(
-         master = self.frame['simulation_params'], 
-         text = 'Number of Integration\nPoints:',
+         master = self.frame['laminar_params'], 
+         text = 'Number of Integration\nPoints per Lamina:',
          padding = (0, 5, 10, 5)
       )
       self.label['number_integration_points'].grid(row = 4, column = 0, sticky = 'w')
 
       self.entry['number_integration_points'] = Spinbox(
-         master = self.frame['simulation_params'], 
+         master = self.frame['laminar_params'], 
          from_ = 1,
          to = 15,
          increment = 1,
@@ -136,12 +136,12 @@ class PromptGenerateVirtualLamina:
       )
       self.entry['number_integration_points'].grid(row = 4, column = 1, sticky = 'w')
 
-      self.entry['adaptative_distribution'] = Checkbutton(
-         master = self.frame['simulation_params'],
-         text = "Adaptative Distribution",
-         command = self.change_distribution
+      self.entry['smart'] = Checkbutton(
+         master = self.frame['laminar_params'],
+         text = "Smart Laminas",
+         command = self.check_smart_laminas
       )
-      self.entry['adaptative_distribution'].grid(row = 5, column = 0, sticky = 'w')
+      self.entry['smart'].grid(row = 5, column = 0, sticky = 'w')
 
    def layout_grading_params(self):
       self.frame['grading_params'] = Frame(
@@ -360,7 +360,7 @@ class PromptGenerateVirtualLamina:
       self.params['micromechanical_model'] = micromechanical_model
 
       # Verificando se a Distribuição deve ser Adaptativa
-      self.params['adaptative_distribution'] = 'selected' in entries['adaptative_distribution'].state()
+      self.params['smart'] = 'selected' in entries['smart'].state()
 
       # Atribuindo Caminho do Arquivo
       self.params['path'] = entries['path'].get().strip()
@@ -370,7 +370,7 @@ class PromptGenerateVirtualLamina:
       del entries['total_elements']
       del entries['total_thickness']
       del entries['micromechanical_model']
-      del entries['adaptative_distribution']
+      del entries['smart']
       del entries['path']
 
       # Verificando Demais Entradas
@@ -388,19 +388,13 @@ class PromptGenerateVirtualLamina:
       # Terminando Interface
       self.root.destroy()
    
-   def change_distribution(self):
-      state = self.entry['adaptative_distribution'].state()
+   def check_smart_laminas(self):
+      state = self.entry['smart'].state()
       if 'selected' in state:
-         self.label['laminas_count'].grid_forget()
-         self.entry['laminas_count'].grid_forget()
-         self.entry['laminas_count'].set(1)
          self.entry['total_elements'].set(1)
          self.entry['total_elements'].config(state = 'disabled')
-         
       else:
-         self.label['laminas_count'].grid(row = 1, column = 0, sticky = 'w')
-         self.entry['laminas_count'].grid(row = 1, column = 1, sticky = 'w')
-
+         self.entry['total_elements'].config(state = 'enabled')
 
    def change_element_type(self, e):
       value = self.entry['element_type'].get()

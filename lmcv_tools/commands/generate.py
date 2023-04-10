@@ -15,7 +15,6 @@ def generate_virtual_laminas(
    element_type: str,
    thickness: float,
    number_integration_points: int,
-   adaptative_distribution: bool,
    power_law_exponent: float,
    micromechanical_model: str,
    E1: float,
@@ -23,7 +22,8 @@ def generate_virtual_laminas(
    nu1: float,
    nu2: float,
    pho1: float,
-   pho2: float
+   pho2: float,
+   smart: bool
 ) -> VirtualLaminas:
    # Instanciando Configuração do Elemento
    element = ElementConfiguration(element_type, number_integration_points)
@@ -42,9 +42,10 @@ def generate_virtual_laminas(
       thickness,
       power_law_exponent,
       element,
-      model
+      model,
+      smart
    )
-   virtual_laminas.generate(adaptative_distribution)
+   virtual_laminas.generate()
 
    return virtual_laminas
 
