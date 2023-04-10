@@ -180,16 +180,17 @@ Other syntax possible is based in a long and exaustive list of required argument
 $ lmcv_tools generate virtual_laminas [args] [path/to/artifact]
 ```
 
-| Arguments             | Description                          |
-| ---                   | ---                                  |
-| Laminas Count         | Total number of laminas.             |
-| Laminas Thickness     | Thinkcness of laminas.               |
-| Power Law Exponent    | Exponent of Power Law.               |
-| Micromechanical Model | Supported: voight, mori_tanaka.      |
-| Element Type          | Supported: Solid, Shell.             |
-| E1                    | Elastic Modulus of Material 1.       |
-| E2                    | Elastic Modulus of Material 2.       |
-| nu1                   | Poisson's Coefficient of Material 1. |
-| nu2                   | Poisson's Coefficient of Material 2. |
-| pho1                  | Density of Material 1.               |
-| pho2                  | Density of Material 2.               |
+| Parameters            | Description                                          |
+| ---                   | ---                                                  |
+| Laminas Count         | Total number of laminas.                             |
+| Laminas Thickness     | Thinkcness of laminas.                               |
+| Power Law Exponent    | Exponent of Power Law.                               |
+| Micromechanical Model | Supported: voight, mori_tanaka.                      |
+| Element Type          | Supported: Solid, Shell.                             |
+| E1                    | Elastic Modulus of Material 1.                       |
+| E2                    | Elastic Modulus of Material 2.                       |
+| nu1                   | Poisson's Coefficient of Material 1.                 |
+| nu2                   | Poisson's Coefficient of Material 2.                 |
+| pho1                  | Density of Material 1.                               |
+| pho2                  | Density of Material 2.                               |
+| Smart Laminas         | If True, a new smart generation method will be used. |

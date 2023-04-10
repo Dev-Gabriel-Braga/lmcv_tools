@@ -27,16 +27,44 @@ class DefaultTest(unittest.TestCase):
       os.remove(artifact_path)
 
 class TestVirtualLaminas(DefaultTest):
+   def test_shell_element(self):
+      name = 'virtual_laminas'
+      ext = 'inp'
+      test_id = 'shell'
+      args = ['2', 'Shell', '0.5', '3', '1.0', 'voight', '380.0', '90.0', '0.30', '0.27', '1000', '2000', 'False']
+      self.default_test(name, ext, test_id, args)
+
+   def test_solid_element(self):
+      name = 'virtual_laminas'
+      ext = 'inp'
+      test_id = 'solid'
+      args = ['2', 'Solid', '0.5', '3', '1.0', 'voight', '380.0', '90.0', '0.30', '0.27', '1000', '2000', 'False']
+      self.default_test(name, ext, test_id, args)
+
    def test_voight_model(self):
       name = 'virtual_laminas'
       ext = 'inp'
       test_id = 'voight'
-      args = ['40', '0.25', '1.0', 'voight', 'Solid', '3', '380.0', '90.0', '0.30', '0.27', '1000', '2000']
+      args = ['40', 'Solid', '0.25', '3', '1.0', 'voight', '380.0', '90.0', '0.30', '0.27', '1000', '2000', 'False']
       self.default_test(name, ext, test_id, args)
    
    def test_mori_tanaka_model(self):
       name = 'virtual_laminas'
       ext = 'inp'
       test_id = 'mori_tanaka'
-      args = ['40', '0.25', '1.0', 'mori_tanaka', 'Solid', '3', '380.0', '90.0', '0.30', '0.27', '1000', '2000']
+      args = ['40', 'Solid', '0.25', '3', '1.0', 'mori_tanaka', '380.0', '90.0', '0.30', '0.27', '1000', '2000', 'False']
+      self.default_test(name, ext, test_id, args)
+   
+   def test_smart_laminas_1(self):
+      name = 'virtual_laminas'
+      ext = 'inp'
+      test_id = 'smart_1'
+      args = ['100', 'Shell', '3.5', '3', '0.2', 'voight', '380.0', '90.0', '0.30', '0.27', '1000', '2000', 'True']
+      self.default_test(name, ext, test_id, args)
+   
+   def test_smart_laminas_2(self):
+      name = 'virtual_laminas'
+      ext = 'inp'
+      test_id = 'smart_2'
+      args = ['100', 'Shell', '3.5', '3', '5', 'voight', '380.0', '90.0', '0.30', '0.27', '1000', '2000', 'True']
       self.default_test(name, ext, test_id, args)
