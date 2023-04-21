@@ -70,20 +70,25 @@ def show_help(args: list[str] = []):
 def pre_translate(file_paths: list[str]):
    from ..commands import translate
 
-   # Verificando Path do .inp
+   # Verificando Path do Input
    try:
-      inp_path = file_paths[0]
+      input_path = file_paths[0]
    except IndexError:
-      raise CommandError('The Path to .inp file is required.')
+      raise CommandError('An Input File Path is required.')
 
-   # Verificando Path do .dat
+   # Verificando Extensão do Output
    try:
-      dat_path = file_paths[1]
+      if 'to' != file_paths[1]:
+         raise CommandError('"to" keyword after Input File Path is required.')
    except IndexError:
-      dat_path = inp_path[:-3] + 'dat'
+      raise CommandError('"to" keyword after Input File Path is required.')
+   try:
+      output_extension = file_paths[2]
+   except IndexError:
+      raise CommandError('An Extension for Output File after "to" keyword is required.')
    
-   # Traduzindo Arquivo .inp
-   translate.start(inp_path, dat_path)
+   # Iniciando Tradução
+   translate.start(input_path, output_extension)
 
 def pre_extract(terms: list[str]):
    from ..commands import extract

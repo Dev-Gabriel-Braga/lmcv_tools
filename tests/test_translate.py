@@ -2,29 +2,33 @@ import unittest
 import os
 
 class DefaultTest(unittest.TestCase):
-   def default_test(self, benchmark_name: str):
+   def default_test(self, benchmark_name: str, input_extension: str, output_extension: str):
       # Definindo paths
-      inp_path = 'tests/benchmark/translate/' + benchmark_name + '.inp'
-      dat_path = inp_path[:-3] + 'dat'
-      exp_path = inp_path[:-4] + '_exp.dat'
+      benchmark_name = 'tests/benchmark/translate/' + benchmark_name
+      input_path = benchmark_name + input_extension
+      output_path = benchmark_name + output_extension
+      exp_path = input_path[:-4] + '_exp' + output_extension
 
       # Traduzindo Benchmark
-      code = os.system(f'python -m lmcv_tools translate {inp_path}')
+      code = os.system(f'python -m lmcv_tools translate {input_path} to {output_extension}')
       self.assertEqual(code, 0, 'A tradução falhou.')
 
       # Comparando Tradução com o Resultado Esperado
-      dat_file = open(dat_path, 'r')
+      output_file = open(output_path, 'r')
       exp_file = open(exp_path, 'r')
-      dat_data = dat_file.read()
+      output_data = output_file.read()
       exp_data = exp_file.read()
-      dat_file.close()
+      output_file.close()
       exp_file.close()
-      self.assertEqual(dat_data, exp_data, 'A tradução está incorreta.')
+      self.assertEqual(output_data, exp_data, 'A tradução está incorreta.')
 
-      # Removendo Arquivo .dat Gerado
-      os.remove(dat_path)
+      # Removendo Arquivo Gerado
+      os.remove(output_path)
 
-class Test2D(DefaultTest):
+class Test_inp_to_dat(DefaultTest):
+   def default_test(self, benchmark_name: str):
+      super().default_test(benchmark_name, '.inp', '.dat')
+
    def test_triangle_S3_1x1(self):
       self.default_test('Triangle_S3_1x1')
 
@@ -52,10 +56,9 @@ class Test2D(DefaultTest):
    def test_circle_S3_S4R_4x4(self):
       self.default_test('Circle_S3_S4R_4x4')
 
-   def test_complex_part_S8R_2x2(self):
+   def test_complex_part_S8R(self):
       self.default_test('ComplexPart_S8R')
 
-class Test3D(DefaultTest):
    def test_cube_C3D8_1x1x1(self):
       self.default_test('Cube_C3D8_1x1x1')
 
