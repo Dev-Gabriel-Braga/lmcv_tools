@@ -56,20 +56,30 @@ Considering that the routine activities for which LMCV Tools was developed are q
 
 ### 2.1 - Translate
 
-The command **translate**, in short, aims to convert .inp files created by Abaqus in .dat files for FAST.
-
-Abaqus is a suite for Finite Element Analysis (FEA) developed by "Dassault Systèmes", while FAST is a console based FEA tool developed by "Laboratório de Mecânica Computacional e Visualização" of "Universidade Federal do Ceará" (UFC). Both of these softwares can simulate complex problems, but FAST has a clear disadvantage: differently of Abaqus, it hasn't a native GUI to generate its meshes. With that in mind, this command specifically seeks to translate meshes generated in Abaqus and exported in .inp format into meshes in .dat format to be used in FAST simulations.
+The command **translate**, in short, aims to convert different types of files used in LMCV.
 
 Its usage is quite simple:
 
 ```text
-$ lmcv_tools translate [relative path to .inp file]
+$ lmcv_tools translate [path/to/file] to [extension]
 ```
 
-If you need to specify the .dat output path, another possible way is:
+### 2.1.1 - Translate .inp to .dat
 
+Abaqus is a suite for Finite Element Analysis (FEA) developed by "Dassault Systèmes", while FAST is a console based FEA tool developed by "Laboratório de Mecânica Computacional e Visualização" of "Universidade Federal do Ceará" (UFC). Both of these softwares can simulate complex problems, but FAST has a clear disadvantage: differently of Abaqus, it hasn't a native GUI to generate its meshes. With that in mind, this command specifically seeks to translate meshes generated in Abaqus and exported in .inp format into meshes in .dat format to be used in FAST simulations.
+
+Example:
 ```text
-$ lmcv_tools translate [relative path to .inp file] [relative path to .dat file]
+$ lmcv_tools translate Job-1.inp to .dat
+```
+
+### 2.1.2 - Translate .dat to .svg
+
+Articles for scientific publications in the LMCV study field generally require images of the used meshes. Generating bitmat images in PNG format is a valid possibility, but for very discretized meshes this approach results in loss of details. Thinking about it, this command translates .dat files of 2D meshes to the SVG (Scalable Vector Graphics) image format, which does not lose quality with zoom (perfect for meshes with many elements).
+
+Example:
+```text
+$ lmcv_tools translate Plate.dat to .svg
 ```
 
 ### 2.2 - Extract
