@@ -4,57 +4,57 @@
             "S3": {
                 "theory": "ShallowShell",
                 "geometry": "Triangle",
-                "order": 1,
+                "grade": 1,
                 "n_nodes": 3
             },
             "STRI65": {
                 "theory": "ShallowShell",
                 "geometry": "Triangle",
-                "order": 2,
+                "grade": 2,
                 "n_nodes": 6
             },
             "S4": {
                 "theory": "ShallowShell",
                 "geometry": "Quadrilateral",
-                "order": 1,
+                "grade": 1,
                 "n_nodes": 4
             },
             "S4R": {
                 "theory": "ShallowShell",
                 "geometry": "Quadrilateral",
-                "order": 1,
+                "grade": 1,
                 "n_nodes": 4
             },
             "S8": {
                 "theory": "ShallowShell",
                 "geometry": "Quadrilateral",
-                "order": 2,
+                "grade": 2,
                 "n_nodes": 8
             },
             "S8R": {
                 "theory": "ShallowShell",
                 "geometry": "Quadrilateral",
-                "order": 2,
+                "grade": 2,
                 "n_nodes": 8
             },
             "C3D8": {
                 "geometry": "Hexahedron",
-                "order": 1,
+                "grade": 1,
                 "n_nodes": 8
             },
             "C3D8R": {
                 "geometry": "Hexahedron",
-                "order": 1,
+                "grade": 1,
                 "n_nodes": 8
             },
             "C3D20": {
                 "geometry": "Hexahedron",
-                "order": 2,
+                "grade": 2,
                 "n_nodes": 20
             },
             "C3D20R": {
                 "geometry": "Hexahedron",
-                "order": 2,
+                "grade": 2,
                 "n_nodes": 20
             }
         }
@@ -63,32 +63,32 @@
         "elements": {
             "T3": {
                 "geometry": "Triangle",
-                "order": 1,
+                "grade": 1,
                 "n_nodes": 3
             },
             "T6": {
                 "geometry": "Triangle",
-                "order": 2,
+                "grade": 2,
                 "n_nodes": 6
             },
             "Q4": {
                 "geometry": "Quadrilateral",
-                "order": 1,
+                "grade": 1,
                 "n_nodes": 4
             },
             "Q8": {
                 "geometry": "Quadrilateral",
-                "order": 2,
+                "grade": 2,
                 "n_nodes": 8
             },
             "BRICK8": {
                 "geometry": "Hexahedron",
-                "order": 1,
+                "grade": 1,
                 "n_nodes": 8
             },
             "BRICK20": {
                 "geometry": "Hexahedron",
-                "order": 2,
+                "grade": 2,
                 "n_nodes": 20
             },
             "BEZIER.TRIANGLE": {

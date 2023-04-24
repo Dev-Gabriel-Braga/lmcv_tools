@@ -21,7 +21,7 @@ def inp_to_dat(input_data: str):
    reference = searcher.get_database('translation_reference')['inp_to_dat']
    for group_ide, group in dat_interpreter.model.element_groups.items():
       # Pegando Reordenação da Referência
-      nodes_reordering = reference['nodes_reordering'][group.geometry.name][str(group.geometry.order)]
+      nodes_reordering = reference['nodes_reordering'][group.geometry.name][str(group.geometry.grade)]
 
       # Sobescrevendo Ordem dos Nodes
       for ide, node_ides in group.elements.items():

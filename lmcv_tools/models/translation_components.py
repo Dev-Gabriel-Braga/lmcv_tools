@@ -26,9 +26,9 @@ class SimulationModel:
          self.weight = weight
    
    class ElementGeometry:
-      def __init__(self, name: str, order: int, n_nodes: int):
+      def __init__(self, name: str, grade: int, n_nodes: int):
          self.name = name
-         self.order = order
+         self.grade = grade
          self.n_nodes = n_nodes
 
    class ElementGroup:
@@ -77,7 +77,7 @@ class INP_Interpreter:
          # Criando Grupo de Elementos
          geometry = SimulationModel.ElementGeometry(
             name = type_info['geometry'],
-            order = type_info['order'],
+            grade = type_info['grade'],
             n_nodes = type_info['n_nodes']
          )
          self.model.add_element_group(group_ide, geometry, type_info.get('theory'))
@@ -170,29 +170,29 @@ class DAT_Interpreter:
             line_format = int_ide + property_ides + '\s+(.+)'
             elements = re.findall(line_format, lines_data)
             
-            # Ides de Grupos Relacionados com A Ordem dos Elementos
-            order_to_group = dict()
+            # Ides de Grupos Relacionados com o Grau dos Elementos
+            grade_to_group = dict()
 
             # Analisando Cada Elemento
-            for ide, order, node_ides in elements:
+            for ide, grade, node_ides in elements:
                # Tipificando Valores
                ide = int(ide)
-               order = int(order)
+               grade = int(grade)
                node_ides = list(map(int, node_ides.split()))
 
-               # Verificando se Grupo com a Ordem do Elemento Já Existe
-               if order not in order_to_group:
-                  order_to_group[order] = group_ide
+               # Verificando se Grupo com o Grau do Elemento Já Existe
+               if grade not in grade_to_group:
+                  grade_to_group[grade] = group_ide
                   geometry = SimulationModel.ElementGeometry(
                      name = type_info['geometry'],
-                     order = order,
+                     grade = grade,
                      n_nodes = len(node_ides)
                   )
                   self.model.add_element_group(group_ide, geometry, element_theory)
                   group_ide += 1
 
                # Inserindo Elementos
-               self.model.add_element(order_to_group[order], ide, node_ides)
+               self.model.add_element(grade_to_group[grade], ide, node_ides)
 
          # Leitura para Elementos Finitos
          else:
@@ -202,7 +202,7 @@ class DAT_Interpreter:
             # Criando Grupo de Elementos
             geometry = SimulationModel.ElementGeometry(
                name = type_info['geometry'],
-               order = type_info['order'],
+               grade = type_info['grade'],
                n_nodes = type_info['n_nodes']
             )
             self.model.add_element_group(group_ide, geometry, element_theory)
@@ -255,13 +255,13 @@ class DAT_Interpreter:
          for reference_type, reference_geometry in self.reference['elements'].items():
             if (
                reference_geometry['geometry'] == group.geometry.name and
-               reference_geometry['order'] == group.geometry.order and
+               reference_geometry['grade'] == group.geometry.grade and
                reference_geometry['n_nodes'] == group.geometry.n_nodes
             ):
                element_type = reference_type
                break
          else:
-            raise ValueError(f'The Geometry "{group.geometry.name}" with order {group.geometry.order} and {group.geometry.n_nodes} nodes is not supported for .dat files.')
+            raise ValueError(f'The Geometry "{group.geometry.name}" with grade {group.geometry.grade} and {group.geometry.n_nodes} nodes is not supported for .dat files.')
          
          # Verificando se Elemento Tem uma Teoria
          if group.theory:
@@ -281,7 +281,7 @@ class DAT_Interpreter:
             node_ides = '   '.join([ f'{nis:>{node_ide_span}}' for nis in node_ides ])
             more_info = '1  1'
             if group.geometry.name == 'BezierTriangles':
-               more_info += f'  1  {group.geometry.order}'
+               more_info += f'  1  {group.geometry.grade}'
             output += f'{ide}{offset}   {more_info}   {node_ides}\n'
 
       output = f'\n%ELEMENT\n{total_elements}\n' + output
@@ -325,7 +325,7 @@ class SVG_Interpreter:
    def write_bezier_triangles(self, group: SimulationModel.ElementGroup) -> str:
       # Parâmetros Iniciais
       output = ''
-      p = group.geometry.order
+      p = group.geometry.grade
       nodes_total = int(3 + 3 * (p - 1) + ((p - 2) * (p - 1) / 2))
       indexes_corner = [1, nodes_total - p, nodes_total]
 
@@ -368,7 +368,7 @@ class SVG_Interpreter:
       output = ''
 
       # Tratamento para Elementos Lineares
-      if group.geometry.order == 1:
+      if group.geometry.grade == 1:
          for node_ides in group.elements.values():
             output += '\n      <polygon points="'
 
