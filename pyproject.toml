@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lmcv_tools"
-version = "0.0.5"
+version = "0.0.6"
 authors = [
   { name = "Dev-Gabriel-Braga", email = "gabriel.braga.matos@gmail.com" },
 ]
@@ -23,6 +23,9 @@ classifiers = [
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering"
 ]
+
+[project.urls]
+repository = "https://github.com/Dev-Gabriel-Braga/lmcv_tools"
 
 [project.scripts]
 lmcv_tools = "lmcv_tools.__main__:main"
