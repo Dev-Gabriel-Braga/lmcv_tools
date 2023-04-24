@@ -27,7 +27,7 @@ class DefaultTest(unittest.TestCase):
 
 class Test_inp_to_dat(DefaultTest):
    def default_test(self, benchmark_name: str):
-      super().default_test(benchmark_name, '.inp', '.dat')
+      super().default_test('inp_to_dat/' + benchmark_name, '.inp', '.dat')
 
    def test_triangle_S3_1x1(self):
       self.default_test('Triangle_S3_1x1')
@@ -73,3 +73,20 @@ class Test_inp_to_dat(DefaultTest):
 
    def test_complex_part_C3D20R(self):
       self.default_test('ComplexPart_C3D20R')
+
+
+class Test_dat_to_svg(DefaultTest):
+   def default_test(self, benchmark_name: str):
+      super().default_test('dat_to_svg/' + benchmark_name, '.dat', '.svg')
+
+   def test_circle_T3_Q4_4x4(self):
+      self.default_test('Circle_T3_Q4_4x4')
+
+   def test_heart_plate_Q8_2x2(self):
+      self.default_test('HeartPlate_Q8_2x2')
+
+   def test_heart_plate_BT2_2x2(self):
+      self.default_test('HeartPlate_BT2_2x2')
+
+   def test_heart_plate_BT3_4x4(self):
+      self.default_test('HeartPlate_BT3_4x4')

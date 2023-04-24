@@ -770,7 +770,7 @@
 %ELEMENT
 253
 
-%ELEMENT.PLSTRESS.Q8
+%ELEMENT.SHALLOWSHELL.Q8
 253
 1     1  1    93   258    26   259     1   256    25   257
 2     1  1    94   262    93   257    25   260    24   261

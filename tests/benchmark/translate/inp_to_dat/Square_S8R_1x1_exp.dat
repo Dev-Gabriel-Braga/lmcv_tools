@@ -17,7 +17,7 @@
 %ELEMENT
 1
 
-%ELEMENT.PLSTRESS.Q8
+%ELEMENT.SHALLOWSHELL.Q8
 1
 1   1  1   4   7   3   8   1   5   2   6
 

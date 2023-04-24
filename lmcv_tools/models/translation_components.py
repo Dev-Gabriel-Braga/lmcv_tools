@@ -6,24 +6,47 @@ class SimulationModel:
       self.nodes = dict()
       self.element_groups = dict()
    
-   def add_node(self, ide: int, x: float, y: float, z: float):
-      self.nodes[ide] = (x, y, z)
+   def add_node(self, ide: int, x: float, y: float, z: float, weight: float = None):
+      self.nodes[ide] = self.Node(x, y, z, weight)
    
-   def add_element_group(self, element_type: str):
-      self.element_groups[element_type] = dict()
+   def add_element_group(self, ide: int, geometry, theory: str):
+      self.element_groups[ide] = self.ElementGroup(geometry, theory)
 
-   def add_element(self, element_type: str, ide: int, node_ides: list[float]):
-      self.element_groups[element_type][ide] = node_ides
+   def add_element(self, group_ide: int, ide: int, node_ides: list[float]):
+      for node_ide in node_ides:
+         if node_ide not in self.nodes:
+            raise KeyError(f'The Node with ide = {node_ide} does not exist.')
+      self.element_groups[group_ide].elements[ide] = node_ides
+   
+   class Node:
+      def __init__(self, x: float, y: float, z: float, weight: float = None):
+         self.x = x
+         self.y = y
+         self.z = z
+         self.weight = weight
+   
+   class ElementGeometry:
+      def __init__(self, name: str, order: int, n_nodes: int):
+         self.name = name
+         self.order = order
+         self.n_nodes = n_nodes
+
+   class ElementGroup:
+      def __init__(self, geometry, theory: str):
+         self.geometry = geometry
+         self.theory = theory
+         self.elements = dict()
 
 class INP_Interpreter:
    def __init__(self):
       self.model = SimulationModel()
+      self.reference = searcher.get_database('translation_reference')['inp']
    
    def read_nodes(self, inp_data: str):
       # Identificando Nodes
       keyword_format = '\*Node\n([^*]*)'
-      coord = '(-?\d+.\d*e?-?\+?\d*)'
-      line_format = f'(\d+),\s*{coord},\s*{coord},\s*{coord}'
+      node = '(-?\d+.\d*e?-?\+?\d*)'
+      line_format = f'(\d+),\s*{node},\s*{node},\s*{node}'
 
       # Inserindo Nodes
       lines_data = re.findall(keyword_format, inp_data)[0]
@@ -39,19 +62,33 @@ class INP_Interpreter:
       groups_data = re.findall(keyword_format, inp_data)
 
       # Analisando Cada Grupo
+      group_ide = 1
       for element_type, lines_data in groups_data:
          # Identificando Elementos
-         n_nodes = searcher.get_database('translation_reference')['inp']['elements'][element_type]['n_nodes']
+         try:
+            type_info = self.reference['elements'][element_type]
+         except KeyError:
+            raise KeyError(f'The Element Type "{element_type}" is not supported  for .inp files.')
          int_ide = '(\d+)'
          node_ide = ',\s*' + int_ide
-         line_format = int_ide + n_nodes * node_ide
+         line_format = int_ide + type_info['n_nodes'] * node_ide
          elements = re.findall(line_format, lines_data)
 
+         # Criando Grupo de Elementos
+         geometry = SimulationModel.ElementGeometry(
+            name = type_info['geometry'],
+            order = type_info['order'],
+            n_nodes = type_info['n_nodes']
+         )
+         self.model.add_element_group(group_ide, geometry, type_info.get('theory'))
+
          # Inserindo Elementos
-         self.model.add_element_group(element_type)
          for element in elements:
             ide, *node_ides = map(int, element)
-            self.model.add_element(element_type, ide, node_ides)
+            self.model.add_element(group_ide, ide, node_ides)
+         
+         # Incrementando Ide do Grupo
+         group_ide += 1
 
    def read(self, inp_data: str):
       # Interpretando Nodes
@@ -63,6 +100,127 @@ class INP_Interpreter:
 class DAT_Interpreter:
    def __init__(self):
       self.model = SimulationModel()
+      self.reference = searcher.get_database('translation_reference')['dat']
+   
+   def read_nodes(self, dat_data: str):
+      # Identificando Nodes
+      keyword_format = '%NODE\n\d+\n\n%NODE.COORD\n\d+\n([^%]*)'
+      node = '([+-]?\d+.\d+e?[+-]?\d*)'
+      line_format = f'(\d+)\s+{node}\s+{node}\s+{node}'
+
+      # Inserindo Nodes
+      lines_data = re.findall(keyword_format, dat_data)[0]
+      nodes = re.findall(line_format, lines_data)
+      for node in nodes:
+         ide, x, y, z = map(float, node)
+         ide = int(ide)
+         self.model.add_node(ide, x, y, z)
+      
+      # Identificando Pesos
+      keyword_format = '%CONTROL.POINT.WEIGHT\n\d+\n([^%]*)'
+      line_format = f'(\d+)\s+([+-]?\d+.\d+e?[+-]?\d*)'
+
+      # Inserindo Nodes
+      lines_data = re.findall(keyword_format, dat_data)
+      if lines_data:
+         lines_data = lines_data[0]
+         weights = re.findall(line_format, lines_data)
+         for node_ide, weight in weights:
+            node_ide = int(node_ide)
+            weight = float(weight)
+            if weight == 1.0:
+               continue
+            self.model.nodes[node_ide].weight = weight
+
+   def read_elements(self, inp_data: str):
+      # Identificando Grupos de Elementos
+      keyword_format = '%ELEMENT\.(.*)\n\d+\n([^%]*)'
+      groups_data = re.findall(keyword_format, inp_data)
+
+      # Analisando Cada Grupo
+      group_ide = 1
+      for element_type, lines_data in groups_data:
+         # Dividindo Tipo e Teoria do Grupo de Elementos
+         element_theory = None
+         splited = element_type.split('.')
+         if len(splited) > 1:
+            # Tentando Identificar Teoria de Elemento
+            element_theory = splited[0]
+            try:
+               element_theory = self.reference['theories'][element_theory]
+            except KeyError:
+               raise KeyError(f'The Element Theory "{element_theory}" is not supported for .dat files.')
+            
+            # Corrigindo Tipo de Elemento
+            element_type = '.'.join(splited[1:])
+
+         # Identificando Elementos
+         try:
+            type_info = self.reference['elements'][element_type]
+         except KeyError:
+            raise KeyError(f'The Element Type "{element_type}" is not supported for .dat files.')
+         int_ide = '(\d+)'
+         node_ide = '\s+' + int_ide
+         property_ides = '\s+\d+' * 2
+
+         # Leitura para Triângulos de Bezier
+         if type_info['geometry'] == 'BezierTriangle':
+            # Identificando Elementos
+            property_ides += '\s+\d+\s+(\d+)'
+            line_format = int_ide + property_ides + '\s+(.+)'
+            elements = re.findall(line_format, lines_data)
+            
+            # Ides de Grupos Relacionados com A Ordem dos Elementos
+            order_to_group = dict()
+
+            # Analisando Cada Elemento
+            for ide, order, node_ides in elements:
+               # Tipificando Valores
+               ide = int(ide)
+               order = int(order)
+               node_ides = list(map(int, node_ides.split()))
+
+               # Verificando se Grupo com a Ordem do Elemento Já Existe
+               if order not in order_to_group:
+                  order_to_group[order] = group_ide
+                  geometry = SimulationModel.ElementGeometry(
+                     name = type_info['geometry'],
+                     order = order,
+                     n_nodes = len(node_ides)
+                  )
+                  self.model.add_element_group(group_ide, geometry, element_theory)
+                  group_ide += 1
+
+               # Inserindo Elementos
+               self.model.add_element(order_to_group[order], ide, node_ides)
+
+         # Leitura para Elementos Finitos
+         else:
+            line_format = int_ide + property_ides + type_info['n_nodes'] * node_ide
+            elements = re.findall(line_format, lines_data)
+
+            # Criando Grupo de Elementos
+            geometry = SimulationModel.ElementGeometry(
+               name = type_info['geometry'],
+               order = type_info['order'],
+               n_nodes = type_info['n_nodes']
+            )
+            self.model.add_element_group(group_ide, geometry, element_theory)
+
+            # Inserindo Elementos
+            for element in elements:
+               ide, *node_ides = map(int, element)
+               self.model.add_element(group_ide, ide, node_ides)
+         
+         # Incrementando Ide do Grupo
+         group_ide += 1
+
+   def read(self, dat_data: str):
+      # Interpretando Nodes
+      self.read_nodes(dat_data)
+
+      # Interpretando Elementos
+      self.read_elements(dat_data)
    
    def write_nodes(self) -> str:
       # Parâmetros Iniciais
@@ -71,10 +229,10 @@ class DAT_Interpreter:
       output = f'\n%NODE\n{n_nodes}\n\n%NODE.COORD\n{n_nodes}\n'
 
       # Escrevendo Cada Node
-      for ide, coords in self.model.nodes.items():
+      for ide, node in self.model.nodes.items():
          offset = span - len(str(ide))
          offset = ' ' * offset
-         output += '{0}{4}   {1:+.8e}   {2:+.8e}   {3:+.8e}\n'.format(ide, *coords, offset)
+         output += f'{ide}{offset}   {node.x:+.8e}   {node.y:+.8e}   {node.z:+.8e}\n'
       
       return output
 
@@ -86,18 +244,45 @@ class DAT_Interpreter:
       node_ide_span = len(str(n_nodes))
 
       # Escrevendo Cada Grupo de Elemento
-      for element_type, elements in self.model.element_groups.items():
-         n_elements = len(elements)
+      for group in self.model.element_groups.values():
+         # Parâmetros Iniciais
+         n_elements = len(group.elements)
          total_elements += n_elements
          span = len(str(n_elements))
+
+         # Buscando Tipo de Elemento Correspondente às Propriedades do Elemento
+         element_type = ''
+         for reference_type, reference_geometry in self.reference['elements'].items():
+            if (
+               reference_geometry['geometry'] == group.geometry.name and
+               reference_geometry['order'] == group.geometry.order and
+               reference_geometry['n_nodes'] == group.geometry.n_nodes
+            ):
+               element_type = reference_type
+               break
+         else:
+            raise ValueError(f'The Geometry "{group.geometry.name}" with order {group.geometry.order} and {group.geometry.n_nodes} nodes is not supported for .dat files.')
+         
+         # Verificando se Elemento Tem uma Teoria
+         if group.theory:
+            for dat_theory, reference_theory in self.reference['theories'].items():
+               if reference_theory == group.theory:
+                  element_type = f'{dat_theory}.{element_type}'
+                  break
+            else:
+               raise ValueError(f'The Theory "{group.theory}" is not supported for .dat files.')
+
          output += f'\n%ELEMENT.{element_type}\n{n_elements}\n'
 
          # Escrevendo Cada Elemento
-         for ide, node_ides in elements.items():
+         for ide, node_ides in group.elements.items():
             offset = span - len(str(ide))
             offset = ' ' * offset
             node_ides = '   '.join([ f'{nis:>{node_ide_span}}' for nis in node_ides ])
-            output += f'{ide}{offset}   1  1   {node_ides}\n'
+            more_info = '1  1'
+            if group.geometry.name == 'BezierTriangles':
+               more_info += f'  1  {group.geometry.order}'
+            output += f'{ide}{offset}   {more_info}   {node_ides}\n'
 
       output = f'\n%ELEMENT\n{total_elements}\n' + output
       return output
@@ -114,5 +299,138 @@ class DAT_Interpreter:
 
       # Finalizando Output
       output += '\n%END'
+      
+      return output
+
+class SVG_Interpreter:
+   def __init__(self):
+      self.model = SimulationModel()
+      self.node_radius = 1
+      self.node_color = '#a95e5e'
+      self.element_color = '#fcff5e'
+      self.element_stroke_width = 1
+      self.element_stroke_color = 'black'
+   
+   def write_nodes(self) -> str:
+      # Inicializando Node Output
+      output = f'\n   <g id="Nodes" fill="{self.node_color}">'
+
+      # Escrevendo Cada Node
+      for node in self.model.nodes.values():
+         output += f'\n      <circle cx="{node.x:.8e}" cy="{node.y:.8e}" r="{self.node_radius}" />'
+      
+      output += '\n   </g>'
+      return output
+   
+   def write_bezier_triangles(self, group: SimulationModel.ElementGroup) -> str:
+      # Parâmetros Iniciais
+      output = ''
+      p = group.geometry.order
+      nodes_total = int(3 + 3 * (p - 1) + ((p - 2) * (p - 1) / 2))
+      indexes_corner = [1, nodes_total - p, nodes_total]
+
+      # Index dos Nodes Intermediários
+      ie1 = [int(1 + ((i + 1) * (i + 2) / 2)) for i in range(p - 1)]
+      ie2 = [nodes_total - p + 1 + i for i in range(p - 1)]
+      ie3 = [int((i + 2) * (i + 3) / 2) for i in range(p - 1)]
+      indexes_by_edge = [ie1, ie2, ie3]
+
+      # Escrevendo Path de Cada Elemento
+      for node_ides in group.elements.values():
+         # Inicializando Path
+         output += f'\n      <path d="'
+
+         # Lado 1 - Ponto Incial
+         node = self.model.nodes[node_ides[indexes_corner[0] - 1]]
+         output += f'M {node.x:.8e} {node.y:.8e} '
+
+         # Construindo Curvas de Bezier para Cada Lado
+         for indexes_edge, index_corner in zip(indexes_by_edge, indexes_corner[1:] + [indexes_corner[0]]):
+            # Calculando Coordenadas Médias dos Pontos Intermediários
+            x_m = 0
+            y_m = 0
+            for i in indexes_edge:
+               node = self.model.nodes[node_ides[i - 1]]
+               x_m += node.x
+               y_m += node.y
+            x_m /= (p - 1)
+            y_m /= (p - 1)
+
+            # Curva de Bezier Quadrática
+            node = self.model.nodes[node_ides[index_corner - 1]]
+            output += f'Q {x_m:.8e} {y_m:.8e}, {node.x:.8e} {node.y:.8e} '
+
+         output += 'Z" />'
+      
+      return output
+
+   def write_finite_elements(self, group: SimulationModel.ElementGroup):
+      output = ''
+
+      # Tratamento para Elementos Lineares
+      if group.geometry.order == 1:
+         for node_ides in group.elements.values():
+            output += '\n      <polygon points="'
+
+            # Escrevendo Cada Ponto
+            for ide in node_ides:
+               node = self.model.nodes[ide]
+               output += f'{node.x:.8e},{node.y:.8e} ' 
+            output += '" />'
+
+      # Tratamento para Elementos Lineares
+      else:
+         # Função Para Encontrar Ponto de Bezier Equivalente
+         bezier_equiv_coord = lambda c, c0, c2: 2 * c - 0.5 * (c0 + c2)
+
+         for node_ides in group.elements.values():
+            # Escrevendo Ponto Inicial
+            node = self.model.nodes[node_ides[0]]
+            output += f'\n      <path d="M {node.x:.8e} {node.y:.8e} '
+
+            # Escrevendo Lados como Curvas Quadráticas de Bezier
+            for i in list(range(2, len(node_ides), 2)) + [0]:
+               n2 = self.model.nodes[node_ides[i]]
+               nc = self.model.nodes[node_ides[i - 1]]
+               n0 = self.model.nodes[node_ides[i - 2]]
+               x1 = bezier_equiv_coord(nc.x, n0.x, n2.x)
+               y1 = bezier_equiv_coord(nc.y, n0.y, n2.y)
+               output += f'Q {x1:.8e} {y1:.8e}, {n2.x:.8e} {n2.y:.8e} ' 
+            output += 'Z" />'
+      return output
+
+   def write_elements(self) -> str:
+      # Inicializando Node Output
+      output = f'\n   <g id="Elements" fill="{self.element_color}" stroke="{self.element_stroke_color}" stroke-width="{self.element_stroke_width}">'
+
+      # Escrevendo Cada Grupo de Elemento
+      for group in self.model.element_groups.values():
+         # Tratamento para Elementos de Bezier
+         if group.geometry.name == 'BezierTriangle':
+            output += self.write_bezier_triangles(group)
+
+         # Tratamento para Elementos Finitos Tradicionais
+         else:
+            output += self.write_finite_elements(group)
+
+      output += '\n   </g>'
+      return output
+
+   def write(self) -> str:
+      # Inicializando Output
+      output = '<svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">'
+
+      # Calculando Raio dos Nodes e Largura do Delinado dos Elementos Ideais
+      self.node_radius = 9.5 / (len(self.model.nodes) - 1) ** 0.5 + 0.1
+      self.element_stroke_width = self.node_radius * 0.5
+
+      # Escrevendo Elementos
+      output += self.write_elements()
+
+      # Escrevendo Nodes
+      output += self.write_nodes()
+
+      # Finalizando Output
+      output += '\n</svg>'
       
       return output
