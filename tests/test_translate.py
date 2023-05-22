@@ -59,6 +59,12 @@ class Test_inp_to_dat(DefaultTest):
    def test_complex_part_S8R(self):
       self.default_test('ComplexPart_S8R')
 
+   def test_cube_C3D4_12(self):
+      self.default_test('Cube_C3D4_12')
+   
+   def test_cube_C3D10_12(self):
+      self.default_test('Cube_C3D10_12')
+
    def test_cube_C3D8_1x1x1(self):
       self.default_test('Cube_C3D8_1x1x1')
 
