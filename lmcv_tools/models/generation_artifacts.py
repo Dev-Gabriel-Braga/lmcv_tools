@@ -40,18 +40,18 @@ class MicromechanicalModel:
       V1, V2 = V[0], V[1]
       K1, K2 = M[0].K, M[1].K
       G1, G2 = M[0].G, M[1].G
-      FG = (G1 * (9 * K1 + 8 * G1)) / (6 * (K1 + 2 * G1))
-      FK = 4 * G1 / 3
+      FK = (3 * V2) / (3 * K2 + 4 * G2)
+      FG = 6 * V2 * (K2 + 2 * G2) / (5 * G2 * (3 * K2 + 4 * G2))
 
       # Calculando Módulo Volumétrico
-      K = K1 + V2 / ((1 / (K2 - K1)) + (V1 / (K1 + FK)))
+      K = K2 + V1 / ((1 / (K1 - K2)) + FK)
 
       # Calculando Módulo de Cisalhamento
-      G = G1 + V2 / ((1 / (G2 - G1)) + (V1 / (G1 + FG)))
+      G = G2 + V1 / ((1 / (G1 - G2)) + FG)
 
       # Calculando Propriedades Efetivas
-      E = (9 * K * G) / (3 * K + G)
-      nu = (3 * K - 2 * G) / (2 * (3 * K + G))
+      E = (9 * G * K) / (G + 3 * K)
+      nu = (3 * K - 2 * G) / (2 * (G + 3 * K))
 
       # Densidade Calculada pelo Modelo de voigt
       pho = V1 * M[0].pho + V2 * M[1].pho
