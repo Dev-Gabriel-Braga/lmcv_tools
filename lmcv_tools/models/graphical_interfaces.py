@@ -185,7 +185,7 @@ class PromptGenerateVirtualLamina:
       self.entry['micromechanical_model'] = Combobox(
          master = self.frame['grading_params'],
          state = 'readonly',
-         values = ['voight', 'mori_tanaka'],
+         values = ['voigt', 'mori_tanaka'],
          font = self.default_font,
          width = 12,
       )

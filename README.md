@@ -195,7 +195,7 @@ $ lmcv_tools generate virtual_laminas [args] [path/to/artifact]
 | Laminas Count         | Total number of laminas.                             |
 | Laminas Thickness     | Thinkcness of laminas.                               |
 | Power Law Exponent    | Exponent of Power Law.                               |
-| Micromechanical Model | Supported: voight, mori_tanaka.                      |
+| Micromechanical Model | Supported: voigt, mori_tanaka.                      |
 | Element Type          | Supported: Solid, Shell.                             |
 | E1                    | Elastic Modulus of Material 1.                       |
 | E2                    | Elastic Modulus of Material 2.                       |

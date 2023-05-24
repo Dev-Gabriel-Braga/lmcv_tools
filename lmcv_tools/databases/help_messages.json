@@ -55,7 +55,7 @@
             "[Laminas Count]": "Required integer argument",
             "[Laminas Thickness]": "Required floatpoint argument",
             "[Power Law Exponent]": "Required float point argument. Exponent of Power Law, a mathematical function that determines the volume fractions of the Functionally Graded Material represented by virtual laminas",
-            "[Micromechanical Model]": "Required string argument. Supported micromechanical models: voight, mori_tanaka",
+            "[Micromechanical Model]": "Required string argument. Supported micromechanical models: voigt, mori_tanaka",
             "[Element Type]": "Required string argument. Supported element types: Solid, Shell",
             "[Number of Integration Points]": "Required integer argument",
             "[E1]": "Required float point argument. Elastic Modulus of Material 1",

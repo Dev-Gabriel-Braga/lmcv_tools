@@ -26,7 +26,7 @@ class Material:
 
 class MicromechanicalModel:
    # Funções de Homogeneização Privadas
-   def _voight(self, volume_fractions: list[float]):
+   def _voigt(self, volume_fractions: list[float]):
       E, nu, pho = 0, 0, 0
       for V, M in zip(volume_fractions, self.materials):
          E += V * M.E
@@ -53,14 +53,14 @@ class MicromechanicalModel:
       E = (9 * K * G) / (3 * K + G)
       nu = (3 * K - 2 * G) / (2 * (3 * K + G))
 
-      # Densidade Calculada pelo Modelo de Voight
+      # Densidade Calculada pelo Modelo de voigt
       pho = V1 * M[0].pho + V2 * M[1].pho
 
       return E, nu, pho
 
    # Relação Modelo/Função de Homogeneização
    homogenize_functions = {
-      'voight': _voight,
+      'voigt': _voigt,
       'mori_tanaka': _mori_tanaka
    }
 
