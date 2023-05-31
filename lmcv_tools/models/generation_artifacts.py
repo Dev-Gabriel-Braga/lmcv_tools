@@ -215,7 +215,7 @@ class VirtualLaminas(Artifact):
          E, nu, pho = self.micromechanical_model.homogenize([V, 1 - V])
 
          # Adicionando Dados
-         inp_data += f'*Material, name={name}\n    *Density\n    {pho:.3f},\n    *Elastic\n    {E:.3f}, {nu:.3f}\n'
+         inp_data += f'*Material, name={name}\n    *Density\n    {pho:.7E},\n    *Elastic\n    {E:.7E}, {nu:.3f}\n'
          
          index += 1
       
@@ -229,7 +229,7 @@ class VirtualLaminas(Artifact):
       inp_data += f'\n*{element_type} Section, elset=Virtual, composite\n'
       index = 1
       for h, material in zip(laminas[1], material_names):
-         inp_data += f'    {h:.11E}, {int_points}, {material}, {rotation_angle}, Ply-{index}\n'
+         inp_data += f'    {h:.7E}, {int_points}, {material}, {rotation_angle}, Ply-{index}\n'
          index += 1
       inp_data += '*End Part'
 

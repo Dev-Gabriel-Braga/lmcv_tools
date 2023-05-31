@@ -1,13 +1,13 @@
 *Material, name=FGM-L1
     *Density
-    1250.000,
+    1.2500000E+03,
     *Elastic
-    307.500, 0.292
+    3.0750000E+02, 0.292
 *Material, name=FGM-L2
     *Density
-    1750.000,
+    1.7500000E+03,
     *Elastic
-    162.500, 0.278
+    1.6250000E+02, 0.278
 *Part, name=Virtual_Part
 *Node
     1, 1.0, 1.0, 0.0
@@ -19,6 +19,6 @@
 *Elset, elset=Virtual
     1
 *Solid Section, elset=Virtual, composite
-    5.00000000000E-01, 3, FGM-L1, 0, Ply-1
-    5.00000000000E-01, 3, FGM-L2, 0, Ply-2
+    5.0000000E-01, 3, FGM-L1, 0, Ply-1
+    5.0000000E-01, 3, FGM-L2, 0, Ply-2
 *End Part
