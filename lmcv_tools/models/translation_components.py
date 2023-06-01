@@ -1,5 +1,6 @@
 from ..interface import searcher
 import re
+from math import factorial
 
 class SimulationModel:
    def __init__(self):
@@ -311,6 +312,66 @@ class SVG_Interpreter:
       self.element_stroke_width = 1
       self.element_stroke_color = 'black'
    
+   def bezier_equiv_coord(self, c: float, c0: float, c2: float):
+      return 2 * c - 0.5 * (c0 + c2)
+
+   def calculate_colinearity(self, points: list[SimulationModel.Node]) -> float:
+      factor = 0
+      for i in range(0, len(points) - 2):
+         factor += points[i].x * points[i + 1].y + points[i + 1].x * points[i + 2].y + points[i + 2].x * points[i].y
+         factor -= points[i].x * points[i + 2].y + points[i + 1].x * points[i].y + points[i + 2].x * points[i + 1].y
+      return abs(factor)
+   
+   def bernstein_polynomial(self, index: int, grade: int, region: float):
+      # Renomeando Parâmetros para Facilitar os Cálculos
+      i, p, t = index, grade, region
+      
+      # Verificando Validade dos Parâmetros
+      if i < 0 or i > p:
+         raise ValueError(f'Index {i} does not exist for Bernstein Polynomial with Grade {p}.')
+      
+      # Calculando Polinômio na Região Informada
+      return (factorial(p) / (factorial(i) * factorial(p - i))) * t ** i * (1 - t) ** (p - i)
+
+   def tesselate_bezier_curve(self, grade: int, points: list[SimulationModel.Node]):
+      # Variáveis Iniciais
+      tesselated_points = list()
+      p = grade
+      n_reg = 2 * len(points) - 1
+      h = 1 / (n_reg - 1)
+      print('n_reg', n_reg)
+      print('h', h)
+
+      # Gerando Pontos da Curva
+      print('p', p)
+      print('points:')
+      for point in points:
+         print(point.x, point.y)
+      for nr in range(n_reg):
+         t = nr * h
+         weight_sum, coord_x, coord_y = 0, 0, 0
+         print('t', t)
+         for point, i in zip(points, range(0, p + 1)):
+            print(f'B({i}, {p})', self.bernstein_polynomial(i, p, t))
+            w = point.weight or 1
+            weight_sum += self.bernstein_polynomial(i, p, t) * w
+            coord_x += self.bernstein_polynomial(i, p, t) * point.x
+            coord_y += self.bernstein_polynomial(i, p, t) * point.y
+         # coord_x /= weight_sum
+         # coord_y /= weight_sum
+         tesselated_points.append([coord_x, coord_y])
+      
+      # Corrigindo Pontos Ímpares para Coordenada Equivalente na Representação de Curva de Bezier Quadrática
+      print('tesselation:')
+      for i in range(len(tesselated_points)):
+         print(tesselated_points[i])
+      # for i in range(1, len(tesselated_points), 2):
+         # tesselated_points[i][0] = self.bezier_equiv_coord(tesselated_points[i][0], tesselated_points[i - 1][0], tesselated_points[i + 1][0])
+         # tesselated_points[i][1] = self.bezier_equiv_coord(tesselated_points[i][1], tesselated_points[i - 1][1], tesselated_points[i + 1][1])
+      
+      # Retornando Pontos Tesselados (Excluindo o Primeiro)
+      return tesselated_points[1:]
+
    def write_nodes(self) -> str:
       # Inicializando Node Output
       output = f'\n   <g id="Nodes" fill="{self.node_color}">'
@@ -341,24 +402,47 @@ class SVG_Interpreter:
          output += f'\n      <path d="'
 
          # Lado 1 - Ponto Incial
-         node = self.model.nodes[node_ides[indexes_corner[0] - 1]]
-         output += f'M {node.x:.8e} {node.y:.8e} '
+         node_corner_1 = self.model.nodes[node_ides[indexes_corner[0] - 1]]
+         output += f'M {node_corner_1.x:.8e} {node_corner_1.y:.8e} '
 
          # Construindo Curvas de Bezier para Cada Lado
          for indexes_edge, index_corner in zip(indexes_by_edge, indexes_corner[1:] + [indexes_corner[0]]):
-            # Calculando Coordenadas Médias dos Pontos Intermediários
-            x_m = 0
-            y_m = 0
-            for i in indexes_edge:
-               node = self.model.nodes[node_ides[i - 1]]
-               x_m += node.x
-               y_m += node.y
-            x_m /= (p - 1)
-            y_m /= (p - 1)
+            # Obtendo Pontos do Lado
+            node_corner_2 = self.model.nodes[node_ides[index_corner - 1]]
+            points = [self.model.nodes[node_ides[i - 1]] for i in indexes_edge]
+            points.append(node_corner_2)
+            points.insert(0, node_corner_1)
 
-            # Curva de Bezier Quadrática
-            node = self.model.nodes[node_ides[index_corner - 1]]
-            output += f'Q {x_m:.8e} {y_m:.8e}, {node.x:.8e} {node.y:.8e} '
+            # Calculando Fator de Colinearidade dos Pontos
+            c_factor = self.calculate_colinearity(points)
+
+            # Resumindo Path em Uma linha reta para um fator baixo
+            if c_factor < 0.1:
+               output += f'L {node_corner_2.x:.8e} {node_corner_2.y:.8e} '
+
+            # Tesselando Curva com Base no Fator
+            else:
+               # Gerando Pontos de Tesselação
+               tp = self.tesselate_bezier_curve(p, points)
+
+               for i in range(0, len(tp), 2):
+                  output += f'Q {tp[i][0]:.8e} {tp[i][1]:.8e}, {tp[i + 1][0]:.8e} {tp[i + 1][1]:.8e} '
+
+               # Calculando Coordenadas Médias dos Pontos Intermediários
+               # x_m = 0
+               # y_m = 0
+               # for i in indexes_edge:
+               #    node_corner_1 = self.model.nodes[node_ides[i - 1]]
+               #    x_m += node_corner_1.x
+               #    y_m += node_corner_1.y
+               # x_m /= (p - 1)
+               # y_m /= (p - 1)
+
+               # Curva de Bezier Quadrática
+               # node_corner_1 = self.model.nodes[node_ides[index_corner - 1]]
+               # output += f'Q {x_m:.8e} {y_m:.8e}, {node_corner_1.x:.8e} {node_corner_1.y:.8e} '
+            
+            node_corner_1 = node_corner_2
 
          output += 'Z" />'
       
@@ -380,9 +464,6 @@ class SVG_Interpreter:
 
       # Tratamento para Elementos Lineares
       else:
-         # Função Para Encontrar Ponto de Bezier Equivalente
-         bezier_equiv_coord = lambda c, c0, c2: 2 * c - 0.5 * (c0 + c2)
-
          for node_ides in group.elements.values():
             # Escrevendo Ponto Inicial
             node = self.model.nodes[node_ides[0]]
@@ -393,8 +474,8 @@ class SVG_Interpreter:
                n2 = self.model.nodes[node_ides[i]]
                nc = self.model.nodes[node_ides[i - 1]]
                n0 = self.model.nodes[node_ides[i - 2]]
-               x1 = bezier_equiv_coord(nc.x, n0.x, n2.x)
-               y1 = bezier_equiv_coord(nc.y, n0.y, n2.y)
+               x1 = self.bezier_equiv_coord(nc.x, n0.x, n2.x)
+               y1 = self.bezier_equiv_coord(nc.y, n0.y, n2.y)
                output += f'Q {x1:.8e} {y1:.8e}, {n2.x:.8e} {n2.y:.8e} ' 
             output += 'Z" />'
       return output

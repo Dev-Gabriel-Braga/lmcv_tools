@@ -167,9 +167,10 @@ def execute_command(name: str, args: list[str]):
       command_function(args)
    except Exception as exc:
       # Exibindo Mensagem de Erro com o Contexto da Exceção
-      name = exc.__class__.__name__
-      message = exc.args[0]
-      messenger.error(message, name)
+      # name = exc.__class__.__name__
+      # message = exc.args[0]
+      # messenger.error(message, name)
+      raise exc
 
 def show_welcome():
    show_version()
