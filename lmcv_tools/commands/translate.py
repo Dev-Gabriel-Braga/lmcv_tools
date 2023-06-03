@@ -58,7 +58,7 @@ def dat_to_svg(input_data: str):
       x = x * scale_coeff + 5
       y = y * scale_coeff + 5
 
-      svg_interpreter.model.add_node(ide, x, y, 0)
+      svg_interpreter.model.add_node(ide, x, y, 0, node.weight)
    svg_interpreter.model.element_groups = dat_interpreter.model.element_groups
 
    # Retornando Tradução

@@ -1,6 +1,6 @@
 from ..interface import searcher
 import re
-from math import factorial
+from math import factorial, floor
 
 class SimulationModel:
    def __init__(self):
@@ -318,8 +318,9 @@ class SVG_Interpreter:
    def calculate_colinearity(self, points: list[SimulationModel.Node]) -> float:
       factor = 0
       for i in range(0, len(points) - 2):
-         factor += points[i].x * points[i + 1].y + points[i + 1].x * points[i + 2].y + points[i + 2].x * points[i].y
-         factor -= points[i].x * points[i + 2].y + points[i + 1].x * points[i].y + points[i + 2].x * points[i + 1].y
+         diag1 = points[i].x * points[i + 1].y + points[i + 1].x * points[i + 2].y + points[i + 2].x * points[i].y
+         diag2 = points[i].x * points[i + 2].y + points[i + 1].x * points[i].y + points[i + 2].x * points[i + 1].y
+         factor += abs(diag1 - diag2)
       return abs(factor)
    
    def bernstein_polynomial(self, index: int, grade: int, region: float):
@@ -333,41 +334,33 @@ class SVG_Interpreter:
       # Calculando Polinômio na Região Informada
       return (factorial(p) / (factorial(i) * factorial(p - i))) * t ** i * (1 - t) ** (p - i)
 
-   def tesselate_bezier_curve(self, grade: int, points: list[SimulationModel.Node]):
+   def tesselate_bezier_curve(self, grade: int, points: list[SimulationModel.Node], n_regions: int):
       # Variáveis Iniciais
       tesselated_points = list()
       p = grade
-      n_reg = 2 * len(points) - 1
-      h = 1 / (n_reg - 1)
-      print('n_reg', n_reg)
-      print('h', h)
+      h = 1 / (n_regions - 1)
 
       # Gerando Pontos da Curva
-      print('p', p)
-      print('points:')
-      for point in points:
-         print(point.x, point.y)
-      for nr in range(n_reg):
+      for nr in range(n_regions):
+         # Calculando Região do Espaço Paramétrico
          t = nr * h
+         
+         # Calculando Ponto Cartesiano Correspondente
          weight_sum, coord_x, coord_y = 0, 0, 0
-         print('t', t)
          for point, i in zip(points, range(0, p + 1)):
-            print(f'B({i}, {p})', self.bernstein_polynomial(i, p, t))
+            bp = self.bernstein_polynomial(i, p, t)
             w = point.weight or 1
-            weight_sum += self.bernstein_polynomial(i, p, t) * w
-            coord_x += self.bernstein_polynomial(i, p, t) * point.x
-            coord_y += self.bernstein_polynomial(i, p, t) * point.y
-         # coord_x /= weight_sum
-         # coord_y /= weight_sum
+            weight_sum += bp * w
+            coord_x += bp * point.x * w
+            coord_y += bp * point.y * w
+         coord_x /= weight_sum
+         coord_y /= weight_sum
          tesselated_points.append([coord_x, coord_y])
       
       # Corrigindo Pontos Ímpares para Coordenada Equivalente na Representação de Curva de Bezier Quadrática
-      print('tesselation:')
-      for i in range(len(tesselated_points)):
-         print(tesselated_points[i])
-      # for i in range(1, len(tesselated_points), 2):
-         # tesselated_points[i][0] = self.bezier_equiv_coord(tesselated_points[i][0], tesselated_points[i - 1][0], tesselated_points[i + 1][0])
-         # tesselated_points[i][1] = self.bezier_equiv_coord(tesselated_points[i][1], tesselated_points[i - 1][1], tesselated_points[i + 1][1])
+      for i in range(1, len(tesselated_points), 2):
+         tesselated_points[i][0] = self.bezier_equiv_coord(tesselated_points[i][0], tesselated_points[i - 1][0], tesselated_points[i + 1][0])
+         tesselated_points[i][1] = self.bezier_equiv_coord(tesselated_points[i][1], tesselated_points[i - 1][1], tesselated_points[i + 1][1])
       
       # Retornando Pontos Tesselados (Excluindo o Primeiro)
       return tesselated_points[1:]
@@ -394,6 +387,7 @@ class SVG_Interpreter:
       ie1 = [int(1 + ((i + 1) * (i + 2) / 2)) for i in range(p - 1)]
       ie2 = [nodes_total - p + 1 + i for i in range(p - 1)]
       ie3 = [int((i + 2) * (i + 3) / 2) for i in range(p - 1)]
+      ie3.reverse()
       indexes_by_edge = [ie1, ie2, ie3]
 
       # Escrevendo Path de Cada Elemento
@@ -422,25 +416,14 @@ class SVG_Interpreter:
 
             # Tesselando Curva com Base no Fator
             else:
+               # Definindo Discretização da Tesselação com Base no Fator de Colinearidade
+               n_regions = (2 * p - 1) + (2 * floor(c_factor / 50))
+
                # Gerando Pontos de Tesselação
-               tp = self.tesselate_bezier_curve(p, points)
+               tp = self.tesselate_bezier_curve(p, points, n_regions)
 
                for i in range(0, len(tp), 2):
                   output += f'Q {tp[i][0]:.8e} {tp[i][1]:.8e}, {tp[i + 1][0]:.8e} {tp[i + 1][1]:.8e} '
-
-               # Calculando Coordenadas Médias dos Pontos Intermediários
-               # x_m = 0
-               # y_m = 0
-               # for i in indexes_edge:
-               #    node_corner_1 = self.model.nodes[node_ides[i - 1]]
-               #    x_m += node_corner_1.x
-               #    y_m += node_corner_1.y
-               # x_m /= (p - 1)
-               # y_m /= (p - 1)
-
-               # Curva de Bezier Quadrática
-               # node_corner_1 = self.model.nodes[node_ides[index_corner - 1]]
-               # output += f'Q {x_m:.8e} {y_m:.8e}, {node_corner_1.x:.8e} {node_corner_1.y:.8e} '
             
             node_corner_1 = node_corner_2
 

@@ -23,7 +23,7 @@ class DefaultTest(unittest.TestCase):
       self.assertEqual(output_data, exp_data, 'A tradução está incorreta.')
 
       # Removendo Arquivo Gerado
-      # os.remove(output_path)
+      os.remove(output_path)
 
 class Test_inp_to_dat(DefaultTest):
    def default_test(self, benchmark_name: str):
@@ -96,3 +96,9 @@ class Test_dat_to_svg(DefaultTest):
 
    def test_heart_plate_BT3_4x4(self):
       self.default_test('HeartPlate_BT3_4x4')
+
+   def test_disform_BT2(self):
+      self.default_test('Disform_BT2')
+   
+   def test_disform_BT4(self):
+      self.default_test('Disform_BT4')
