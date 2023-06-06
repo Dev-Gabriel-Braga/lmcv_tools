@@ -112,6 +112,36 @@ class TestSingleAttributes(DefaultTest):
       attributes = ['buckling.node.w']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
+   
+   def test_vibration_id(self):
+      benchmark = ('HeartPlate', 'vibration_id')
+      attributes = ['vibration.id']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_vibration_factor(self):
+      benchmark = ('HeartPlate', 'vibration_factor')
+      attributes = ['vibration.factor']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_vibration_node_u(self):
+      benchmark = ('HeartPlate', 'vibration_node_u')
+      attributes = ['vibration.node.u']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_vibration_node_v(self):
+      benchmark = ('HeartPlate', 'vibration_node_v')
+      attributes = ['vibration.node.v']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_vibration_node_w(self):
+      benchmark = ('HeartPlate', 'vibration_node_w')
+      attributes = ['vibration.node.w']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
 
 class TestMultipleAttributes(DefaultTest):
    def test_multiple_1(self):
