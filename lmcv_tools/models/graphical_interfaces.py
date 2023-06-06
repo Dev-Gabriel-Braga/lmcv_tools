@@ -11,7 +11,7 @@ from tkinter.ttk import (
 )
 from ..interface import messenger
 
-class PromptGenerateVirtualLamina:
+class PromptGenerateVirtualLaminas:
    def __init__(self, params: dict):
       # Dicionário de Parâmetros para Geração das Lâminas
       self.params = params
