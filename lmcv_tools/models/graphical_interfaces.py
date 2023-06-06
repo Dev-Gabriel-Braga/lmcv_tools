@@ -173,23 +173,23 @@ class PromptGenerateVirtualLamina:
          width = 6,
          font = self.default_font,
       )
-      self.entry['power_law_exponent'].grid(row = 1, column = 1, sticky = 'w')
+      self.entry['power_law_exponent'].grid(row = 2, column = 0, sticky = 'w')
 
       self.label['micromechanical_model'] = Label(
          master = self.frame['grading_params'], 
          text = 'Micromechanical Model:',
          padding = (0, 5, 10, 5),
       )
-      self.label['micromechanical_model'].grid(row = 2, column = 0, sticky = 'w')
+      self.label['micromechanical_model'].grid(row = 3, column = 0, sticky = 'w')
 
       self.entry['micromechanical_model'] = Combobox(
          master = self.frame['grading_params'],
          state = 'readonly',
-         values = ['voigt', 'mori_tanaka'],
+         values = ['voigt', 'mori_tanaka', 'hashin_shtrikman_lower_bound', 'hashin_shtrikman_upper_bound'],
          font = self.default_font,
-         width = 12,
+         width = 25,
       )
-      self.entry['micromechanical_model'].grid(row = 2, column = 1, sticky = 'w')
+      self.entry['micromechanical_model'].grid(row = 4, column = 0, sticky = 'w')
 
    def layout_materials_params(self):
       self.frame['materials_params'] = Frame(

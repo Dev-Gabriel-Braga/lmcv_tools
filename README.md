@@ -195,7 +195,7 @@ $ lmcv_tools generate virtual_laminas [args] [path/to/artifact]
 | Laminas Count         | Total number of laminas.                             |
 | Laminas Thickness     | Thinkcness of laminas.                               |
 | Power Law Exponent    | Exponent of Power Law.                               |
-| Micromechanical Model | Supported: voigt, mori_tanaka.                      |
+| Micromechanical Model | Model to calculate effective properties.             |
 | Element Type          | Supported: Solid, Shell.                             |
 | E1                    | Elastic Modulus of Material 1.                       |
 | E2                    | Elastic Modulus of Material 2.                       |
@@ -204,3 +204,9 @@ $ lmcv_tools generate virtual_laminas [args] [path/to/artifact]
 | pho1                  | Density of Material 1.                               |
 | pho2                  | Density of Material 2.                               |
 | Smart Laminas         | If True, a new smart generation method will be used. |
+
+**Supported Micromechanical Models:**
+- voigt
+- mori_tanaka
+- hashin_shtrikman_lower_bound
+- hashin_shtrikman_upper_bound

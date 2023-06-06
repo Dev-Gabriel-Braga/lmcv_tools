@@ -1,503 +1,503 @@
 *Material, name=FGM-L1
     *Density
-    1.0067541E+03,
+    1.9932459E+03,
     *Elastic
-    3.7804131E+02, 0.300
+    9.1958688E+01, 0.270
 *Material, name=FGM-L2
     *Density
-    1.0208412E+03,
+    1.9791588E+03,
     *Elastic
-    3.7395604E+02, 0.299
+    9.6043955E+01, 0.271
 *Material, name=FGM-L3
     *Density
-    1.0357890E+03,
+    1.9642110E+03,
     *Elastic
-    3.6962118E+02, 0.299
+    1.0037882E+02, 0.271
 *Material, name=FGM-L4
     *Density
-    1.0517257E+03,
+    1.9482743E+03,
     *Elastic
-    3.6499954E+02, 0.298
+    1.0500046E+02, 0.272
 *Material, name=FGM-L5
     *Density
-    1.0688119E+03,
+    1.9311881E+03,
     *Elastic
-    3.6004455E+02, 0.298
+    1.0995545E+02, 0.272
 *Material, name=FGM-L6
     *Density
-    1.0872528E+03,
+    1.9127472E+03,
     *Elastic
-    3.5469670E+02, 0.297
+    1.1530330E+02, 0.273
 *Material, name=FGM-L7
     *Density
-    1.1073169E+03,
+    1.8926831E+03,
     *Elastic
-    3.4887810E+02, 0.297
+    1.2112190E+02, 0.273
 *Material, name=FGM-L8
     *Density
-    1.1293661E+03,
+    1.8706339E+03,
     *Elastic
-    3.4248382E+02, 0.296
+    1.2751618E+02, 0.274
 *Material, name=FGM-L9
     *Density
-    1.1539057E+03,
+    1.8460943E+03,
     *Elastic
-    3.3536734E+02, 0.295
+    1.3463266E+02, 0.275
 *Material, name=FGM-L10
     *Density
-    1.1816746E+03,
+    1.8183254E+03,
     *Elastic
-    3.2731438E+02, 0.295
+    1.4268562E+02, 0.275
 *Material, name=FGM-L11
     *Density
-    1.2138215E+03,
+    1.7861785E+03,
     *Elastic
-    3.1799177E+02, 0.294
+    1.5200823E+02, 0.276
 *Material, name=FGM-L12
     *Density
-    1.2522924E+03,
+    1.7477076E+03,
     *Elastic
-    3.0683522E+02, 0.292
+    1.6316478E+02, 0.278
 *Material, name=FGM-L13
     *Density
-    1.3008388E+03,
+    1.6991612E+03,
     *Elastic
-    2.9275675E+02, 0.291
+    1.7724325E+02, 0.279
 *Material, name=FGM-L14
     *Density
-    1.3351030E+03,
+    1.6648970E+03,
     *Elastic
-    2.8282012E+02, 0.290
+    1.8717988E+02, 0.280
 *Material, name=FGM-L15
     *Density
-    1.3427897E+03,
+    1.6572103E+03,
     *Elastic
-    2.8059099E+02, 0.290
+    1.8940901E+02, 0.280
 *Material, name=FGM-L16
     *Density
-    1.3504764E+03,
+    1.6495236E+03,
     *Elastic
-    2.7836185E+02, 0.289
+    1.9163815E+02, 0.281
 *Material, name=FGM-L17
     *Density
-    1.3581630E+03,
+    1.6418370E+03,
     *Elastic
-    2.7613272E+02, 0.289
+    1.9386728E+02, 0.281
 *Material, name=FGM-L18
     *Density
-    1.3658497E+03,
+    1.6341503E+03,
     *Elastic
-    2.7390358E+02, 0.289
+    1.9609642E+02, 0.281
 *Material, name=FGM-L19
     *Density
-    1.3735364E+03,
+    1.6264636E+03,
     *Elastic
-    2.7167445E+02, 0.289
+    1.9832555E+02, 0.281
 *Material, name=FGM-L20
     *Density
-    1.3812231E+03,
+    1.6187769E+03,
     *Elastic
-    2.6944532E+02, 0.289
+    2.0055468E+02, 0.281
 *Material, name=FGM-L21
     *Density
-    1.3889097E+03,
+    1.6110903E+03,
     *Elastic
-    2.6721618E+02, 0.288
+    2.0278382E+02, 0.282
 *Material, name=FGM-L22
     *Density
-    1.3965964E+03,
+    1.6034036E+03,
     *Elastic
-    2.6498705E+02, 0.288
+    2.0501295E+02, 0.282
 *Material, name=FGM-L23
     *Density
-    1.4042831E+03,
+    1.5957169E+03,
     *Elastic
-    2.6275791E+02, 0.288
+    2.0724209E+02, 0.282
 *Material, name=FGM-L24
     *Density
-    1.4119697E+03,
+    1.5880303E+03,
     *Elastic
-    2.6052878E+02, 0.288
+    2.0947122E+02, 0.282
 *Material, name=FGM-L25
     *Density
-    1.4196564E+03,
+    1.5803436E+03,
     *Elastic
-    2.5829964E+02, 0.287
+    2.1170036E+02, 0.283
 *Material, name=FGM-L26
     *Density
-    1.4273431E+03,
+    1.5726569E+03,
     *Elastic
-    2.5607051E+02, 0.287
+    2.1392949E+02, 0.283
 *Material, name=FGM-L27
     *Density
-    1.4350297E+03,
+    1.5649703E+03,
     *Elastic
-    2.5384137E+02, 0.287
+    2.1615863E+02, 0.283
 *Material, name=FGM-L28
     *Density
-    1.4427164E+03,
+    1.5572836E+03,
     *Elastic
-    2.5161224E+02, 0.287
+    2.1838776E+02, 0.283
 *Material, name=FGM-L29
     *Density
-    1.4504031E+03,
+    1.5495969E+03,
     *Elastic
-    2.4938311E+02, 0.286
+    2.2061689E+02, 0.284
 *Material, name=FGM-L30
     *Density
-    1.4580898E+03,
+    1.5419102E+03,
     *Elastic
-    2.4715397E+02, 0.286
+    2.2284603E+02, 0.284
 *Material, name=FGM-L31
     *Density
-    1.4657764E+03,
+    1.5342236E+03,
     *Elastic
-    2.4492484E+02, 0.286
+    2.2507516E+02, 0.284
 *Material, name=FGM-L32
     *Density
-    1.4734631E+03,
+    1.5265369E+03,
     *Elastic
-    2.4269570E+02, 0.286
+    2.2730430E+02, 0.284
 *Material, name=FGM-L33
     *Density
-    1.4811498E+03,
+    1.5188502E+03,
     *Elastic
-    2.4046657E+02, 0.286
+    2.2953343E+02, 0.284
 *Material, name=FGM-L34
     *Density
-    1.4888364E+03,
+    1.5111636E+03,
     *Elastic
-    2.3823743E+02, 0.285
+    2.3176257E+02, 0.285
 *Material, name=FGM-L35
     *Density
-    1.4965231E+03,
+    1.5034769E+03,
     *Elastic
-    2.3600830E+02, 0.285
+    2.3399170E+02, 0.285
 *Material, name=FGM-L36
     *Density
-    1.5042098E+03,
+    1.4957902E+03,
     *Elastic
-    2.3377917E+02, 0.285
+    2.3622083E+02, 0.285
 *Material, name=FGM-L37
     *Density
-    1.5118964E+03,
+    1.4881036E+03,
     *Elastic
-    2.3155003E+02, 0.285
+    2.3844997E+02, 0.285
 *Material, name=FGM-L38
     *Density
-    1.5195831E+03,
+    1.4804169E+03,
     *Elastic
-    2.2932090E+02, 0.284
+    2.4067910E+02, 0.286
 *Material, name=FGM-L39
     *Density
-    1.5272698E+03,
+    1.4727302E+03,
     *Elastic
-    2.2709176E+02, 0.284
+    2.4290824E+02, 0.286
 *Material, name=FGM-L40
     *Density
-    1.5349565E+03,
+    1.4650435E+03,
     *Elastic
-    2.2486263E+02, 0.284
+    2.4513737E+02, 0.286
 *Material, name=FGM-L41
     *Density
-    1.5426431E+03,
+    1.4573569E+03,
     *Elastic
-    2.2263349E+02, 0.284
+    2.4736651E+02, 0.286
 *Material, name=FGM-L42
     *Density
-    1.5503298E+03,
+    1.4496702E+03,
     *Elastic
-    2.2040436E+02, 0.283
+    2.4959564E+02, 0.287
 *Material, name=FGM-L43
     *Density
-    1.5580165E+03,
+    1.4419835E+03,
     *Elastic
-    2.1817523E+02, 0.283
+    2.5182477E+02, 0.287
 *Material, name=FGM-L44
     *Density
-    1.5657031E+03,
+    1.4342969E+03,
     *Elastic
-    2.1594609E+02, 0.283
+    2.5405391E+02, 0.287
 *Material, name=FGM-L45
     *Density
-    1.5733898E+03,
+    1.4266102E+03,
     *Elastic
-    2.1371696E+02, 0.283
+    2.5628304E+02, 0.287
 *Material, name=FGM-L46
     *Density
-    1.5810765E+03,
+    1.4189235E+03,
     *Elastic
-    2.1148782E+02, 0.283
+    2.5851218E+02, 0.287
 *Material, name=FGM-L47
     *Density
-    1.5887631E+03,
+    1.4112369E+03,
     *Elastic
-    2.0925869E+02, 0.282
+    2.6074131E+02, 0.288
 *Material, name=FGM-L48
     *Density
-    1.5964498E+03,
+    1.4035502E+03,
     *Elastic
-    2.0702955E+02, 0.282
+    2.6297045E+02, 0.288
 *Material, name=FGM-L49
     *Density
-    1.6041365E+03,
+    1.3958635E+03,
     *Elastic
-    2.0480042E+02, 0.282
+    2.6519958E+02, 0.288
 *Material, name=FGM-L50
     *Density
-    1.6118232E+03,
+    1.3881768E+03,
     *Elastic
-    2.0257128E+02, 0.282
+    2.6742872E+02, 0.288
 *Material, name=FGM-L51
     *Density
-    1.6195098E+03,
+    1.3804902E+03,
     *Elastic
-    2.0034215E+02, 0.281
+    2.6965785E+02, 0.289
 *Material, name=FGM-L52
     *Density
-    1.6271965E+03,
+    1.3728035E+03,
     *Elastic
-    1.9811302E+02, 0.281
+    2.7188698E+02, 0.289
 *Material, name=FGM-L53
     *Density
-    1.6348832E+03,
+    1.3651168E+03,
     *Elastic
-    1.9588388E+02, 0.281
+    2.7411612E+02, 0.289
 *Material, name=FGM-L54
     *Density
-    1.6425698E+03,
+    1.3574302E+03,
     *Elastic
-    1.9365475E+02, 0.281
+    2.7634525E+02, 0.289
 *Material, name=FGM-L55
     *Density
-    1.6502565E+03,
+    1.3497435E+03,
     *Elastic
-    1.9142561E+02, 0.280
+    2.7857439E+02, 0.290
 *Material, name=FGM-L56
     *Density
-    1.6579432E+03,
+    1.3420568E+03,
     *Elastic
-    1.8919648E+02, 0.280
+    2.8080352E+02, 0.290
 *Material, name=FGM-L57
     *Density
-    1.6656298E+03,
+    1.3343702E+03,
     *Elastic
-    1.8696734E+02, 0.280
+    2.8303266E+02, 0.290
 *Material, name=FGM-L58
     *Density
-    1.6733165E+03,
+    1.3266835E+03,
     *Elastic
-    1.8473821E+02, 0.280
+    2.8526179E+02, 0.290
 *Material, name=FGM-L59
     *Density
-    1.6810032E+03,
+    1.3189968E+03,
     *Elastic
-    1.8250908E+02, 0.280
+    2.8749092E+02, 0.290
 *Material, name=FGM-L60
     *Density
-    1.6886899E+03,
+    1.3113101E+03,
     *Elastic
-    1.8027994E+02, 0.279
+    2.8972006E+02, 0.291
 *Material, name=FGM-L61
     *Density
-    1.6963765E+03,
+    1.3036235E+03,
     *Elastic
-    1.7805081E+02, 0.279
+    2.9194919E+02, 0.291
 *Material, name=FGM-L62
     *Density
-    1.7040632E+03,
+    1.2959368E+03,
     *Elastic
-    1.7582167E+02, 0.279
+    2.9417833E+02, 0.291
 *Material, name=FGM-L63
     *Density
-    1.7117499E+03,
+    1.2882501E+03,
     *Elastic
-    1.7359254E+02, 0.279
+    2.9640746E+02, 0.291
 *Material, name=FGM-L64
     *Density
-    1.7194365E+03,
+    1.2805635E+03,
     *Elastic
-    1.7136340E+02, 0.278
+    2.9863660E+02, 0.292
 *Material, name=FGM-L65
     *Density
-    1.7271232E+03,
+    1.2728768E+03,
     *Elastic
-    1.6913427E+02, 0.278
+    3.0086573E+02, 0.292
 *Material, name=FGM-L66
     *Density
-    1.7348099E+03,
+    1.2651901E+03,
     *Elastic
-    1.6690514E+02, 0.278
+    3.0309486E+02, 0.292
 *Material, name=FGM-L67
     *Density
-    1.7424965E+03,
+    1.2575035E+03,
     *Elastic
-    1.6467600E+02, 0.278
+    3.0532400E+02, 0.292
 *Material, name=FGM-L68
     *Density
-    1.7501832E+03,
+    1.2498168E+03,
     *Elastic
-    1.6244687E+02, 0.277
+    3.0755313E+02, 0.293
 *Material, name=FGM-L69
     *Density
-    1.7578699E+03,
+    1.2421301E+03,
     *Elastic
-    1.6021773E+02, 0.277
+    3.0978227E+02, 0.293
 *Material, name=FGM-L70
     *Density
-    1.7655566E+03,
+    1.2344434E+03,
     *Elastic
-    1.5798860E+02, 0.277
+    3.1201140E+02, 0.293
 *Material, name=FGM-L71
     *Density
-    1.7732432E+03,
+    1.2267568E+03,
     *Elastic
-    1.5575946E+02, 0.277
+    3.1424054E+02, 0.293
 *Material, name=FGM-L72
     *Density
-    1.7809299E+03,
+    1.2190701E+03,
     *Elastic
-    1.5353033E+02, 0.277
+    3.1646967E+02, 0.293
 *Material, name=FGM-L73
     *Density
-    1.7886166E+03,
+    1.2113834E+03,
     *Elastic
-    1.5130119E+02, 0.276
+    3.1869881E+02, 0.294
 *Material, name=FGM-L74
     *Density
-    1.7963032E+03,
+    1.2036968E+03,
     *Elastic
-    1.4907206E+02, 0.276
+    3.2092794E+02, 0.294
 *Material, name=FGM-L75
     *Density
-    1.8039899E+03,
+    1.1960101E+03,
     *Elastic
-    1.4684293E+02, 0.276
+    3.2315707E+02, 0.294
 *Material, name=FGM-L76
     *Density
-    1.8116766E+03,
+    1.1883234E+03,
     *Elastic
-    1.4461379E+02, 0.276
+    3.2538621E+02, 0.294
 *Material, name=FGM-L77
     *Density
-    1.8193633E+03,
+    1.1806367E+03,
     *Elastic
-    1.4238466E+02, 0.275
+    3.2761534E+02, 0.295
 *Material, name=FGM-L78
     *Density
-    1.8270499E+03,
+    1.1729501E+03,
     *Elastic
-    1.4015552E+02, 0.275
+    3.2984448E+02, 0.295
 *Material, name=FGM-L79
     *Density
-    1.8347366E+03,
+    1.1652634E+03,
     *Elastic
-    1.3792639E+02, 0.275
+    3.3207361E+02, 0.295
 *Material, name=FGM-L80
     *Density
-    1.8424233E+03,
+    1.1575767E+03,
     *Elastic
-    1.3569725E+02, 0.275
+    3.3430275E+02, 0.295
 *Material, name=FGM-L81
     *Density
-    1.8501099E+03,
+    1.1498901E+03,
     *Elastic
-    1.3346812E+02, 0.274
+    3.3653188E+02, 0.296
 *Material, name=FGM-L82
     *Density
-    1.8577966E+03,
+    1.1422034E+03,
     *Elastic
-    1.3123899E+02, 0.274
+    3.3876101E+02, 0.296
 *Material, name=FGM-L83
     *Density
-    1.8654833E+03,
+    1.1345167E+03,
     *Elastic
-    1.2900985E+02, 0.274
+    3.4099015E+02, 0.296
 *Material, name=FGM-L84
     *Density
-    1.8731699E+03,
+    1.1268301E+03,
     *Elastic
-    1.2678072E+02, 0.274
+    3.4321928E+02, 0.296
 *Material, name=FGM-L85
     *Density
-    1.8808566E+03,
+    1.1191434E+03,
     *Elastic
-    1.2455158E+02, 0.274
+    3.4544842E+02, 0.296
 *Material, name=FGM-L86
     *Density
-    1.8885433E+03,
+    1.1114567E+03,
     *Elastic
-    1.2232245E+02, 0.273
+    3.4767755E+02, 0.297
 *Material, name=FGM-L87
     *Density
-    1.8962300E+03,
+    1.1037700E+03,
     *Elastic
-    1.2009331E+02, 0.273
+    3.4990669E+02, 0.297
 *Material, name=FGM-L88
     *Density
-    1.9039166E+03,
+    1.0960834E+03,
     *Elastic
-    1.1786418E+02, 0.273
+    3.5213582E+02, 0.297
 *Material, name=FGM-L89
     *Density
-    1.9116033E+03,
+    1.0883967E+03,
     *Elastic
-    1.1563505E+02, 0.273
+    3.5436495E+02, 0.297
 *Material, name=FGM-L90
     *Density
-    1.9192900E+03,
+    1.0807100E+03,
     *Elastic
-    1.1340591E+02, 0.272
+    3.5659409E+02, 0.298
 *Material, name=FGM-L91
     *Density
-    1.9269766E+03,
+    1.0730234E+03,
     *Elastic
-    1.1117678E+02, 0.272
+    3.5882322E+02, 0.298
 *Material, name=FGM-L92
     *Density
-    1.9346633E+03,
+    1.0653367E+03,
     *Elastic
-    1.0894764E+02, 0.272
+    3.6105236E+02, 0.298
 *Material, name=FGM-L93
     *Density
-    1.9423500E+03,
+    1.0576500E+03,
     *Elastic
-    1.0671851E+02, 0.272
+    3.6328149E+02, 0.298
 *Material, name=FGM-L94
     *Density
-    1.9500366E+03,
+    1.0499634E+03,
     *Elastic
-    1.0448937E+02, 0.271
+    3.6551063E+02, 0.299
 *Material, name=FGM-L95
     *Density
-    1.9577233E+03,
+    1.0422767E+03,
     *Elastic
-    1.0226024E+02, 0.271
+    3.6773976E+02, 0.299
 *Material, name=FGM-L96
     *Density
-    1.9654100E+03,
+    1.0345900E+03,
     *Elastic
-    1.0003110E+02, 0.271
+    3.6996890E+02, 0.299
 *Material, name=FGM-L97
     *Density
-    1.9730967E+03,
+    1.0269033E+03,
     *Elastic
-    9.7801970E+01, 0.271
+    3.7219803E+02, 0.299
 *Material, name=FGM-L98
     *Density
-    1.9807833E+03,
+    1.0192167E+03,
     *Elastic
-    9.5572836E+01, 0.271
+    3.7442716E+02, 0.299
 *Material, name=FGM-L99
     *Density
-    1.9884700E+03,
+    1.0115300E+03,
     *Elastic
-    9.3343702E+01, 0.270
+    3.7665630E+02, 0.300
 *Material, name=FGM-L100
     *Density
-    1.9961567E+03,
+    1.0038433E+03,
     *Elastic
-    9.1114567E+01, 0.270
+    3.7888543E+02, 0.300
 *Part, name=Virtual_Part
 *Node
     1, 1.0, 1.0, 0.0
