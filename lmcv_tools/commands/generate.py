@@ -6,7 +6,7 @@ from ..models.generation_artifacts import (
    MicromechanicalModel,
    Material
 )
-from ..models.graphical_interfaces import PromptGenerateVirtualLamina
+from ..models.graphical_interfaces import PromptGenerateVirtualLaminas
 from ..models.custom_errors import CommandError
 
 # Funções de Geração de Artefatos
@@ -56,7 +56,7 @@ def params_virtual_laminas(args: list[str]) -> dict:
    
    # Exibindo Interface Gráfica para Preencher Parâmetros (Se não Houver Parâmetros)
    if len(args) == 0:
-      window = PromptGenerateVirtualLamina(params)
+      window = PromptGenerateVirtualLaminas(params)
       window.start()
 
       # Conferindo se Há um Caminho

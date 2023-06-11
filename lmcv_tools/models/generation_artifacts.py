@@ -26,42 +26,65 @@ class Material:
 
 class MicromechanicalModel:
    # Funções de Homogeneização Privadas
-   def _voight(self, volume_fractions: list[float]):
+   def _voigt(self, volume_fractions: list[float]):
       E, nu, pho = 0, 0, 0
       for V, M in zip(volume_fractions, self.materials):
          E += V * M.E
          nu += V * M.nu
          pho += V * M.pho
       return E, nu, pho
+   
+   def _hashin_shtrikman(bound: str):
+      def function(self, volume_fractions: list[float]):
+         # Definindo Valores Especiais
+         V, M = volume_fractions, self.materials
+         V1, V2 = V[0], V[1]
+         K1, K2 = M[0].K, M[1].K
+         G1, G2 = M[0].G, M[1].G
+         pho_1, pho_2 = M[0].pho, M[1].pho
 
-   def _mori_tanaka(self, volume_fractions: list[float]):
-      # Definindo Valores Especiais
-      V, M = volume_fractions, self.materials
-      V1, V2 = V[0], V[1]
-      K1, K2 = M[0].K, M[1].K
-      G1, G2 = M[0].G, M[1].G
-      FG = (G1 * (9 * K1 + 8 * G1)) / (6 * (K1 + 2 * G1))
-      FK = 4 * G1 / 3
+         # Valores Iniciais do que é Matriz e do que são as Inclusões
+         Vm, Vi = V1, V2
+         Km, Ki = K1, K2
+         Gm, Gi = G1, G2
+         pho_m, pho_i = pho_1, pho_2
 
-      # Calculando Módulo Volumétrico
-      K = K1 + V2 / ((1 / (K2 - K1)) + (V1 / (K1 + FK)))
+         # Trocando Ordem com base no Bound Escolhido
+         if (
+            bound == 'upper' and M[0].E < M[1].E or
+            bound == 'lower' and M[0].E > M[1].E
+         ):
+            Vm, Vi = V2, V1
+            Km, Ki = K2, K1
+            Gm, Gi = G2, G1
+            pho_m, pho_i = pho_2, pho_1
 
-      # Calculando Módulo de Cisalhamento
-      G = G1 + V2 / ((1 / (G2 - G1)) + (V1 / (G1 + FG)))
+         # Calculando Valores Auxilizares
+         FK = (3 * Vm) / (3 * Km + 4 * Gm)
+         FG = 6 * Vm * (Km + 2 * Gm) / (5 * Gm * (3 * Km + 4 * Gm))
 
-      # Calculando Propriedades Efetivas
-      E = (9 * K * G) / (3 * K + G)
-      nu = (3 * K - 2 * G) / (2 * (3 * K + G))
+         # Calculando Módulo Volumétrico
+         K = Km + Vi / ((1 / (Ki - Km)) + FK)
 
-      # Densidade Calculada pelo Modelo de Voight
-      pho = V1 * M[0].pho + V2 * M[1].pho
+         # Calculando Módulo de Cisalhamento
+         G = Gm + Vi / ((1 / (Gi - Gm)) + FG)
 
-      return E, nu, pho
+         # Calculando Propriedades Efetivas
+         E = (9 * G * K) / (G + 3 * K)
+         nu = (3 * K - 2 * G) / (2 * (G + 3 * K))
+
+         # Densidade Calculada pelo Modelo de voigt
+         pho = Vi * pho_i + Vm * pho_m
+
+         return E, nu, pho
+      return function
 
    # Relação Modelo/Função de Homogeneização
    homogenize_functions = {
-      'voight': _voight,
-      'mori_tanaka': _mori_tanaka
+      'voigt': _voigt,
+      'mori_tanaka': _hashin_shtrikman('lower'),
+      'hashin_shtrikman_upper_bound': _hashin_shtrikman('upper'),
+      'hashin_shtrikman_lower_bound': _hashin_shtrikman('lower'),
    }
 
    def __init__(self, name: str, materials: list[Material]) -> None:
@@ -109,7 +132,7 @@ class VirtualLaminas(Artifact):
    def z_coordinate(self, V: float):
       return 1 - V ** (1 / self.power_law_exponent)
 
-   def equally_thickness_laminas(self):
+   def same_thickness_laminas(self):
       step = 1 / self.laminas_count
       points = [step / 2 + i * step for i in range(self.laminas_count)]
       fractions = [self.volume_fraction(z) for z in points]
@@ -201,7 +224,7 @@ class VirtualLaminas(Artifact):
       inp_data = ''
 
       # Gerados Dados de Lâminas
-      laminas = self.smart_laminas() if self.smart else self.equally_thickness_laminas()
+      laminas = self.smart_laminas() if self.smart else self.same_thickness_laminas()
 
       # Escrevendo Materiais
       material_names = list()
@@ -215,7 +238,7 @@ class VirtualLaminas(Artifact):
          E, nu, pho = self.micromechanical_model.homogenize([V, 1 - V])
 
          # Adicionando Dados
-         inp_data += f'*Material, name={name}\n    *Density\n    {pho:.3f},\n    *Elastic\n    {E:.3f}, {nu:.3f}\n'
+         inp_data += f'*Material, name={name}\n    *Density\n    {pho:.7E},\n    *Elastic\n    {E:.7E}, {nu:.3f}\n'
          
          index += 1
       
@@ -229,7 +252,7 @@ class VirtualLaminas(Artifact):
       inp_data += f'\n*{element_type} Section, elset=Virtual, composite\n'
       index = 1
       for h, material in zip(laminas[1], material_names):
-         inp_data += f'    {h:.11E}, {int_points}, {material}, {rotation_angle}, Ply-{index}\n'
+         inp_data += f'    {h:.7E}, {int_points}, {material}, {rotation_angle}, Ply-{index}\n'
          index += 1
       inp_data += '*End Part'
 
