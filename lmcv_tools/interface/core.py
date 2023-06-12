@@ -2,7 +2,7 @@ from . import messenger, searcher
 from ..models.custom_errors import CommandError
 
 # Constantes Globais
-version = '0.0.8'
+version = '0.0.9'
 in_interactive_mode = False
 message_welcome = '''
 LMCV Tools is a command line tool that provides a series of useful functionali-
