@@ -127,10 +127,10 @@ class VirtualLaminas(Artifact):
       self.smart = smart
    
    def volume_fraction(self, z: float):
-      return (1 - z) ** self.power_law_exponent
+      return 1 - z ** self.power_law_exponent
    
    def z_coordinate(self, V: float):
-      return 1 - V ** (1 / self.power_law_exponent)
+      return (1 - V) ** (1 / self.power_law_exponent)
 
    def same_thickness_laminas(self):
       step = 1 / self.laminas_count
@@ -157,11 +157,11 @@ class VirtualLaminas(Artifact):
       if p == 1:
          z_ref = 0.5
       else:
-         z_ref = 1 - p ** (-1 / (p - 1))
+         z_ref = p ** (-1 / (p - 1))
       
       # Decidindo se a Região de Prioridade z está à Esquerda ou Direita
       V_ref = V(z_ref)
-      slope_tendency = p * (p - 1) * (1 - z_ref) ** (p - 2)
+      slope_tendency = -p * (p - 1) * z_ref ** (p - 2)
       if slope_tendency > 0:
          l_V = 1 - V_ref
          l_z = 1 - z_ref

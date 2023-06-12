@@ -24,7 +24,7 @@ class DefaultTest(unittest.TestCase):
       self.assertEqual(artifact_data, exp_data, 'O Artefato está incorreto.')
 
       # Removendo Arquivo .csv Gerado
-      os.remove(artifact_path)
+      # os.remove(artifact_path)
 
 class TestVirtualLaminas(DefaultTest):
    def test_shell_element(self):
