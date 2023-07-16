@@ -15,57 +15,18 @@ multiple commands in sequence interactively:
 To get help | type the command "help"
 To exit     | type the command "exit"
 '''
-help_messages = searcher.get_database('help_messages')
 
 # Funções Pré-processamento de Comandos
 def show_version(args: list[str] = []):
    messenger.show(f'LMCV Tools - v{version}')
 
-def show_help(args: list[str] = []):   
-   # Coletando Dados da Mensagem de Ajuda com base nos Argumentos.
-   try:
-      command = 'default' if len(args) == 0 else args[0]
-      message = help_messages[command]
-   except KeyError:
-      raise CommandError(f'There is no command named "{command}".')
+def pre_help(args: list[str] = []):   
+   from ..commands import help
    
-   # Gerando Mensagem
-   messenger.show(f"Usage: {message['usage']}\n")
-   for title, points in message['topics'].items():
-      # Exibindo Título do Tópico
-      messenger.show(f"{title}:")
-
-      # Determinando Largura Máxima da Primera Coluna dos Pontos do Tópico
-      max_width = 0
-      for name in points.keys():
-         len_name = len(name)
-         if len_name > max_width:
-            max_width = len_name
-      max_width += 3
-
-      # Exibindo Pontos do Tópico
-      for name, description in points.items():
-         # Dividindo Descrição em Linhas
-         lines = description.split('. ')
-
-         # Exibindo a Primeira Linha
-         firt_line = f"\n{name:<{max_width}}|   {lines[0]}."
-         messenger.show(firt_line)
-
-         # Exibindo Demais Linhas
-         for line in lines[1:]:
-            # Quebrando Linhas para Terem 80 Caracteres
-            max_size = 79 - (max_width + 5)
-            offset = ' ' * max_width
-            while len(line) > max_size:
-               crop_index = line[0:max_size].rfind(' ')
-               cropped_line = line[0:crop_index]
-               line = line[crop_index + 1:]
-               messenger.show(f"{offset}|   {cropped_line}")
-            messenger.show(f"{offset}|   {line}.")
-
-      # Quebra de Linha Final do Tópico
-      messenger.show('')
+   if len(args) > 0:
+      help.start(args[0])
+   else:
+      help.start()
 
 def pre_translate(args: list[str]):
    from ..commands import translate
@@ -148,7 +109,7 @@ def pre_generate(args: list[str]):
 # Relação Comando/Função
 commands = {
    'version': show_version,
-   'help': show_help,
+   'help': pre_help,
    'translate': pre_translate,
    'extract': pre_extract,
    'generate': pre_generate
