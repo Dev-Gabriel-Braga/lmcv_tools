@@ -75,11 +75,22 @@ $ lmcv_tools translate Job-1.inp to .dat
 
 ### 2.1.2 - Translate .dat to .svg
 
-Articles for scientific publications in the LMCV study field generally require images of the used meshes. Generating bitmat images in PNG format is a valid possibility, but for very discretized meshes this approach results in loss of details. Thinking about it, this command translates .dat files of 2D meshes to the SVG (Scalable Vector Graphics) image format, which does not lose quality with zoom (perfect for meshes with many elements).
+Articles for scientific publications in the LMCV study field generally require images of the used meshes. Generating bitmat images in PNG format is a valid possibility, but for very discretized meshes this approach results in loss of details. Thinking about it, this command translates .dat files of **plate and shell** meshes to the SVG (Scalable Vector Graphics) image format, which does not lose quality with zoom (perfect for meshes with many elements).
 
 Example:
 ```text
 $ lmcv_tools translate Plate.dat to .svg
+```
+
+In addition, this command variation has an optional argument to choose the projection type. The supported projection types are listed bellow:
+- plane_xy (**default**)
+- plane_yz
+- plane_xz
+- isometric
+
+Example:
+```text
+$ lmcv_tools translate Plate.dat to .svg isometric
 ```
 
 ### 2.2 - Extract

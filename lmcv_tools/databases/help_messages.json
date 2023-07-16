@@ -29,6 +29,11 @@
          "Possible Arguments": {
             "[path/to/file]": "Required argument. Relative path to file",
             "[new extension]": "Required argument. Extension to which the file will be translated"
+         },
+         "Projections in .dat to .svg": {
+            "Explanation": "The translation \".dat to .svg\" has a third optional argument: [projection type]",
+            "[projection type]": "Optional argument. Supported projections: plane_xy (default), plane_yz, plane_xz, isometric",
+            "Example": "translate Plate.dat to .svg isometric"
          }
       }
    },

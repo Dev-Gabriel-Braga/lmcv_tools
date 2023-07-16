@@ -67,28 +67,28 @@ def show_help(args: list[str] = []):
       # Quebra de Linha Final do Tópico
       messenger.show('')
 
-def pre_translate(file_paths: list[str]):
+def pre_translate(args: list[str]):
    from ..commands import translate
 
    # Verificando Path do Input
    try:
-      input_path = file_paths[0]
+      input_path = args[0]
    except IndexError:
       raise CommandError('An Input File Path is required.')
 
    # Verificando Extensão do Output
    try:
-      if 'to' != file_paths[1]:
+      if 'to' != args[1]:
          raise CommandError('"to" keyword after Input File Path is required.')
    except IndexError:
       raise CommandError('"to" keyword after Input File Path is required.')
    try:
-      output_extension = file_paths[2]
+      output_extension = args[2]
    except IndexError:
       raise CommandError('An Extension for Output File after "to" keyword is required.')
    
    # Iniciando Tradução
-   translate.start(input_path, output_extension)
+   translate.start(input_path, output_extension, args[3:])
 
 def pre_extract(terms: list[str]):
    from ..commands import extract

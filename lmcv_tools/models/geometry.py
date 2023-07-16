@@ -1,4 +1,4 @@
-from math import factorial
+from math import factorial, cos, sin, radians
 
 def bezier_equiv_coord(c: float, c0: float, c2: float):
    return 2 * c - 0.5 * (c0 + c2)
@@ -13,3 +13,9 @@ def bernstein_polynomial(index: int, grade: int, region: float):
    
    # Calculando Polinômio na Região Informada
    return (factorial(p) / (factorial(i) * factorial(p - i))) * t ** i * (1 - t) ** (p - i)
+
+def projection_isometric(x: float, y: float, z: float):
+   theta = radians(30)
+   u = x * cos(theta) - y * cos(theta)
+   v = x * sin(theta) + y * sin(theta) + z
+   return u, v

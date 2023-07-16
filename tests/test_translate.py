@@ -2,7 +2,7 @@ import unittest
 import os
 
 class DefaultTest(unittest.TestCase):
-   def default_test(self, benchmark_name: str, input_extension: str, output_extension: str):
+   def default_test(self, benchmark_name: str, input_extension: str, output_extension: str, projection: str = ''):
       # Definindo paths
       benchmark_name = 'tests/benchmark/translate/' + benchmark_name
       input_path = benchmark_name + input_extension
@@ -10,7 +10,7 @@ class DefaultTest(unittest.TestCase):
       exp_path = input_path[:-4] + '_exp' + output_extension
 
       # Traduzindo Benchmark
-      code = os.system(f'python -m lmcv_tools translate {input_path} to {output_extension}')
+      code = os.system(f'python -m lmcv_tools translate {input_path} to {output_extension} {projection}')
       self.assertEqual(code, 0, 'A tradução falhou.')
 
       # Comparando Tradução com o Resultado Esperado
@@ -82,8 +82,8 @@ class Test_inp_to_dat(DefaultTest):
 
 
 class Test_dat_to_svg(DefaultTest):
-   def default_test(self, benchmark_name: str):
-      super().default_test('dat_to_svg/' + benchmark_name, '.dat', '.svg')
+   def default_test(self, benchmark_name: str, projection: str = ''):
+      super().default_test('dat_to_svg/' + benchmark_name, '.dat', '.svg', projection)
 
    def test_circle_T3_Q4_4x4(self):
       self.default_test('Circle_T3_Q4_4x4')
@@ -102,3 +102,15 @@ class Test_dat_to_svg(DefaultTest):
    
    def test_disform_BT4(self):
       self.default_test('Disform_BT4')
+
+   def test_projection_plane_xy(self):
+      self.default_test('CirclePlate_BT2_plane_xy', 'plane_xy')
+
+   def test_projection_plane_yz(self):
+      self.default_test('CirclePlate_BT2_plane_yz', 'plane_yz')
+
+   def test_projection_plane_xz(self):
+      self.default_test('CirclePlate_BT2_plane_xz', 'plane_xz')
+
+   def test_projection_isometric(self):
+      self.default_test('CirclePlate_BT2_isometric', 'isometric')
