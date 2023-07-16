@@ -43,9 +43,8 @@ def start(attributes: list[str], pos_path: str, condition: str, csv_path: str):
 
    # Informando Atributos não Cruzados
    if len(failed_attributes) > 0:
-      messenger.show('(Warning) The following attributes could not be related to the others considering the attributes order informed:')
+      messenger.warning('The following attributes could not be related to the others considering the attributes order informed:')
       messenger.show(','.join(failed_attributes))
-
 
    # Escrevendo Extração no .csv
    filer.write(csv_path, csv_data)

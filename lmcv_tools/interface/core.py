@@ -156,15 +156,17 @@ commands = {
 
 # Funções de Inicialização
 def execute_command(name: str, args: list[str]):
-   # Tentando Identificar o Comando
+   # Encapsulando Execução para Tratamento Padrão de Erros
    try:
-      command_function = commands[name]
-   except KeyError:
-      raise CommandError('Unknown command.', help=True)
-   
-   # Tentando Executar o Comando
-   try:
+      # Tentando Identificar o Comando
+      try:
+         command_function = commands[name]
+      except KeyError:
+         raise CommandError('Unknown command.', help=True)
+
+      # Executando Comando
       command_function(args)
+
    except Exception as exc:
       # Exibindo Mensagem de Erro com o Contexto da Exceção
       name = exc.__class__.__name__
@@ -189,6 +191,8 @@ def start_interactive_mode():
       args = input('>> ').split()
 
       # Executando Comando
+      if len(args) == 0:
+         continue
       command_name = args[0]
       if command_name == 'exit':
          break
