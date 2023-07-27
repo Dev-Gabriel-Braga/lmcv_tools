@@ -53,6 +53,7 @@ Considering that the routine activities for which LMCV Tools was developed are q
 - translate (in implementation)
 - extract (in implementation)
 - generate (in implementation)
+- reorder (in implementation)
 
 ### 2.1 - Translate
 
@@ -226,3 +227,22 @@ $ lmcv_tools generate virtual_laminas [args] [path/to/artifact]
 - mori_tanaka
 - hashin_shtrikman_lower_bound
 - hashin_shtrikman_upper_bound
+
+### 2.4 - Reorder
+
+The command **reorder**, in short, aims to add a node solver order in .dat files to reduce the stiffiness matrix bandwidth and, consequently, the time spent to execute the simulation.
+
+Considering that computational simulations based on the finite element method involve the solution of a system of linear equations, it is possible to reduce the execution time of these simulations by also reducing the bandwidth of the stiffness matrix that represents the linear system. A valid approach for this is the reordering of the nodes that make up the simulation mesh. Thus, this command allows generating a reordering of nodes (a new node solver order) from different methods.
+
+Possible Syntax:
+```text
+$ lmcv_tools reorder [method] [path/to/.dat]
+```
+
+Example:
+```text
+$ lmcv_tools reorder rcm simulation.dat
+```
+
+**Supported Reordering Methods**:
+- rcm (Reverse Cuthill-McKee)
