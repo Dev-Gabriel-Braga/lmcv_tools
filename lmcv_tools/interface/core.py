@@ -106,13 +106,31 @@ def pre_generate(args: list[str]):
    artifact = args[0]
    generate.start(artifact, args[1:])
 
+def pre_reorder(args: list[str]):
+   from ..commands import reorder
+   
+   # Verificando se um Método de Reordenação foi Fornecido
+   try:
+      method = args[0]
+   except IndexError:
+      raise CommandError('A reorder method is required.')
+   
+   # Verificando se um Caminho de Arquivo foi Fornecido
+   try:
+      dat_path = args[1]
+   except IndexError:
+      raise CommandError('A path to .dat file is required.')
+   
+   reorder.start(method, dat_path)
+
 # Relação Comando/Função
 commands = {
    'version': show_version,
    'help': pre_help,
    'translate': pre_translate,
    'extract': pre_extract,
-   'generate': pre_generate
+   'generate': pre_generate,
+   'reorder': pre_reorder
 }
 
 # Funções de Inicialização

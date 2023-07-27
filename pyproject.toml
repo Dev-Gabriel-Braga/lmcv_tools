@@ -23,6 +23,9 @@ classifiers = [
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering"
 ]
+dependencies = [
+  'scipy >= 1.11.1',
+]
 
 [project.urls]
 repository = "https://github.com/Dev-Gabriel-Braga/lmcv_tools"

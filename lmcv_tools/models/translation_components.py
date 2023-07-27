@@ -7,6 +7,7 @@ class SimulationModel:
    def __init__(self):
       self.nodes = dict()
       self.element_groups = dict()
+      self.node_solver_order = list()
    
    def add_node(self, ide: int, x: float, y: float, z: float, weight: float = None):
       self.nodes[ide] = self.Node(x, y, z, weight)
@@ -133,6 +134,14 @@ class DAT_Interpreter:
             if weight == 1.0:
                continue
             self.model.nodes[node_ide].weight = weight
+   
+   def read_node_solver_order(self, dat_data: str) -> str:
+      # Identificando Ordem de Resolução
+      keyword_format = '%NODE.SOLVER.ORDER\n\d+\n([^%]*)'
+
+      # Inserindo Ordem de Resolução
+      node_ides = re.findall(keyword_format, dat_data)[0]
+      self.model.node_solver_order = [int(ide) for ide in node_ides.split()]
 
    def read_elements(self, inp_data: str):
       # Identificando Grupos de Elementos
@@ -221,6 +230,9 @@ class DAT_Interpreter:
       # Interpretando Nodes
       self.read_nodes(dat_data)
 
+      # Interpretando Ordem de Resolução
+      self.read_node_solver_order(dat_data)
+
       # Interpretando Elementos
       self.read_elements(dat_data)
    
@@ -235,6 +247,17 @@ class DAT_Interpreter:
          offset = span - len(str(ide))
          offset = ' ' * offset
          output += f'{ide}{offset}   {node.x:+.8e}   {node.y:+.8e}   {node.z:+.8e}\n'
+      
+      return output
+   
+   def write_node_solver_order(self) -> str:
+      # Parâmetros Iniciais
+      n = len(self.model.node_solver_order)
+      output = f'\n%NODE.SOLVER.ORDER\n{n}\n'
+
+      # Escrevendo Ordem
+      output += ' '.join([str(node_ide) for node_ide in self.model.node_solver_order])
+      output += '\n'
       
       return output
 
@@ -295,6 +318,10 @@ class DAT_Interpreter:
 
       # Escrevendo Nodes
       output += self.write_nodes()
+
+      # Escrevendo Ordem de Resolução (Se existir)
+      if len(self.model.node_solver_order) > 0:
+         output += self.write_node_solver_order()
 
       # Escrevendo Elementos
       output += self.write_elements()
@@ -418,7 +445,7 @@ class SVG_Interpreter:
       
       return output
 
-   def write_finite_elements(self, group: SimulationModel.ElementGroup):
+   def write_finite_elements(self, group: SimulationModel.ElementGroup) -> str:
       output = ''
 
       # Tratamento para Elementos Lineares
