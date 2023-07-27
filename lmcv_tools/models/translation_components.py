@@ -140,8 +140,9 @@ class DAT_Interpreter:
       keyword_format = '%NODE.SOLVER.ORDER\n\d+\n([^%]*)'
 
       # Inserindo Ordem de Resolução
-      node_ides = re.findall(keyword_format, dat_data)[0]
-      self.model.node_solver_order = [int(ide) for ide in node_ides.split()]
+      node_ides = re.findall(keyword_format, dat_data)
+      if len(node_ides) > 0:
+         self.model.node_solver_order = [int(ide) for ide in node_ides[0].split()]
 
    def read_elements(self, inp_data: str):
       # Identificando Grupos de Elementos
