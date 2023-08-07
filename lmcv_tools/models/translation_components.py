@@ -5,9 +5,18 @@ from math import floor
 
 class SimulationModel:
    def __init__(self):
+      # Nodes - Atributos Relacionados
       self.nodes = dict()
-      self.element_groups = dict()
+      self.node_sets = dict()
       self.node_solver_order = list()
+
+      # Elements - Atributos Relacionados
+      self.element_groups = dict()
+      self.element_sets = dict()
+
+      # Supports - Atributos Relacionados
+      self.supports = dict()
+      self.supported_dofs = ('u', 'v', 'w', 'rx', 'ry', 'rz')
    
    def add_node(self, ide: int, x: float, y: float, z: float, weight: float = None):
       self.nodes[ide] = self.Node(x, y, z, weight)
@@ -18,8 +27,20 @@ class SimulationModel:
    def add_element(self, group_ide: int, ide: int, node_ides: list[float]):
       for node_ide in node_ides:
          if node_ide not in self.nodes:
-            raise KeyError(f'The Node with ide = {node_ide} does not exist.')
+            raise ValueError(f'The Node with ide = {node_ide} does not exist.')
       self.element_groups[group_ide].elements[ide] = node_ides
+   
+   def add_support(self, node_ide: int, dof: str):
+      # Verificando Entradas
+      if node_ide not in self.nodes:
+         raise ValueError(f'The Node with ide = {node_ide} does not exist.')
+      if dof not in self.supported_dofs:
+         raise ValueError(f'The Degree of Freedom "{dof}" is not supported.')
+      
+      # Relacionando Grau de Liberdade Restrito com o Node
+      if self.supports.get(node_ide) is None:
+         self.supports[node_ide] = set()
+      self.supports[node_ide].add(dof)
    
    class Node:
       def __init__(self, x: float, y: float, z: float, weight: float = None):
@@ -59,6 +80,29 @@ class INP_Interpreter:
          ide = int(ide)
          self.model.add_node(ide, x, y, z)
    
+   def read_node_sets(self, inp_data: str):
+      # Identificando Conjuntos de Nodes
+      keyword_format = '\*Nset\s*,\s*nset=([^,\n]+)([^*]+)'
+      sets_data = re.findall(keyword_format, inp_data)
+
+      # Tratando Informações
+      for set_data in sets_data:
+         # Nomeando Informações
+         set_name = set_data[0]
+         set_params, set_numbers, *_ = set_data[1].split('\n')
+         
+         # Obtendo Números (Ides de Nodes ou Parâmetros de Range)
+         number_format = '(\d+)\s*,?'
+         numbers = re.findall(number_format, set_numbers)
+         numbers = list(map(int, numbers))
+
+         # Tratando de Acordo com o tipo do Conjunto
+         if 'generate' in set_params:
+            numbers[1] += 1
+            self.model.node_sets[set_name] = range(*numbers)
+         else:
+            self.model.node_sets[set_name] = numbers
+   
    def read_elements(self, inp_data: str):
       # Identificando Grupos de Elementos
       keyword_format = '\*Element, type=(.*)\n([^*]*)'
@@ -92,13 +136,62 @@ class INP_Interpreter:
          
          # Incrementando Ide do Grupo
          group_ide += 1
+   
+   def read_element_sets(self, inp_data: str):
+      # Identificando Conjuntos de Elementos
+      keyword_format = '\*Elset\s*,\s*elset=([^,\n]+)([^*]+)'
+      sets_data = re.findall(keyword_format, inp_data)
+
+      # Tratando Informações
+      for set_data in sets_data:
+         # Nomeando Informações
+         set_name = set_data[0]
+         set_params, set_numbers, *_ = set_data[1].split('\n')
+         
+         # Obtendo Números (Ides de Nodes ou Parâmetros de Range)
+         number_format = '(\d+)\s*,?'
+         numbers = re.findall(number_format, set_numbers)
+         numbers = list(map(int, numbers))
+
+         # Tratando de Acordo com o tipo do Conjunto
+         if 'generate' in set_params:
+            self.model.element_sets[set_name] = range(*numbers)
+         else:
+            self.model.element_sets[set_name] = numbers
+
+   def read_supports(self, inp_data: str):
+      # Identificando Supports
+      keyword_format = '\*Boundary([^*]+)'
+      supports_data = re.findall(keyword_format, inp_data)
+
+      # Tratando Informações
+      for support_data in supports_data:
+         # Obtendo Informações
+         line_format = '(.+)\s*,\s*(\d+)\s*,\s*(\d+)'
+         lines_data = re.findall(line_format, support_data)
+         
+         for line_data in lines_data:
+            # Nomeando Informações
+            set_name = line_data[0]
+            dof_index_start = int(line_data[1]) - 1
+            dof_index_end = int(line_data[2]) - 1
+
+            # Adicionando Support de Acordo com Nodes dos Conjuntos
+            for node_ide in self.model.node_sets[set_name]:
+               for index in range(dof_index_start, dof_index_end + 1):
+                  self.model.add_support(node_ide, self.model.supported_dofs[index])
 
    def read(self, inp_data: str):
       # Interpretando Nodes
       self.read_nodes(inp_data)
+      self.read_node_sets(inp_data)
 
       # Interpretando Elementos
       self.read_elements(inp_data)
+      self.read_element_sets(inp_data)
+
+      # Interpretando Supports
+      self.read_supports(inp_data)
 
 class DAT_Interpreter:
    def __init__(self):
@@ -227,6 +320,24 @@ class DAT_Interpreter:
          # Incrementando Ide do Grupo
          group_ide += 1
 
+   def read_supports(self, dat_data: str):
+      # Identificando Supports
+      keyword_format = '%NODE\.SUPPORT\n\d+\n([^%]*)'
+      bool_dof = '\s+(\d)'
+      line_format = f'(\d+){bool_dof * 6}'
+
+      # Inserindo Supports
+      lines_data = re.findall(keyword_format, dat_data)
+      if len(lines_data) > 0:
+         supports = re.findall(line_format, lines_data[0])
+         for support in supports:
+            node_ide, *bool_dofs = support
+            node_ide = int(node_ide)
+            for index, bd in enumerate(bool_dofs):
+               if bd == '1':
+                  dof = self.model.supported_dofs[index]
+                  self.model.add_support(node_ide, dof)
+
    def read(self, dat_data: str):
       # Interpretando Nodes
       self.read_nodes(dat_data)
@@ -236,6 +347,9 @@ class DAT_Interpreter:
 
       # Interpretando Elementos
       self.read_elements(dat_data)
+
+      # Interpretando Supports
+      self.read_supports(dat_data)
    
    def write_nodes(self) -> str:
       # Parâmetros Iniciais
@@ -312,6 +426,24 @@ class DAT_Interpreter:
 
       output = f'\n%ELEMENT\n{total_elements}\n' + output
       return output
+   
+   def write_supports(self) -> str:
+      # Parâmetros Iniciais
+      n_supports = len(self.model.supports)
+      span = len(str(n_supports))
+      output = f'\n%NODE.SUPPORT\n{n_supports}\n'
+
+      # Escrevendo Cada Support
+      for node_ide, dofs in self.model.supports.items():
+         offset = span - len(str(node_ide))
+         offset = ' ' * offset
+         dofs_str = [
+            '1' if dof in dofs else '0' 
+            for dof in self.model.supported_dofs
+         ]
+         dofs_str = ' '.join(dofs_str)
+         output += f'{node_ide}{offset}   {dofs_str}\n'
+      return output
 
    def write(self) -> str:
       # Inicializando Output
@@ -319,6 +451,10 @@ class DAT_Interpreter:
 
       # Escrevendo Nodes
       output += self.write_nodes()
+
+      # Escrevendo Supports
+      if len(self.model.supports) > 0:
+         output += self.write_supports()
 
       # Escrevendo Ordem de Resolução (Se existir)
       if len(self.model.node_solver_order) > 0:

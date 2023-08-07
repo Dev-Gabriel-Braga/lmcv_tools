@@ -79,7 +79,9 @@ class Test_inp_to_dat(DefaultTest):
 
    def test_complex_part_C3D20R(self):
       self.default_test('ComplexPart_C3D20R')
-
+   
+   def test_supported_square_S4(self):
+      self.default_test('SupportedSquare_S4')
 
 class Test_dat_to_svg(DefaultTest):
    def default_test(self, benchmark_name: str, projection: str = ''):
