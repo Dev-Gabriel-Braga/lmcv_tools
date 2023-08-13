@@ -41,8 +41,8 @@ def start(method: str, dat_path: str):
    n = len(model.nodes)
    graph = lil_matrix((n, n))
    for group in model.element_groups.values():
-      for nodes in group.elements.values():
-         for i, j in combinations(nodes, 2):
+      for element in group.elements.values():
+         for i, j in combinations(element.node_ides, 2):
             i -= 1
             j -= 1
             graph[i, j] = True

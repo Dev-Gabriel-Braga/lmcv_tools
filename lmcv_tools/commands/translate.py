@@ -21,13 +21,16 @@ def inp_to_dat(input_data: str, args: list[str] = []):
    # Reordenando Nodes
    reference = searcher.get_database('translation_reference')['inp_to_dat']
    for group_ide, group in dat_interpreter.model.element_groups.items():
+      # Idenfiticando Geometria do Grupo
+      geometry = dat_interpreter.model.element_geometries[group.geometry_ide]
+      
       # Pegando Reordenação da Referência
-      nodes_reordering = reference['nodes_reordering'][group.geometry.name][str(group.geometry.grade)]
+      nodes_reordering = reference['nodes_reordering'][geometry.shape][str(geometry.grade)]
 
       # Sobescrevendo Ordem dos Nodes
-      for ide, node_ides in group.elements.items():
-         node_ides = [node_ides[i - 1] for i in nodes_reordering ]
-         dat_interpreter.model.element_groups[group_ide].elements[ide] = node_ides
+      for ide, element in group.elements.items():
+         node_ides = [element.node_ides[i - 1] for i in nodes_reordering ]
+         dat_interpreter.model.add_element(group_ide, ide, node_ides)
 
    # Retornando Tradução
    return dat_interpreter.write()
@@ -39,6 +42,9 @@ def dat_to_svg(input_data: str, args: list[str] = []):
 
    # Interpretando Input
    dat_interpreter.read(input_data)
+
+   # Transferindo Modelos de Simulação
+   svg_interpreter.model = dat_interpreter.model
 
    # Identificando Sistema de Projeção
    supported_projections = ('plane_xy', 'plane_yz', 'plane_xz', 'isometric')
@@ -57,7 +63,8 @@ def dat_to_svg(input_data: str, args: list[str] = []):
          for n in dat_interpreter.model.nodes.values()
       ]
    elif projection == 'isometric':
-      coordinates = [projection_isometric(n.x, n.y, n.z) 
+      coordinates = [
+         projection_isometric(n.x, n.y, n.z) 
          for n in dat_interpreter.model.nodes.values()
       ]
    u = [iso[0] for iso in coordinates]
@@ -81,7 +88,6 @@ def dat_to_svg(input_data: str, args: list[str] = []):
       y = y * scale_coeff + 5
 
       svg_interpreter.model.add_node(ide, x, y, 0, node.weight)
-   svg_interpreter.model.element_groups = dat_interpreter.model.element_groups
 
    # Retornando Tradução
    return svg_interpreter.write()

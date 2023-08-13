@@ -11,6 +11,7 @@ class SimulationModel:
       self.node_solver_order = list()
 
       # Elements - Atributos Relacionados
+      self.element_geometries = dict()
       self.element_groups = dict()
       self.element_sets = dict()
 
@@ -18,17 +19,67 @@ class SimulationModel:
       self.supports = dict()
       self.supported_dofs = ('u', 'v', 'w', 'rx', 'ry', 'rz')
    
-   def add_node(self, ide: int, x: float, y: float, z: float, weight: float = None):
+   # Métodos - Adição de Entidades
+   def add_node(
+      self, 
+      ide: int, 
+      x: float, 
+      y: float, 
+      z: float, 
+      weight: float = None
+   ):
       self.nodes[ide] = self.Node(x, y, z, weight)
    
-   def add_element_group(self, ide: int, geometry, theory: str):
-      self.element_groups[ide] = self.ElementGroup(geometry, theory)
+   def add_element_geometry(
+      self,
+      shape: str,
+      base: str,
+      grade: int | list[int],
+      n_nodes: int,
+      n_dimensions: int,
+      knot_vectors: list[list[float]] = None, 
+      node_space: list[int] = None
+   ):
+      # Verificando se Geometria Já Existe
+      for geometry_ide, element_geometry in self.element_geometries.items():
+         if (
+            (shape == element_geometry.shape) and
+            (base == element_geometry.base) and
+            (grade == element_geometry.grade) and
+            (n_nodes == element_geometry.n_nodes) and
+            (n_dimensions == element_geometry.n_dimensions)
+         ):
+            if base == 'BSpline':
+               if knot_vectors == element_geometry.knot_vectors and node_space == element_geometry.node_space:
+                  break
+               continue
+            break
+      else:
+         # Criando Geometria (Já que não Existe)
+         geometry_ide = len(self.element_geometries) + 1
+         self.element_geometries[geometry_ide] = self.ElementGeometry(shape, base, grade, n_nodes, n_dimensions, knot_vectors, node_space)
 
-   def add_element(self, group_ide: int, ide: int, node_ides: list[float]):
+      # Retornando Ide da Geometria
+      return geometry_ide
+   
+   def add_element_group(self, ide: int, geometry_ide, theory: str):
+      if geometry_ide not in self.element_geometries:
+         raise ValueError(f'The Element Geometry with ide = {geometry_ide} does not exist.')
+      self.element_groups[ide] = self.ElementGroup(geometry_ide, theory)
+
+   def add_element(
+      self, group_ide: int,
+      ide: int,
+      node_ides: list[int], 
+      knot_span: list[int] = None
+   ):
+      # Verificando se Ides de Nodes são Válidos
       for node_ide in node_ides:
          if node_ide not in self.nodes:
             raise ValueError(f'The Node with ide = {node_ide} does not exist.')
-      self.element_groups[group_ide].elements[ide] = node_ides
+      
+      # Criando Elemento
+      self.element_groups[group_ide].elements[ide] = self.Element(node_ides, knot_span)
    
    def add_support(self, node_ide: int, dof: str):
       # Verificando Entradas
@@ -41,7 +92,8 @@ class SimulationModel:
       if self.supports.get(node_ide) is None:
          self.supports[node_ide] = set()
       self.supports[node_ide].add(dof)
-   
+
+   # Classes de Etidades
    class Node:
       def __init__(self, x: float, y: float, z: float, weight: float = None):
          self.x = x
@@ -50,16 +102,37 @@ class SimulationModel:
          self.weight = weight
    
    class ElementGeometry:
-      def __init__(self, name: str, grade: int, n_nodes: int):
-         self.name = name
+      def __init__(
+         self,
+         shape: str, 
+         base: str, 
+         grade: int | list[int],
+         n_nodes: int,
+         n_dimensions: int,
+         knot_vectors: list[list[float]] = None, 
+         node_space: list[int] = None
+      ):
+         # Atributos de Geometrias em Geral
+         self.shape = shape
+         self.base = base
          self.grade = grade
          self.n_nodes = n_nodes
+         self.n_dimensions = n_dimensions
+
+         # Atributos de Geometria com Base BSpline
+         self.knot_vectors = knot_vectors
+         self.node_space = node_space
 
    class ElementGroup:
-      def __init__(self, geometry, theory: str):
-         self.geometry = geometry
+      def __init__(self, geometry_ide: int, theory: str):
+         self.geometry_ide = geometry_ide
          self.theory = theory
          self.elements = dict()
+   
+   class Element:
+      def __init__(self, node_ides: list[int], knot_span: list[int] = None):
+         self.node_ides = node_ides
+         self.knot_span = knot_span
 
 class INP_Interpreter:
    def __init__(self):
@@ -121,13 +194,17 @@ class INP_Interpreter:
          line_format = int_ide + type_info['n_nodes'] * node_ide
          elements = re.findall(line_format, lines_data)
 
-         # Criando Grupo de Elementos
-         geometry = SimulationModel.ElementGeometry(
-            name = type_info['geometry'],
-            grade = type_info['grade'],
-            n_nodes = type_info['n_nodes']
+         # Criando Geometria
+         geometry_ide = self.model.add_element_geometry(
+            type_info['shape'],
+            type_info['base'],
+            type_info['grade'],
+            type_info['n_nodes'],
+            type_info['n_dimensions']
          )
-         self.model.add_element_group(group_ide, geometry, type_info.get('theory'))
+
+         # Criando Grupo de Elementos
+         self.model.add_element_group(group_ide, geometry_ide, type_info.get('theory'))
 
          # Inserindo Elementos
          for element in elements:
@@ -264,53 +341,29 @@ class DAT_Interpreter:
             type_info = self.reference['elements'][element_type]
          except KeyError:
             raise KeyError(f'The Element Type "{element_type}" is not supported for .dat files.')
-         int_ide = '(\d+)'
-         node_ide = '\s+' + int_ide
-         property_ides = '\s+\d+' * 2
-
-         # Leitura para Triângulos de Bezier
-         if type_info['geometry'] == 'BezierTriangle':
-            # Identificando Elementos
-            property_ides += '\s+\d+\s+(\d+)'
-            line_format = int_ide + property_ides + '\s+(.+)'
-            elements = re.findall(line_format, lines_data)
-            
-            # Ides de Grupos Relacionados com o Grau dos Elementos
-            grade_to_group = dict()
-
-            # Analisando Cada Elemento
-            for ide, grade, node_ides in elements:
-               # Tipificando Valores
-               ide = int(ide)
-               grade = int(grade)
-               node_ides = list(map(int, node_ides.split()))
-
-               # Verificando se Grupo com o Grau do Elemento Já Existe
-               if grade not in grade_to_group:
-                  grade_to_group[grade] = group_ide
-                  geometry = SimulationModel.ElementGeometry(
-                     name = type_info['geometry'],
-                     grade = grade,
-                     n_nodes = len(node_ides)
-                  )
-                  self.model.add_element_group(group_ide, geometry, element_theory)
-                  group_ide += 1
-
-               # Inserindo Elementos
-               self.model.add_element(grade_to_group[grade], ide, node_ides)
-
-         # Leitura para Elementos Finitos
+         
+         # Adaptando Leitura para a Geometria dos Elementos
+         if type_info['shape'] == 'Triangle' and type_info['base'] == 'Bezier':
+            group_ide = self._add_bezier_triangles(group_ide, lines_data, element_theory)
          else:
+            # Leitura para Elementos Lagrageanos
+            int_ide = '(\d+)'
+            node_ide = '\s+' + int_ide
+            property_ides = '\s+\d+' * 2
             line_format = int_ide + property_ides + type_info['n_nodes'] * node_ide
             elements = re.findall(line_format, lines_data)
 
-            # Criando Grupo de Elementos
-            geometry = SimulationModel.ElementGeometry(
-               name = type_info['geometry'],
-               grade = type_info['grade'],
-               n_nodes = type_info['n_nodes']
+            # Criando Geometria
+            geometry_ide = self.model.add_element_geometry(
+               type_info['shape'],
+               type_info['base'],
+               type_info['grade'],
+               type_info['n_nodes'],
+               type_info['n_dimensions']
             )
-            self.model.add_element_group(group_ide, geometry, element_theory)
+
+            # Criando Grupo de Elementos
+            self.model.add_element_group(group_ide, geometry_ide, element_theory)
 
             # Inserindo Elementos
             for element in elements:
@@ -319,6 +372,42 @@ class DAT_Interpreter:
          
          # Incrementando Ide do Grupo
          group_ide += 1
+   
+   def _add_bezier_triangles(self, group_ide: int, lines_data: str, element_theory: str):
+      # Identificando Elementos
+      int_ide = '(\d+)'
+      property_ides = '\s+\d+' * 3 + '\s+(\d+)'
+      line_format = int_ide + property_ides + '\s+(.+)'
+      elements = re.findall(line_format, lines_data)
+      
+      # Ides de Grupos Relacionados com o Grau dos Elementos
+      grade_to_group = dict()
+
+      # Analisando Cada Elemento
+      for ide, grade, node_ides in elements:
+         # Tipificando Valores
+         ide = int(ide)
+         grade = int(grade)
+         node_ides = list(map(int, node_ides.split()))
+
+         # Verificando se Grupo com o Grau do Elemento Já Existe
+         if grade not in grade_to_group:
+            grade_to_group[grade] = group_ide
+            geometry_ide = self.model.add_element_geometry(
+               shape = 'Triangle',
+               base = 'Bezier',
+               grade = grade,
+               n_nodes = len(node_ides),
+               n_dimensions = 2
+            )
+            self.model.add_element_group(group_ide, geometry_ide, element_theory)
+            group_ide += 1
+
+         # Inserindo Elementos
+         self.model.add_element(grade_to_group[grade], ide, node_ides)
+      
+      # Retornando Último Valor de Ide de Grupo
+      return group_ide
 
    def read_supports(self, dat_data: str):
       # Identificando Supports
@@ -392,17 +481,36 @@ class DAT_Interpreter:
 
          # Buscando Tipo de Elemento Correspondente às Propriedades do Elemento
          element_type = ''
-         for reference_type, reference_geometry in self.reference['elements'].items():
-            if (
-               reference_geometry['geometry'] == group.geometry.name and
-               reference_geometry['grade'] == group.geometry.grade and
-               reference_geometry['n_nodes'] == group.geometry.n_nodes
-            ):
-               element_type = reference_type
-               break
-         else:
-            raise ValueError(f'The Geometry "{group.geometry.name}" with grade {group.geometry.grade} and {group.geometry.n_nodes} nodes is not supported for .dat files.')
+         geometry = self.model.element_geometries[group.geometry_ide]
+
+         # Pesquisando Label - Elementos de Lagrange
+         if geometry.base == 'Lagrange':
+            for reference_type, reference_geometry in self.reference['elements'].items():
+               if (
+                  reference_geometry['shape'] == geometry.shape and
+                  reference_geometry['base'] == geometry.base and
+                  reference_geometry['grade'] == geometry.grade and
+                  reference_geometry['n_nodes'] == geometry.n_nodes and
+                  reference_geometry['n_dimensions'] == geometry.n_dimensions
+               ):
+                  element_type = reference_type
+                  break
+            else:
+               raise ValueError(f'The "{geometry.base} {geometry.shape}" Geometry with grade {geometry.grade} and {geometry.n_nodes} nodes and {geometry.n_dimensions} dimensions is not supported for .dat files.')
          
+         # Pesquisando Label - Elementos de Bezier e BSpline
+         else:
+            for reference_type, reference_geometry in self.reference['elements'].items():
+               if (
+                  reference_geometry['shape'] == geometry.shape and
+                  reference_geometry['base'] == geometry.base and
+                  reference_geometry['n_dimensions'] == geometry.n_dimensions
+               ):
+                  element_type = reference_type
+                  break
+            else:
+               raise ValueError(f'The "{geometry.base} {geometry.shape}" Geometry with {geometry.n_dimensions} dimensions is not supported for .dat files.')
+
          # Verificando se Elemento Tem uma Teoria
          if group.theory:
             for dat_theory, reference_theory in self.reference['theories'].items():
@@ -414,15 +522,23 @@ class DAT_Interpreter:
 
          output += f'\n%ELEMENT.{element_type}\n{n_elements}\n'
 
-         # Escrevendo Cada Elemento
-         for ide, node_ides in group.elements.items():
-            offset = span - len(str(ide))
-            offset = ' ' * offset
-            node_ides = '   '.join([ f'{nis:>{node_ide_span}}' for nis in node_ides ])
-            more_info = '1  1'
-            if group.geometry.name == 'BezierTriangles':
-               more_info += f'  1  {group.geometry.grade}'
-            output += f'{ide}{offset}   {more_info}   {node_ides}\n'
+         # Escrevendo Cada Elemento - Elementos de Lagrange
+         if geometry.base == 'Lagrange':
+            for ide, element in group.elements.items():
+               offset = span - len(str(ide))
+               offset = ' ' * offset
+               more_info = '1  1'
+               node_ides = '   '.join([ f'{nis:>{node_ide_span}}' for nis in element.node_ides ])
+               output += f'{ide}{offset}   {more_info}   {node_ides}\n'
+         
+         # Escrevendo Cada Elemento - Elementos de Bezier
+         elif geometry.base == 'Bezier':
+            for ide, element in group.elements.items():
+               offset = span - len(str(ide))
+               offset = ' ' * offset
+               more_info = f'1  1  1  {geometry.grade}'
+               node_ides = '   '.join([ f'{nis:>{node_ide_span}}' for nis in element.node_ides ])
+               output += f'{ide}{offset}   {more_info}   {node_ides}\n'
 
       output = f'\n%ELEMENT\n{total_elements}\n' + output
       return output
@@ -527,10 +643,10 @@ class SVG_Interpreter:
       output += '\n   </g>'
       return output
    
-   def write_bezier_triangles(self, group: SimulationModel.ElementGroup) -> str:
+   def write_bezier_triangles(self, grade: int, group: SimulationModel.ElementGroup) -> str:
       # Parâmetros Iniciais
       output = ''
-      p = group.geometry.grade
+      p = grade
       nodes_total = int(3 + 3 * (p - 1) + ((p - 2) * (p - 1) / 2))
       indexes_corner = [1, nodes_total - p, nodes_total]
 
@@ -542,19 +658,19 @@ class SVG_Interpreter:
       indexes_by_edge = [ie1, ie2, ie3]
 
       # Escrevendo Path de Cada Elemento
-      for node_ides in group.elements.values():
+      for element in group.elements.values():
          # Inicializando Path
          output += f'\n      <path d="'
 
          # Lado 1 - Ponto Incial
-         node_corner_1 = self.model.nodes[node_ides[indexes_corner[0] - 1]]
+         node_corner_1 = self.model.nodes[element.node_ides[indexes_corner[0] - 1]]
          output += f'M {node_corner_1.x:.8e} {node_corner_1.y:.8e} '
 
          # Construindo Curvas de Bezier para Cada Lado
          for indexes_edge, index_corner in zip(indexes_by_edge, indexes_corner[1:] + [indexes_corner[0]]):
             # Obtendo Pontos do Lado
-            node_corner_2 = self.model.nodes[node_ides[index_corner - 1]]
-            points = [self.model.nodes[node_ides[i - 1]] for i in indexes_edge]
+            node_corner_2 = self.model.nodes[element.node_ides[index_corner - 1]]
+            points = [self.model.nodes[element.node_ides[i - 1]] for i in indexes_edge]
             points.append(node_corner_2)
             points.insert(0, node_corner_1)
 
@@ -582,32 +698,32 @@ class SVG_Interpreter:
       
       return output
 
-   def write_finite_elements(self, group: SimulationModel.ElementGroup) -> str:
+   def write_finite_elements(self, grade: int, group: SimulationModel.ElementGroup) -> str:
       output = ''
 
       # Tratamento para Elementos Lineares
-      if group.geometry.grade == 1:
-         for node_ides in group.elements.values():
+      if grade == 1:
+         for element in group.elements.values():
             output += '\n      <polygon points="'
 
             # Escrevendo Cada Ponto
-            for ide in node_ides:
+            for ide in element.node_ides:
                node = self.model.nodes[ide]
                output += f'{node.x:.8e},{node.y:.8e} ' 
             output += '" />'
 
       # Tratamento para Elementos Lineares
       else:
-         for node_ides in group.elements.values():
+         for element in group.elements.values():
             # Escrevendo Ponto Inicial
-            node = self.model.nodes[node_ides[0]]
+            node = self.model.nodes[element.node_ides[0]]
             output += f'\n      <path d="M {node.x:.8e} {node.y:.8e} '
 
             # Escrevendo Lados como Curvas Quadráticas de Bezier
-            for i in list(range(2, len(node_ides), 2)) + [0]:
-               n2 = self.model.nodes[node_ides[i]]
-               nc = self.model.nodes[node_ides[i - 1]]
-               n0 = self.model.nodes[node_ides[i - 2]]
+            for i in list(range(2, len(element.node_ides), 2)) + [0]:
+               n2 = self.model.nodes[element.node_ides[i]]
+               nc = self.model.nodes[element.node_ides[i - 1]]
+               n0 = self.model.nodes[element.node_ides[i - 2]]
                x1 = bezier_equiv_coord(nc.x, n0.x, n2.x)
                y1 = bezier_equiv_coord(nc.y, n0.y, n2.y)
                output += f'Q {x1:.8e} {y1:.8e}, {n2.x:.8e} {n2.y:.8e} ' 
@@ -620,13 +736,16 @@ class SVG_Interpreter:
 
       # Escrevendo Cada Grupo de Elemento
       for group in self.model.element_groups.values():
+         # Identificando Geometria do Grupo
+         geometry = self.model.element_geometries[group.geometry_ide]
+
          # Tratamento para Elementos de Bezier
-         if group.geometry.name == 'BezierTriangle':
-            output += self.write_bezier_triangles(group)
+         if geometry.shape == 'Triangle' and geometry.base == 'Bezier':
+            output += self.write_bezier_triangles(geometry.grade, group)
 
          # Tratamento para Elementos Finitos Tradicionais
          else:
-            output += self.write_finite_elements(group)
+            output += self.write_finite_elements(geometry.grade, group)
 
       output += '\n   </g>'
       return output
