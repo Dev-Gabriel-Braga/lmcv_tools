@@ -314,27 +314,105 @@ class DAT_Interpreter:
       if len(node_ides) > 0:
          self.model.node_solver_order = [int(ide) for ide in node_ides[0].split()]
 
-   def read_elements(self, inp_data: str):
+   def read_patches(self, dat_data: str):
+      # Identificando Patches
+      keyword_format = '%PATCH\n(\d+)\n([^%]*)'
+      lines_data = re.findall(keyword_format, dat_data)
+
+      # Verificando se Há Patches
+      if len(lines_data) > 0:
+         # Nomeando Dados
+         n_patches = int(lines_data[0][0])
+         lines_data = lines_data[0][1]
+         supported_types = '|'.join(["'" + st + "'" for st in self.reference['patch_types']])
+         patch_start_format = f'(\d+)\s+({supported_types})\s+1'
+
+         # Separando Patches
+         for _ in range(n_patches):
+            # Localizando Dados Iniciais do Patch
+            result = re.search(patch_start_format, lines_data)
+            patch_ide, patch_type = result.groups()
+            patch_ide = int(patch_ide)
+            patch_type = patch_type[1:-1]
+            index_start = result.end()
+
+            # Determinando Geometria do Patch
+            patch_geometry = self.reference['patch_types'][patch_type]
+
+            # Localizando Dados Finais do Patch
+            result = re.search(patch_start_format, lines_data[index_start:])
+            index_end = None
+            if result:
+               index_end = result.start() + index_start
+            
+            # Lendo Knot Vectors
+            patch_data = lines_data[index_start:index_end]
+            vector_format = "(\d+)\s+'General'\s+(\d+)\s+(.*)"
+            vector_data = re.findall(vector_format, patch_data)
+            knot_vectors = list()
+            grade = list()
+            for grade_i, n_knots_i, more_data in vector_data:
+               # Tipificando Dados
+               grade_i = int(grade_i)
+               n_knots_i = int(n_knots_i)
+               more_data = more_data.split()
+
+               # Construindo Vetor de Knot
+               knot_vector = []
+               for knot, multiplicity in zip(more_data[:n_knots_i], more_data[n_knots_i:]):
+                  knot = float(knot)
+                  multiplicity = int(multiplicity)
+                  knot_vector += [knot] * multiplicity
+               
+               # Salvando Valores 
+               knot_vectors.append(knot_vector)
+               grade.append(grade_i)
+
+            # Lendo Node Space
+            node_space = patch_data.strip().split('\n')[-1]
+            node_space = list(map(int, node_space.split()))
+
+            # Calculando Número de Nodes por Elementos
+            n_nodes = 1
+            for p in grade:
+               n_nodes *= p + 1
+
+            # Adicionando Patch como Uma Geometria
+            self.model.element_geometries[patch_ide] = SimulationModel.ElementGeometry(
+               shape = patch_geometry['shape'],
+               base = patch_geometry['base'],
+               grade = grade,
+               n_nodes = n_nodes,
+               n_dimensions = patch_geometry['n_dimensions'],
+               knot_vectors =  knot_vectors,
+               node_space = node_space
+            )
+            
+            # Descartando Patch Localizado
+            lines_data = lines_data[index_start:]
+
+   def read_elements(self, dat_data: str):
       # Identificando Grupos de Elementos
       keyword_format = '%ELEMENT\.(.*)\n\d+\n([^%]*)'
-      groups_data = re.findall(keyword_format, inp_data)
+      groups_data = re.findall(keyword_format, dat_data)
 
       # Analisando Cada Grupo
       group_ide = 1
       for element_type, lines_data in groups_data:
          # Dividindo Tipo e Teoria do Grupo de Elementos
          element_theory = None
-         splited = element_type.split('.')
-         if len(splited) > 1:
-            # Tentando Identificar Teoria de Elemento
-            element_theory = splited[0]
-            try:
-               element_theory = self.reference['theories'][element_theory]
-            except KeyError:
-               raise KeyError(f'The Element Theory "{element_theory}" is not supported for .dat files.')
-            
-            # Corrigindo Tipo de Elemento
-            element_type = '.'.join(splited[1:])
+         if element_type not in self.reference['elements']: 
+            splited = element_type.split('.')
+            if len(splited) > 1:
+               # Tentando Identificar Teoria de Elemento
+               element_theory = splited[0]
+               try:
+                  element_theory = self.reference['theories'][element_theory]
+               except KeyError:
+                  raise KeyError(f'The Element Theory "{element_theory}" is not supported for .dat files.')
+               
+               # Corrigindo Tipo de Elemento
+               element_type = '.'.join(splited[1:])
 
          # Identificando Elementos
          try:
@@ -342,11 +420,19 @@ class DAT_Interpreter:
          except KeyError:
             raise KeyError(f'The Element Type "{element_type}" is not supported for .dat files.')
          
-         # Adaptando Leitura para a Geometria dos Elementos
-         if type_info['shape'] == 'Triangle' and type_info['base'] == 'Bezier':
-            group_ide = self._add_bezier_triangles(group_ide, lines_data, element_theory)
+         # Adaptando Leitura - Elementos de Bezier
+         if type_info['base'] == 'Bezier':
+            if type_info['shape'] == 'Triangle':
+               group_ide = self._add_bezier_triangles(group_ide, lines_data, element_theory)
+            else:
+               raise KeyError(f'The Shape \"{type_info["shape"]}\" with Base \"{type_info["base"]}\" is not supported for .dat files.')
+         
+         # Adaptando Leitura - Elementos de BSpline
+         elif type_info['base'] == 'BSpline':
+            group_ide = self._add_bspline_elements(group_ide, lines_data, element_theory)
+         
+         # Adaptando Leitura - Elementos de Langrange
          else:
-            # Leitura para Elementos Lagrageanos
             int_ide = '(\d+)'
             node_ide = '\s+' + int_ide
             property_ides = '\s+\d+' * 2
@@ -408,6 +494,76 @@ class DAT_Interpreter:
       
       # Retornando Último Valor de Ide de Grupo
       return group_ide
+   
+   def _add_bspline_elements(self, group_ide: int, lines_data: str, element_theory: str):
+      # Identificando Elementos
+      int_ide = '(\d+)'
+      property_ides = '\s+\d+' * 2 + '\s+(\d+)'
+      line_format = int_ide + property_ides + '\s+(.+)'
+      elements = re.findall(line_format, lines_data)
+      
+      # Ides de Grupos Relacionados com o Grau dos Elementos
+      geometry_to_info = dict()
+
+      # Analisando Cada Elemento
+      for ide, geometry_ide, knot_span in elements:
+         # Tipificando Valores
+         ide = int(ide)
+         geometry_ide = int(geometry_ide)
+         knot_span = list(map(int, knot_span.split()))
+
+         # Verificando se Ide do Patch Já foi Usado
+         if geometry_ide not in geometry_to_info:
+            # Recuperando Geometria
+            geometry = self.model.element_geometries[geometry_ide]
+
+            # Mapeando Node Space pelos Knot Spans
+            node_space_maps = list()
+            for k, p in zip(geometry.knot_vectors, geometry.grade):
+               # Inicializando Mapa por Knot Vector
+               space_map = list()
+               last_span = (0, 0)
+
+               # Completando Mapa
+               for i in range(0, len(k) - (p + 2)):
+                  # Adicionando Indices Dimensionais do Node Space no Mapa
+                  if (k[i], k[i + p + 1]) != last_span:
+                     last_span = (k[i], k[i + p + 1])
+                     space_map.append(list(range(i, i + p + 1)))
+
+               node_space_maps.append(space_map)
+            
+            # Adicionando Informações Pertinentes
+            geometry_to_info[geometry_ide] = (group_ide, node_space_maps)
+            self.model.add_element_group(group_ide, geometry_ide, element_theory)
+            group_ide += 1
+
+         # Definindo Nodes que Influenciam o Elemento
+         node_space_maps = geometry_to_info[geometry_ide][1]
+         node_ides = list()
+         node_space_indexes = [m[ref - 1] for m, ref in zip(node_space_maps, knot_span)]
+         node_space_dimensions = [len(k) - p - 1 for k, p in zip(geometry.knot_vectors, geometry.grade)]
+
+         # Tratamento para Elementos 2D
+         if geometry.n_dimensions == 2:
+            for i in node_space_indexes[0]:
+               for j in node_space_indexes[1]:
+                  node_ide_index = i + node_space_dimensions[0] * j
+                  node_ides.append(geometry.node_space[node_ide_index])
+
+         # Tratamento para Elementos 3D
+         else:
+            for i in node_space_indexes[0]:
+               for j in node_space_indexes[1]:
+                  for k in node_space_indexes[2]:
+                     node_ide_index = i + node_space_dimensions[0] * j + node_space_dimensions[0] * node_space_dimensions[1] * k
+                     node_ides.append(geometry.node_space[node_ide_index])
+
+         # Inserindo Elementos
+         self.model.add_element(geometry_to_info[geometry_ide][0], ide, node_ides, knot_span)
+      
+      # Retornando Último Valor de Ide de Grupo
+      return group_ide
 
    def read_supports(self, dat_data: str):
       # Identificando Supports
@@ -433,6 +589,9 @@ class DAT_Interpreter:
 
       # Interpretando Ordem de Resolução
       self.read_node_solver_order(dat_data)
+
+      # Interpretando Patches
+      self.read_patches(dat_data)
 
       # Interpretando Elementos
       self.read_elements(dat_data)

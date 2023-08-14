@@ -176,6 +176,18 @@
             "PLSTRESS": "PlaneStress",
             "PLSTRAIN": "PlaneStrain",
             "SHALLOWSHELL": "ShallowShell"
+        },
+        "patch_types": {
+            "bspsurf": {
+                "shape": "Quadrilateral",
+                "base": "BSpline",
+                "n_dimensions": 2
+            },
+            "bspsol": {
+                "shape": "Hexahedron",
+                "base": "BSpline",
+                "n_dimensions": 3
+            }
         }
     },
     "inp_to_dat": {
