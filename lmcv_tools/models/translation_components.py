@@ -424,6 +424,8 @@ class DAT_Interpreter:
          if type_info['base'] == 'Bezier':
             if type_info['shape'] == 'Triangle':
                group_ide = self._add_bezier_triangles(group_ide, lines_data, element_theory)
+            elif type_info['shape'] == 'Quadrilateral':
+               group_ide = self._add_bezier_surface(group_ide, lines_data, element_theory)
             else:
                raise KeyError(f'The Shape \"{type_info["shape"]}\" with Base \"{type_info["base"]}\" is not supported for .dat files.')
          
@@ -481,6 +483,44 @@ class DAT_Interpreter:
             grade_to_group[grade] = group_ide
             geometry_ide = self.model.add_element_geometry(
                shape = 'Triangle',
+               base = 'Bezier',
+               grade = grade,
+               n_nodes = len(node_ides),
+               n_dimensions = 2
+            )
+            self.model.add_element_group(group_ide, geometry_ide, element_theory)
+            group_ide += 1
+
+         # Inserindo Elementos
+         self.model.add_element(grade_to_group[grade], ide, node_ides)
+      
+      # Retornando Último Valor de Ide de Grupo
+      return group_ide
+
+   def _add_bezier_surface(self, group_ide: int, lines_data: str, element_theory: str):
+      # Identificando Elementos
+      int_ide = '(\d+)'
+      property_ides = '\s+\d+' * 3 + '\s+(\d+)' * 2
+      line_format = int_ide + property_ides + '\s+(.+)'
+      elements = re.findall(line_format, lines_data)
+      
+      # Ides de Grupos Relacionados com o Grau dos Elementos
+      grade_to_group = dict()
+
+      # Analisando Cada Elemento
+      for ide, grade_1, grade_2, node_ides in elements:
+         # Tipificando Valores
+         ide = int(ide)
+         grade_1 = int(grade_1)
+         grade_2 = int(grade_2)
+         grade = (grade_1, grade_2)
+         node_ides = list(map(int, node_ides.split()))
+
+         # Verificando se Grupo com o Grau do Elemento Já Existe
+         if grade not in grade_to_group:
+            grade_to_group[grade] = group_ide
+            geometry_ide = self.model.add_element_geometry(
+               shape = 'Quadrilateral',
                base = 'Bezier',
                grade = grade,
                n_nodes = len(node_ides),
