@@ -2,11 +2,14 @@ import unittest
 import os
 
 class DefaultTest(unittest.TestCase):
-   def default_test(self, benchmark_name: str, benchmark_id: str, method: str):
+   def default_test(self, method: str, benchmark_name: str, benchmark_id: str = None):
       # Definindo paths
       dat_path = 'tests/benchmark/reorder/' + benchmark_name + '.dat'
       temp_path = dat_path[:-4] + '_temp.dat'
-      exp_path = dat_path[:-4] + '_exp_'+ benchmark_id + '.dat'
+      exp_path = dat_path[:-4] + '_exp'
+      if benchmark_id:
+         exp_path += '_'+ benchmark_id
+      exp_path += '.dat'
 
       # Copiando Dados para Arquivo Temporário de Teste
       dat_file = open(dat_path, 'r')
@@ -37,5 +40,18 @@ class DefaultTest(unittest.TestCase):
 class TestMethods(DefaultTest):
    def test_rcm(self):
       benchmark = ('ComplexPipe', 'rcm')
-      self.default_test(*benchmark, 'rcm')
+      self.default_test('rcm', *benchmark)
+
+class TestBases(DefaultTest):
+   def test_lagrange(self):
+      self.default_test('rcm', 'SquareLagrange')
+   
+   def test_bezier_triangle(self):
+      self.default_test('rcm', 'SquareBezierTriangle')
+
+   def test_bezier_surface(self):
+      self.default_test('rcm', 'SquareBezierSurface')
+   
+   def test_bspline_surface(self):
+      self.default_test('rcm', 'SquareBsplineSurface')
    
