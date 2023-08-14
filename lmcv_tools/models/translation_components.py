@@ -562,13 +562,13 @@ class DAT_Interpreter:
             for k, p in zip(geometry.knot_vectors, geometry.grade):
                # Inicializando Mapa por Knot Vector
                space_map = list()
-               last_span = (0, 0)
+               last_span_end = 0
 
                # Completando Mapa
                for i in range(0, len(k) - (p + 2)):
                   # Adicionando Indices Dimensionais do Node Space no Mapa
-                  if (k[i], k[i + p + 1]) != last_span:
-                     last_span = (k[i], k[i + p + 1])
+                  if k[i + p + 1] != last_span_end:
+                     last_span_end = k[i + p + 1]
                      space_map.append(list(range(i, i + p + 1)))
 
                node_space_maps.append(space_map)
