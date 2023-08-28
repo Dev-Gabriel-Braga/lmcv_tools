@@ -41,6 +41,10 @@ class TestMethods(DefaultTest):
    def test_rcm(self):
       benchmark = ('ComplexPipe', 'rcm')
       self.default_test('rcm', *benchmark)
+   
+   def test_sloan(self):
+      benchmark = ('ComplexPipe', 'sloan')
+      self.default_test('sloan', *benchmark)
 
 class TestBases(DefaultTest):
    def test_lagrange(self):
