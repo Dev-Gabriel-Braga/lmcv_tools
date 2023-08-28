@@ -245,4 +245,12 @@ $ lmcv_tools reorder rcm simulation.dat
 ```
 
 **Supported Reordering Methods**:
-- rcm (Reverse Cuthill-McKee)
+| Keyword | Method                                       |
+| ---     | ---                                          |
+| rcm     | [[1]](#3---references) Reverse Cuthill-McKee |
+| sloan   | [[2]](#3---references) Sloan                 |
+
+## 3 - References
+
+- [1] CUTHILL, E.; MCKEE, J.. Reducing the bandwidth of sparse symmetric matrices. Proceedings of The 1969 24th National Conference, Washington, p. 157-172, 26 ago. 1969. ACM Press. http://dx.doi.org/10.1145/800195.805928.
+- [2] SLOAN, S. W.. An algorithm for profile and wavefront reduction of sparse matrices. International Journal for Numerical Methods in Engineering, Newcastle, v. 23, n. 2, p. 239-251, fev. 1986. Wiley. http://dx.doi.org/10.1002/nme.1620230208.
