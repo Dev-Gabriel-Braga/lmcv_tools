@@ -7,7 +7,8 @@
             "help": "Show a help text. Without arguments, show this text. With a command name as argument, show a help text about this command",
             "translate": "Translate file to another format. Example: translate Job-1.inp to .dat",
             "extract": "Extract attributes from .pos file to CSV format. Example: extract [attributes] from [path/to/.pos]",
-            "generate": "Generate special artifacts. Example: generate [artifact name]"
+            "generate": "Generate special artifacts. Example: generate [artifact name]",
+            "reorder": "Add a nodal solver order in .dat files. Example: reorder [method] [path/to/.dat]"
          }
       }
    },
