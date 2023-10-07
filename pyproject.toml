@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lmcv_tools"
-version = "0.0.14"
+version = "0.0.15"
 authors = [
   { name = "Dev-Gabriel-Braga", email = "gabriel.braga.matos@gmail.com" },
 ]
@@ -22,9 +22,6 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Topic :: Scientific/Engineering"
-]
-dependencies = [
-  'scipy >= 1.11.1',
 ]
 
 [project.urls]
