@@ -17,3 +17,7 @@ def error(message: str, name: str = 'CommandError'):
 def warning(message: str):
    # Exibindo Mensagem de Alerta
    print(f'{Color.yellow}| Warning | :{Effect.reset} {message}')
+
+def info(message: str):
+   # Exibindo Mensagem de Informativa de Destaque
+   print(f'{Color.blue}| Info | :{Effect.reset} {message}')
