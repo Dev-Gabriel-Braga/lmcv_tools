@@ -1,40 +1,32 @@
 from itertools import combinations
 from math import inf, floor
-from scipy.sparse import lil_matrix, csr_array
-from scipy.sparse.csgraph import reverse_cuthill_mckee as rcm
 from ..interface import filer
 from ..models.translation_components import DAT_Interpreter
 
 # Funções de Grafos
-def get_level_structure(node: int, graph: csr_array) -> list[dict]:
+def get_level_structure(node: int, graph: dict) -> list[dict]:
    # Variáveis Iniciais
    level_structure = list()
    max_level_length = 0
-   current_level_nodes = {node}
-   last_level_nodes = set()
-   next_level_nodes = set()
+   leveled_nodes = {node}
 
    # Calculando Nível Inicial
-   node_degree = graph[node].count_nonzero()
+   node_degree = len(graph[node])
    current_level = {node: node_degree}
 
    # Loop para cada Nível
-   while True:
+   while 1:
       # Adicionando Nível Atual à Lista de Níveis
       level_structure.append(current_level)
       next_level = dict()
 
       # Verificando Adjacência do Nível Atual
       for n in current_level:
-         adjacent_nodes = graph[n].nonzero()[1]
+         adjacent_nodes = graph[n]
          for a in adjacent_nodes:
-               if (
-                  (a not in last_level_nodes) and
-                  (a not in current_level_nodes) and
-                  (a not in next_level_nodes)
-               ):
-                  next_level_nodes.add(a)
-                  next_level[a] = graph[a].count_nonzero()
+            if a not in leveled_nodes:
+               leveled_nodes.add(a)
+               next_level[a] = len(graph[a])
       
       # Verificando se o Nível Atual é Vazio
       if len(next_level) == 0:
@@ -46,20 +38,17 @@ def get_level_structure(node: int, graph: csr_array) -> list[dict]:
       
       # Intercambiando Níveis
       current_level = next_level
-      last_level_nodes = current_level_nodes
-      current_level_nodes = next_level_nodes
-      next_level_nodes = set()
    
    return level_structure, max_level_length
 
-def get_pseudo_peripheral_node_pair(graph: csr_array) -> list[int]:
+def get_pseudo_peripheral_node_pair(graph: dict) -> list[int]:
    # Encontrando Node de Menor Grau como Chute Inicial
-   n_nodes = graph.shape[0]
+   n_nodes = len(graph)
    pseudo_peripheral_node_1 = -1
    pseudo_peripheral_node_2 = -1
    min_degree = inf
-   for node in range(1, n_nodes):
-      degree = graph[node].count_nonzero()
+   for node in range(n_nodes):
+      degree = len(graph[node])
       if degree < min_degree:
          min_degree = degree
          pseudo_peripheral_node_1 = node
@@ -97,21 +86,40 @@ def get_pseudo_peripheral_node_pair(graph: csr_array) -> list[int]:
    return pseudo_peripheral_node_1, pseudo_peripheral_node_2
 
 # Funções de Reordenação 
-def reorder_rcm(graph: csr_array) -> list[int]:
-   # Executando Algoritmo de Reordenação
-   rcm_order = rcm(graph, True)
+def reorder_rcm(graph: dict) -> list[int]:
+   # Variáveis Iniciais
+   n_nodes = len(graph)
+   new_order = [0] * n_nodes
+
+   # Encontrando Node de Menor Grau como Node Pseudo-Periférico
+   pseudo_peripheral_node = 0
+   min_degree = len(graph[0])
+   for node in range(1, n_nodes):
+      degree = len(graph[node])
+      if degree < min_degree:
+         min_degree = degree
+         pseudo_peripheral_node = node
+
+   # Construindo Estrutura de Nível do Node Pseudo-Periférico
+   level_structure, _ = get_level_structure(pseudo_peripheral_node, graph)
    
-   # Corrigindo Ordenamento Imprório da Implementação do Scipy
-   new_order = [0] * len(rcm_order)
-   for index, value in enumerate(rcm_order):
-      new_order[value] = index + 1
+   # Percorrendo Níveis
+   order = n_nodes - 1
+   for level in level_structure:
+      # Ordenando Nodes do Nível por Grau
+      level = sorted(level.keys(), key = lambda k: level[k], reverse = True)
+
+      # Registrando Nova Ordem
+      for node in level:
+         new_order[node] = order
+         order -= 1
    
    return new_order
 
-def reorder_sloan(graph: csr_array) -> list[int]:
+def reorder_sloan(graph: dict) -> list[int]:
    # Encontrando Nodes Pseudo-Periféricos Inicial e Final
    node_start, node_end = get_pseudo_peripheral_node_pair(graph)
-   n_nodes = graph.shape[0]
+   n_nodes = len(graph)
    new_order = [0] * n_nodes
 
    # Calculando Lista de Distância para Node Final
@@ -156,7 +164,7 @@ def reorder_sloan(graph: csr_array) -> list[int]:
       # Verificando se Node de Maior Prioridade é Pré-ativo
       if status[highest_priority_node] == 2:
          # Examinando Nodes Adjacentes
-         adjacent_nodes_level_1 = graph[highest_priority_node].nonzero()[1]
+         adjacent_nodes_level_1 = graph[highest_priority_node]
          for a1 in adjacent_nodes_level_1:
                # Alterando Prioridade
                priorities[a1] += W1
@@ -172,7 +180,7 @@ def reorder_sloan(graph: csr_array) -> list[int]:
       order += 1
 
       # Examinando Nodes Adjacentes
-      adjacent_nodes_level_1 = graph[highest_priority_node].nonzero()[1]
+      adjacent_nodes_level_1 = graph[highest_priority_node]
       for a1 in adjacent_nodes_level_1:
          # Verificando se Node de Maior Prioridade é Pré-ativo
          if status[a1] == 2:
@@ -181,7 +189,7 @@ def reorder_sloan(graph: csr_array) -> list[int]:
                status[a1] = 1
 
                # Examinando Nodes Adjacentes
-               adjacent_nodes_level_2 = graph[a1].nonzero()[1]
+               adjacent_nodes_level_2 = graph[a1]
                for a2 in adjacent_nodes_level_2:
                   # Verificando se Node de Maior Prioridade é Ativo ou Pré-ativo
                   if (status[a2] == 1) or (status[a2] == 2):
@@ -195,7 +203,6 @@ def reorder_sloan(graph: csr_array) -> list[int]:
                      status[a2] = 2
                      eligible_nodes.append(a2)
 
-   new_order = [n + 1 for n in new_order]
    return new_order
 
 # Métodos de Reordenação Suportados
@@ -222,20 +229,20 @@ def start(method: str, dat_path: str):
 
    # Criando Matriz do Grafo para Reordenação
    n = len(model.nodes)
-   graph = lil_matrix((n, n))
+   graph = {i: set() for i in range(n)}
    for group in model.element_groups.values():
       for element in group.elements.values():
          for i, j in combinations(element.node_ides, 2):
             i -= 1
             j -= 1
-            graph[i, j] = True
-            graph[j, i] = True
-   graph = graph.tocsr()
+            graph[i].add(j)
+            graph[j].add(i)
 
    # Reordenando
    new_order = reordering_function(graph)
 
    # Adicionando Reordenação ao Modelo de Simulação
+   new_order = [n + 1 for n in new_order]
    dat_interpreter.model.node_solver_order = new_order
 
    # Gerando e Incluindo Codificação da Ordem no Arquivo .dat

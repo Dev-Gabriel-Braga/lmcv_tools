@@ -23,7 +23,7 @@ class DefaultTest(unittest.TestCase):
       # Executando Reordenação
       command = f'python -m lmcv_tools reorder {method} {temp_path}'
       code = os.system(command)
-      self.assertEqual(code, 0, 'A extração falhou.')
+      self.assertEqual(code, 0, 'A reordenação falhou.')
 
       # Comparando Reordenação com o Resultado Esperado
       exp_file = open(exp_path, 'r')
