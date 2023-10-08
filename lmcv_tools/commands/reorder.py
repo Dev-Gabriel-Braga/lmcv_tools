@@ -1,7 +1,8 @@
 from itertools import combinations
 from math import inf, floor
-from ..interface import filer
+from ..interface import filer, messenger
 from ..models.translation_components import DAT_Interpreter
+from ..models.ansi_style import Color, Effect
 
 # Funções de Grafos
 def get_level_structure(node: int, graph: dict) -> list[dict]:
@@ -84,6 +85,13 @@ def get_pseudo_peripheral_node_pair(graph: dict) -> list[int]:
                   min_level_length = candidate_max_level_length
 
    return pseudo_peripheral_node_1, pseudo_peripheral_node_2
+
+def get_bandwidth(graph: dict) -> list[int]:
+   bandwidth = [0] * len(graph)
+   for node, adjacent_nodes in graph.items():
+      min_node = min(adjacent_nodes)
+      bandwidth[node] = node - min_node if min_node < node else 0
+   return bandwidth
 
 # Funções de Reordenação 
 def reorder_rcm(graph: dict) -> list[int]:
@@ -212,7 +220,7 @@ supported_methods = {
 }
 
 # Função de Inicialização
-def start(method: str, dat_path: str):
+def start(method: str, dat_path: str, flags: list[str] = []):
    # Verificando se o Método de Reordenação é Suportado
    try:
       reordering_function = supported_methods[method]
@@ -249,3 +257,29 @@ def start(method: str, dat_path: str):
    order_data = dat_interpreter.write_node_solver_order()
    dat_data = dat_data.replace('%ELEMENT\n', order_data[1:] + '\n%ELEMENT\n')
    filer.write(dat_path, dat_data)
+
+   # Verificando Flags
+   if ('-i' in flags) or ('--info' in flags):
+      # Calculando Informações Adiconais sobre a Reordenação
+      # Gerando Novo Grafo com a Reordenação
+      new_graph = {i: set() for i in range(n)}
+      for node, adjacent_nodes in graph.items():
+         new_graph[new_order[node] - 1] = {new_order[a] - 1 for a in adjacent_nodes}
+
+      # Calculando Larguras de Banda
+      old_bandwidth = get_bandwidth(graph)
+      new_bandwidth = get_bandwidth(new_graph)
+
+      # Calculando PercentuaL de Redução de Largura de Banda Máxima
+      old_max_bandwidth = max(old_bandwidth)
+      new_max_bandwidth = max(new_bandwidth)
+      max_bandwidth_reduction = (old_max_bandwidth - new_max_bandwidth) / old_max_bandwidth
+      result_color = Color.green if max_bandwidth_reduction > 0 else Color.red
+      messenger.info(f'Max Bandwidth Reduction = {result_color}{max_bandwidth_reduction:.2%}{Effect.reset}')
+
+      # Calculando PercentuaL de Redução de Largura de Banda Média
+      old_avg_bandwidth = sum(old_bandwidth) / n
+      new_avg_bandwidth = sum(new_bandwidth) / n
+      avg_bandwidth_reduction = (old_avg_bandwidth - new_avg_bandwidth) / old_avg_bandwidth
+      result_color = Color.green if avg_bandwidth_reduction > 0 else Color.red
+      messenger.info(f'Average Bandwidth Reduction = {result_color}{avg_bandwidth_reduction:.2%}{Effect.reset}')

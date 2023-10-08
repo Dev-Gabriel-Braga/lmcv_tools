@@ -1,4 +1,4 @@
-from . import messenger, searcher
+from . import messenger
 from ..models.custom_errors import CommandError
 
 # Constantes Globais
@@ -17,10 +17,10 @@ To exit     | type the command "exit"
 '''
 
 # Funções Pré-processamento de Comandos
-def show_version(args: list[str] = []):
+def show_version(args: list[str] = [], flags: list[str] = []):
    messenger.show(f'LMCV Tools - v{version}')
 
-def pre_help(args: list[str] = []):   
+def pre_help(args: list[str] = [], flags: list[str] = []):   
    from ..commands import help
    
    if len(args) > 0:
@@ -28,7 +28,7 @@ def pre_help(args: list[str] = []):
    else:
       help.start()
 
-def pre_translate(args: list[str]):
+def pre_translate(args: list[str], flags: list[str] = []):
    from ..commands import translate
 
    # Verificando Path do Input
@@ -51,7 +51,7 @@ def pre_translate(args: list[str]):
    # Iniciando Tradução
    translate.start(input_path, output_extension, args[3:])
 
-def pre_extract(terms: list[str]):
+def pre_extract(terms: list[str], flags: list[str] = []):
    from ..commands import extract
 
    # Verificando Sintaxe Básica da Sentença
@@ -95,7 +95,7 @@ def pre_extract(terms: list[str]):
    # Extraindo Itens do Arquivo .pos
    extract.start(attributes, pos_path, condition, csv_path)
 
-def pre_generate(args: list[str]):
+def pre_generate(args: list[str], flags: list[str] = []):
    from ..commands import generate
    
    # Verificando se um Artefato foi Dado
@@ -106,7 +106,7 @@ def pre_generate(args: list[str]):
    artifact = args[0]
    generate.start(artifact, args[1:])
 
-def pre_reorder(args: list[str]):
+def pre_reorder(args: list[str], flags: list[str] = []):
    from ..commands import reorder
    
    # Verificando se um Método de Reordenação foi Fornecido
@@ -121,7 +121,8 @@ def pre_reorder(args: list[str]):
    except IndexError:
       raise CommandError('A path to .dat file is required.')
    
-   reorder.start(method, dat_path)
+   # Executando Reordenação
+   reorder.start(method, dat_path, flags)
 
 # Relação Comando/Função
 commands = {
@@ -143,8 +144,16 @@ def execute_command(name: str, args: list[str]):
       except KeyError:
          raise CommandError('Unknown command.', help=True)
 
+      # Processando Flags
+      flags = list()
+      for index, arg in enumerate(args):
+         if arg.startswith('--'):
+            flags.append(args.pop(index))
+         elif arg.startswith('-') and (len(arg) == 2) and arg[1].isalpha():
+            flags.append(args.pop(index))
+
       # Executando Comando
-      command_function(args)
+      command_function(args, flags)
 
    except Exception as exc:
       # Exibindo Mensagem de Erro com o Contexto da Exceção
