@@ -17,7 +17,7 @@ $ pip install dist/[name of wheel file].whl
 Once installed, the basic form of the LMCV Tools commands is:
 
 ```text
-$ lmcv_tools [command] [args]
+$ lmcv_tools [command] [flags] [args]
 ```
 
 To check the installed version, use the command below:
@@ -243,6 +243,11 @@ Example:
 ```text
 $ lmcv_tools reorder rcm simulation.dat
 ```
+
+**Possible Flags:**
+|     Flag     | Function                            |
+| ---          | ---                                 |
+| -i or --info | Show info about bandwidth. reduction |
 
 **Supported Reordering Methods**:
 | Keyword | Method                                       |

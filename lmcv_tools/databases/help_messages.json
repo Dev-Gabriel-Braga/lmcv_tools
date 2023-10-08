@@ -80,6 +80,9 @@
          "Possible Arguments": {
             "[method]": "Required argument. Method of Reordering. Supported methods: rcm (Reverse Cuthill-McKee), sloan",
             "[path/to/.dat]": "Required argument. Relative path to .dat file"
+         },
+         "Possible Flags": {
+            "-i or --info": "Show info about bandwidth reduction"
          }
       }
    }
