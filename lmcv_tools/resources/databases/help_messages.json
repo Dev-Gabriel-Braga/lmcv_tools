@@ -78,7 +78,7 @@
       "usage": "reorder [method] [path/to/.dat]",
       "topics": {
          "Possible Arguments": {
-            "[method]": "Required argument. Method of Reordering. Supported methods: rcm (Reverse Cuthill-McKee), sloan",
+            "[method]": "Required argument. Method of Reordering. Supported methods: rcm (Reverse Cuthill-McKee), sloan, boost_sloan",
             "[path/to/.dat]": "Required argument. Relative path to .dat file"
          },
          "Possible Flags": {

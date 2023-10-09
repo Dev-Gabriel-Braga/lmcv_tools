@@ -245,15 +245,16 @@ $ lmcv_tools reorder rcm simulation.dat
 ```
 
 **Possible Flags:**
-|     Flag     | Function                            |
+| Flag         | Function                            |
 | ---          | ---                                 |
 | -i or --info | Show info about bandwidth. reduction |
 
 **Supported Reordering Methods**:
-| Keyword | Method                                       |
-| ---     | ---                                          |
-| rcm     | [[1]](#3---references) Reverse Cuthill-McKee |
-| sloan   | [[2]](#3---references) Sloan                 |
+| Keyword     | Method                                              |
+| ---         | ---                                                 |
+| rcm         | [[1]](#3---references) Reverse Cuthill-McKee        |
+| sloan       | [[2]](#3---references) Sloan                        |
+| boost_sloan | Boost C++ Library Implementation of Sloan Algorithm |
 
 ## 3 - References
 

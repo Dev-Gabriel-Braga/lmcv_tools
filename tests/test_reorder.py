@@ -46,6 +46,10 @@ class TestMethods(DefaultTest):
       benchmark = ('ComplexPipe', 'sloan')
       self.default_test('sloan', *benchmark)
 
+   def test_boost_sloan(self):
+      benchmark = ('ComplexPipe', 'boost_sloan')
+      self.default_test('boost_sloan', *benchmark)
+
 class TestBases(DefaultTest):
    def test_lagrange(self):
       self.default_test('rcm', 'SquareLagrange')

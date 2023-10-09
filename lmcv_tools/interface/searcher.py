@@ -2,7 +2,7 @@ import json
 from importlib.resources import files
 
 # Constantes Globais
-databases_files = files('lmcv_tools.databases')
+databases_files = files('lmcv_tools.resources.databases')
 
 # Funções Globais
 def get_database(json_name: str) -> dict:
