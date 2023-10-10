@@ -223,35 +223,10 @@ supported_bin_extension = {
 }
 
 def reorder_boost_sloan(graph: dict) -> list[int]:
-   # Resolvendo Caminho do Executável
-   bin_path = Path(__file__).parent.joinpath('../resources/shared/')
-   try:
-      operational_system = platform_system()
-      bin_extension = supported_bin_extension[operational_system]
-      bin_path = bin_path.joinpath(f'boost_sloan{bin_extension}').resolve()
-   except KeyError:
-      raise OSError(F'Your Operational System ({operational_system}) has no support for this Reordering Method.')
-
-   # Gerando Input do Executável
-   bin_input = set()
-   for n1, adjacent_nodes in graph.items():
-      for n2 in adjacent_nodes:
-         if (n2, n1) in bin_input:
-            continue
-         bin_input.add((n1, n2))
-   n_nodes = len(graph)
-   n_edges = len(bin_input)
-   bin_input = ' '.join((' '.join(map(str, n_s)) for n_s in bin_input))
-   bin_input = f'{n_nodes} {n_edges} {bin_input}'
-
-   # Rodando Executável
-   result = run(
-      [bin_path],
-      capture_output = True, 
-      text = True,
-      input=bin_input
-   )
-   return [int(n) for n in result.stdout.split()]
+   from ..resources.shared.boost import reorder_sloan as rs
+   new_order = [0] * len(graph)
+   rs(graph, new_order)
+   return new_order
 
 # Métodos de Reordenação Suportados
 supported_methods = {
