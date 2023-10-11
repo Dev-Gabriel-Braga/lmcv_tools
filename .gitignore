@@ -12,3 +12,5 @@ pyvenv.cfg
 
 # Build
 dist
+share
+lmcv_tools/resources/shared/build

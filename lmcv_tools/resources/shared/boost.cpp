@@ -2,6 +2,10 @@
 #include <vector>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/sloan_ordering.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+namespace py = pybind11;
 
 using namespace std;
 using namespace boost;
@@ -27,26 +31,17 @@ typedef adjacency_list<
 > Graph;
 typedef graph_traits<Graph>::vertex_descriptor Vertex;
 
-// Função Principal
-int main()
-{
-    // Criando Edges
-    int n_vertex, n_edges, n1, n2;
-    cin >> n_vertex;
-    cin >> n_edges;
-    Edge edges[n_edges];
-    for (int i = 0; i < n_edges; i++)
-    {
-        cin >> n1;
-        cin >> n2;
-        edges[i] = Edge(n1, n2);
-    }
+// Função de Reordenação - Algoritmo de Sloan
+void reorder_sloan(map<int, set<int>> graph, py::list new_order) {
+    // Variáveis Iniciais
+    const int n_vertices = graph.size();
+    Graph G(n_vertices);
 
-    // Criando Graph e Adicionando Edges
-    Graph G(n_vertex);
-    for (int i = 0; i < n_edges; i++)
-    {
-        add_edge(edges[i].first, edges[i].second, G);
+    // Adicionando Edges
+    for (auto relation : graph) {
+        for (int node : relation.second) {
+            add_edge(relation.first, node, G);
+        }
     }
 
     // Criando Vetor da Ordem
@@ -61,18 +56,14 @@ int main()
         get(vertex_priority, G)
     );
 
-    // Gerando Lista de Indices
-    int indexes_order[n_vertex];
+    // Gerando Nova Ordem de de Indices
     int j = 0;
-    for (int i : sloan_order)
-    {
-        indexes_order[i] = j;
+    for (int i : sloan_order) {
+        new_order[i] = j;
         j++;
     }
-    for (int i : indexes_order)
-    {
-        cout << i << " ";
-    }
+}
 
-    return 0;
+PYBIND11_MODULE(boost, m) {
+    m.def("reorder_sloan", &reorder_sloan);
 }
