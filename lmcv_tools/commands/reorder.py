@@ -216,12 +216,6 @@ def reorder_sloan(graph: dict) -> list[int]:
 
    return new_order
 
-# Extensões Suportadas
-supported_bin_extension = {
-   'Windows': '.win.exe',
-   'Linux': '.linux'
-}
-
 def reorder_boost_sloan(graph: dict) -> list[int]:
    # Tentando Importar Módulo
    try:
