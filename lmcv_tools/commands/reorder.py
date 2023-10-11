@@ -223,9 +223,16 @@ supported_bin_extension = {
 }
 
 def reorder_boost_sloan(graph: dict) -> list[int]:
-   from ..resources.shared.boost import reorder_sloan as rs
+   # Tentando Importar Módulo
+   try:
+      from ..resources.shared.boost import reorder_sloan as rs
+   except ModuleNotFoundError:
+      raise OSError('Your Operational System has no support for this Reordering Method.')
+   
+   # Gerando Reordenação
    new_order = [0] * len(graph)
    rs(graph, new_order)
+   
    return new_order
 
 # Métodos de Reordenação Suportados

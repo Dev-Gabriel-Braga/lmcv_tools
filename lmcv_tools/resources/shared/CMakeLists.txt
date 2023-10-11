@@ -10,3 +10,4 @@ pybind11_add_module(boost boost.cpp)
 
 # Incluindo Caminho dos Headers do Boost C++
 target_include_directories(boost PUBLIC "C:/Program Files/Boost/boost_1_83_0")
+target_include_directories(boost PUBLIC "/mnt/c/Program Files/Boost/boost_1_83_0")
