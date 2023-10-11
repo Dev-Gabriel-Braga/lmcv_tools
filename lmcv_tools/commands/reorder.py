@@ -216,16 +216,42 @@ def reorder_sloan(graph: dict) -> list[int]:
 
    return new_order
 
-def reorder_boost_sloan(graph: dict) -> list[int]:
+def reorder_boost_rcm(graph: dict) -> list[int]:
    # Tentando Importar Módulo
    try:
-      from ..resources.shared.boost import reorder_sloan as rs
+      from ..resources.shared.boost import reorder_rcm as r_rcm
    except ModuleNotFoundError:
       raise OSError('Your Operational System has no support for this Reordering Method.')
    
    # Gerando Reordenação
    new_order = [0] * len(graph)
-   rs(graph, new_order)
+   r_rcm(graph, new_order)
+   
+   return new_order
+
+def reorder_boost_king(graph: dict) -> list[int]:
+   # Tentando Importar Módulo
+   try:
+      from ..resources.shared.boost import reorder_king as r_king
+   except ModuleNotFoundError:
+      raise OSError('Your Operational System has no support for this Reordering Method.')
+   
+   # Gerando Reordenação
+   new_order = [0] * len(graph)
+   r_king(graph, new_order)
+   
+   return new_order
+
+def reorder_boost_sloan(graph: dict) -> list[int]:
+   # Tentando Importar Módulo
+   try:
+      from ..resources.shared.boost import reorder_sloan as r_sloan
+   except ModuleNotFoundError:
+      raise OSError('Your Operational System has no support for this Reordering Method.')
+   
+   # Gerando Reordenação
+   new_order = [0] * len(graph)
+   r_sloan(graph, new_order)
    
    return new_order
 
@@ -233,6 +259,8 @@ def reorder_boost_sloan(graph: dict) -> list[int]:
 supported_methods = {
    'rcm': reorder_rcm,
    'sloan': reorder_sloan,
+   'boost_rcm': reorder_boost_rcm,
+   'boost_king': reorder_boost_king,
    'boost_sloan': reorder_boost_sloan
 }
 
