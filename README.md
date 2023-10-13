@@ -53,7 +53,7 @@ Considering that the routine activities for which LMCV Tools was developed are q
 - translate (in implementation)
 - extract (in implementation)
 - generate (in implementation)
-- reorder (in implementation)
+- reorder
 
 ### 2.1 - Translate
 
@@ -245,16 +245,17 @@ $ lmcv_tools reorder rcm simulation.dat
 ```
 
 **Possible Flags:**
-| Flag         | Function                            |
-| ---          | ---                                 |
-| -i or --info | Show info about bandwidth. reduction |
+| Flag         | Function                                               |
+| ---          | ---                                                    |
+| -i or --info | Show info about bandwidth reduction and execution time |
 
 **Supported Reordering Methods**:
-| Keyword     | Method                                              |
-| ---         | ---                                                 |
-| rcm         | [[1]](#3---references) Reverse Cuthill-McKee        |
-| sloan       | [[2]](#3---references) Sloan                        |
-| boost_sloan | Boost C++ Library Implementation of Sloan Algorithm |
+| Keyword     | Method                                                              |
+| ---         | ---                                                                 |
+| rcm         | [[1]](#3---references) Reverse Cuthill-McKee                        |
+| sloan       | [[2]](#3---references) Sloan                                        |
+| boost_rcm   | Boost C++ Library Implementation of Reverse Cuthill-McKee Algorithm |
+| boost_sloan | Boost C++ Library Implementation of Sloan Algorithm                 |
 
 ## 3 - References
 

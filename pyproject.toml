@@ -32,3 +32,9 @@ lmcv_tools = "lmcv_tools.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["lmcv_tools"]
+
+[tool.hatch.build]
+artifacts = [
+  "*.pyd",
+  "*.so"
+]

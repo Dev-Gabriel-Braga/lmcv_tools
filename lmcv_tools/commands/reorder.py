@@ -1,6 +1,4 @@
-from subprocess import run
-from platform import system as platform_system
-from pathlib import Path
+from time import time
 from itertools import combinations
 from math import inf, floor
 from ..interface import filer, messenger
@@ -118,7 +116,7 @@ def reorder_rcm(graph: dict) -> list[int]:
    order = n_nodes - 1
    for level in level_structure:
       # Ordenando Nodes do Nível por Grau
-      level = sorted(level.keys(), key = lambda k: level[k], reverse = True)
+      level = sorted(level.keys(), key = lambda k: level[k])
 
       # Registrando Nova Ordem
       for node in level:
@@ -229,19 +227,6 @@ def reorder_boost_rcm(graph: dict) -> list[int]:
    
    return new_order
 
-def reorder_boost_king(graph: dict) -> list[int]:
-   # Tentando Importar Módulo
-   try:
-      from ..resources.shared.boost import reorder_king as r_king
-   except ModuleNotFoundError:
-      raise OSError('Your Operational System has no support for this Reordering Method.')
-   
-   # Gerando Reordenação
-   new_order = [0] * len(graph)
-   r_king(graph, new_order)
-   
-   return new_order
-
 def reorder_boost_sloan(graph: dict) -> list[int]:
    # Tentando Importar Módulo
    try:
@@ -260,7 +245,6 @@ supported_methods = {
    'rcm': reorder_rcm,
    'sloan': reorder_sloan,
    'boost_rcm': reorder_boost_rcm,
-   'boost_king': reorder_boost_king,
    'boost_sloan': reorder_boost_sloan
 }
 
@@ -273,6 +257,7 @@ def start(method: str, dat_path: str, flags: list[str] = []):
       raise KeyError(f'The method "{method}" is not supported.')
 
    # Lendo Arquivo .dat
+   time_read = time()
    dat_data = filer.read(dat_path)
 
    # Interpretando Informações
@@ -290,11 +275,15 @@ def start(method: str, dat_path: str, flags: list[str] = []):
             j -= 1
             graph[i].add(j)
             graph[j].add(i)
+   time_read = time() - time_read
 
    # Reordenando
+   time_reorder = time()
    new_order = reordering_function(graph)
+   time_reorder = time() - time_reorder
 
    # Adicionando Reordenação ao Modelo de Simulação
+   time_write = time()
    new_order = [n + 1 for n in new_order]
    dat_interpreter.model.node_solver_order = new_order
 
@@ -302,6 +291,7 @@ def start(method: str, dat_path: str, flags: list[str] = []):
    order_data = dat_interpreter.write_node_solver_order()
    dat_data = dat_data.replace('%ELEMENT\n', order_data[1:] + '\n%ELEMENT\n')
    filer.write(dat_path, dat_data)
+   time_write = time() - time_write
 
    # Verificando Flags
    if ('-i' in flags) or ('--info' in flags):
@@ -320,7 +310,7 @@ def start(method: str, dat_path: str, flags: list[str] = []):
       new_max_bandwidth = max(new_bandwidth)
       max_bandwidth_reduction = (old_max_bandwidth - new_max_bandwidth) / old_max_bandwidth
       result_color = Color.green if max_bandwidth_reduction > 0 else Color.red
-      messenger.info(f'Max Bandwidth Reduction = {result_color}{max_bandwidth_reduction:.2%}{Effect.reset}')
+      messenger.info(f'Maximum Bandwidth Reduction = {result_color}{max_bandwidth_reduction:.2%}{Effect.reset}')
 
       # Calculando PercentuaL de Redução de Largura de Banda Média
       old_avg_bandwidth = sum(old_bandwidth) / n
@@ -328,3 +318,9 @@ def start(method: str, dat_path: str, flags: list[str] = []):
       avg_bandwidth_reduction = (old_avg_bandwidth - new_avg_bandwidth) / old_avg_bandwidth
       result_color = Color.green if avg_bandwidth_reduction > 0 else Color.red
       messenger.info(f'Average Bandwidth Reduction = {result_color}{avg_bandwidth_reduction:.2%}{Effect.reset}')
+
+      # Exibindo Tempos
+      messenger.info(f'Time to Read    = {time_read:.3f} s')
+      messenger.info(f'Time to Reorder = {time_reorder:.3f} s')
+      messenger.info(f'Time to Write   = {time_write:.3f} s')
+      messenger.info(f'Total Time      = {(time_read + time_reorder + time_write):.3f} s')

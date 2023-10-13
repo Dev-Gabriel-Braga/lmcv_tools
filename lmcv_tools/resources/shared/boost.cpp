@@ -56,43 +56,9 @@ void reorder_rcm(map<int, set<int>> graph, py::list new_order) {
         make_degree_map(G)
     );
 
-
     // Gerando Nova Ordem de de Indices
     int j = 0;
     for (int i : rcm_order) {
-        new_order[i] = j;
-        j++;
-    }
-}
-
-// Função de Reordenação - Algoritmo de King
-void reorder_king(map<int, set<int>> graph, py::list new_order) {
-    // Variáveis Iniciais
-    const int n_vertices = graph.size();
-    Graph G(n_vertices);
-
-    // Adicionando Edges
-    for (auto relation : graph) {
-        for (int node : relation.second) {
-            add_edge(relation.first, node, G);
-        }
-    }
-
-    // Criando Vetor da Ordem
-    std::vector<Vertex> king_order(num_vertices(G));
-
-    // Reordenando
-    king_ordering(
-        G, 
-        king_order.rbegin(),
-        get(vertex_color, G),
-        make_degree_map(G),
-        get(vertex_index, G)
-    );
-
-    // Gerando Nova Ordem de de Indices
-    int j = 0;
-    for (int i : king_order) {
         new_order[i] = j;
         j++;
     }
@@ -114,7 +80,7 @@ void reorder_sloan(map<int, set<int>> graph, py::list new_order) {
     // Criando Vetor da Ordem
     std::vector<Vertex> sloan_order(num_vertices(G));
 
-    // sloan_ordering
+    // Reordenando
     sloan_ordering(
         G,
         sloan_order.begin(),
@@ -133,6 +99,5 @@ void reorder_sloan(map<int, set<int>> graph, py::list new_order) {
 
 PYBIND11_MODULE(boost, m) {
     m.def("reorder_rcm", &reorder_rcm);
-    m.def("reorder_king", &reorder_king);
     m.def("reorder_sloan", &reorder_sloan);
 }
