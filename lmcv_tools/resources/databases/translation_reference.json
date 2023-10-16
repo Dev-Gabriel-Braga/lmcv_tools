@@ -235,6 +235,16 @@
                 "n_nodes": 20,
                 "n_dimensions": 3
             }
+        },
+        "boundary_types": {
+            "XSYMM": [0, 4, 5],
+            "YSYMM": [1, 3, 5],
+            "ZSYMM": [2, 3, 4],
+            "PINNED": [0, 1, 2],
+            "XASYMM": [1, 2, 3],
+            "YASYMM": [0, 2, 4],
+            "ZASYMM": [0, 1, 5],
+            "ENCASTRE": [0, 1, 2, 3, 4, 5]
         }
     },
     "dat": {

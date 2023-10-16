@@ -107,28 +107,33 @@
 *Step, name=Step-1, nlgeom=NO
 *Static
 1., 1., 1e-05, 1.
+
 ** 
 ** BOUNDARY CONDITIONS
-** 
-** Name: BC-1 Type: Displacement/Rotation
+**
+
 *Boundary
 Set-Edge-Bottom, 1, 1
-** Name: BC-2 Type: Displacement/Rotation
+
 *Boundary
 Set-Edge-Right, 1, 1
 Set-Edge-Right, 2, 2
-** Name: BC-3 Type: Displacement/Rotation
+
 *Boundary
 Set-Edge-Top, 4, 4
-** Name: BC-4 Type: Displacement/Rotation
+
 *Boundary
 Set-Edge-Left, 4, 4
 Set-Edge-Left, 5, 5
-** Name: BC-5 Type: Displacement/Rotation
+
 *Boundary
-_PickedSet16, 1, 1
-_PickedSet16, 2, 2
-_PickedSet16, 3, 3
-_PickedSet16, 4, 4
-_PickedSet16, 5, 5
-_PickedSet16, 6, 6
+_PickedSet16, 1
+_PickedSet16, 2
+_PickedSet16, 3
+_PickedSet16, 4
+_PickedSet16, 5
+_PickedSet16, 6
+
+*Boundary
+7, XASYMM
+8, PINNED

@@ -162,10 +162,12 @@ class INP_Interpreter:
       for set_data in sets_data:
          # Nomeando Informações
          set_name = set_data[0]
-         set_params, set_numbers, *_ = set_data[1].split('\n')
+         first_break_line_index = set_data[1].index('\n')
+         set_params = set_data[1][:first_break_line_index]
+         set_numbers = set_data[1][first_break_line_index + 1:]
          
          # Obtendo Números (Ides de Nodes ou Parâmetros de Range)
-         number_format = '(\d+)\s*,?'
+         number_format = '(\d+)'
          numbers = re.findall(number_format, set_numbers)
          numbers = list(map(int, numbers))
 
@@ -244,19 +246,49 @@ class INP_Interpreter:
       # Tratando Informações
       for support_data in supports_data:
          # Obtendo Informações
-         line_format = '(.+)\s*,\s*(\d+)\s*,\s*(\d+)'
+         line_format = '(\S+)\s*,\s*(\d+|\w+)\s*(?:,\s*(\d+))?'
          lines_data = re.findall(line_format, support_data)
-         
-         for line_data in lines_data:
-            # Nomeando Informações
-            set_name = line_data[0]
-            dof_index_start = int(line_data[1]) - 1
-            dof_index_end = int(line_data[2]) - 1
 
-            # Adicionando Support de Acordo com Nodes dos Conjuntos
-            for node_ide in self.model.node_sets[set_name]:
-               for index in range(dof_index_start, dof_index_end + 1):
-                  self.model.add_support(node_ide, self.model.supported_dofs[index])
+         for line_data in lines_data:
+            # Verificando Natureza do Alvo da Condição de Support
+            try:
+               # O Alvo é um Node
+               boundary_target = int(line_data[0])
+            except ValueError:
+               # O Alvo é um Node Set
+               boundary_target = line_data[0]
+
+            # Verificando Natureza do Início da Condição de Support
+            try:
+               # O Início é um Índice
+               boundary_start = int(line_data[1]) - 1
+            except ValueError:
+               # O Início é um Tipo
+               boundary_start = line_data[1]
+            
+            # Determinando Índices de Condição com Base no Alvo
+            if (type(boundary_start) is int):
+               # Verificando se há um Índice de Fim
+               if line_data[2]:
+                  boundary_end = int(line_data[2]) - 1
+               else:
+                  boundary_end = boundary_start
+               indexes = range(boundary_start, boundary_end + 1)
+            else:
+               # Tentando Identificar Tipo de Condição
+               try:
+                  indexes = self.reference['boundary_types'][boundary_start]
+               except KeyError:
+                  raise KeyError(f'The Boundary Type "{boundary_start}" is not supported.')
+
+            # Tratando Adição de Supports de acordo com o Alvo
+            if type(boundary_target) is int:
+               for index in indexes:
+                  self.model.add_support(boundary_target, self.model.supported_dofs[index])
+            else:
+               for node_ide in self.model.node_sets[boundary_target]:
+                  for index in indexes:
+                     self.model.add_support(node_ide, self.model.supported_dofs[index])
 
    def read(self, inp_data: str):
       # Interpretando Nodes
