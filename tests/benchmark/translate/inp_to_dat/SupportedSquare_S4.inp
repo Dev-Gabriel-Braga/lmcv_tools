@@ -99,6 +99,9 @@
  21,
 *Elset, elset=_Surf-1_SNEG, internal, instance=Part-1-1, generate
   1,  16,   1
+*Nset, nset=Set-Random, instance=Part-1-1
+   1,    2,    3,    4,    5,
+  10,   15,   20,   25
 *End Assembly
 ** ----------------------------------------------------------------
 ** 
@@ -123,17 +126,17 @@ Set-Edge-Right, 2, 2
 Set-Edge-Top, 4, 4
 
 *Boundary
-Set-Edge-Left, 4, 4
-Set-Edge-Left, 5, 5
+Set-Edge-Left, 4, 5
 
 *Boundary
 _PickedSet16, 1
 _PickedSet16, 2
 _PickedSet16, 3
-_PickedSet16, 4
-_PickedSet16, 5
-_PickedSet16, 6
+_PickedSet16, 4, 6
 
 *Boundary
 7, XASYMM
 8, PINNED
+
+*Boundary
+Set-Random, 6
