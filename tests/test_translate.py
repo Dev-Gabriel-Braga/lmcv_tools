@@ -29,6 +29,9 @@ class Test_inp_to_dat(DefaultTest):
    def default_test(self, benchmark_name: str):
       super().default_test('inp_to_dat/' + benchmark_name, '.inp', '.dat')
 
+   def test_Truss_T2D2(self):
+      self.default_test('Truss_T2D2')
+
    def test_triangle_S3_1x1(self):
       self.default_test('Triangle_S3_1x1')
 
