@@ -687,12 +687,15 @@ class DAT_Interpreter:
    
    def write_node_solver_order(self) -> str:
       # Parâmetros Iniciais
-      n = len(self.model.node_solver_order)
+      solver_order = self.model.node_solver_order
+      n = len(solver_order)
       output = f'\n%NODE.SOLVER.ORDER\n{n}\n'
 
       # Escrevendo Ordem
-      output += ' '.join([str(node_ide) for node_ide in self.model.node_solver_order])
-      output += '\n'
+      max_width = len(str(n))
+      for index in range(0, len(solver_order), 15):
+         output += ' '.join([f'{node_ide:>{max_width}}' for node_ide in solver_order[index:index + 15]])
+         output += '\n'
       
       return output
 
