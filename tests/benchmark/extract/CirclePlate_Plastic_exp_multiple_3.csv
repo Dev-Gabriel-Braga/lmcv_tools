@@ -1,4 +1,4 @@
-step.node.u,node.id,node.x
+step.node.displacement[0],node.id,node.coord[0]
 -4.18924e-07,1,0.0
 +9.09335e-05,2,2.0
 +1.73441e-04,3,4.0

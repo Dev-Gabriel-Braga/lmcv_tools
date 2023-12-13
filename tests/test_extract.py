@@ -47,39 +47,105 @@ class TestSingleAttributes(DefaultTest):
       condition = ''
       self.default_test(*benchmark, attributes, condition)
 
-   def test_node_x(self):
-      benchmark = ('CirclePlate_Plastic', 'node_x')
-      attributes = ['node.x']
+   def test_node_coord_0(self):
+      benchmark = ('CirclePlate_Plastic', 'node_coord_0')
+      attributes = ['node.coord[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_node_y(self):
-      benchmark = ('CirclePlate_Plastic', 'node_y')
-      attributes = ['node.y']
+   def test_node_coord_1(self):
+      benchmark = ('CirclePlate_Plastic', 'node_coord_1')
+      attributes = ['node.coord[1]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_node_z(self):
-      benchmark = ('CirclePlate_Plastic', 'node_z')
-      attributes = ['node.z']
+   def test_node_coord_2(self):
+      benchmark = ('CirclePlate_Plastic', 'node_coord_2')
+      attributes = ['node.coord[2]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_step_node_u(self):
-      benchmark = ('CirclePlate_Plastic', 'step_node_u')
-      attributes = ['step.node.u']
+   def test_step_node_displacement_0(self):
+      benchmark = ('CirclePlate_Plastic', 'step_node_displacement_0')
+      attributes = ['step.node.displacement[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_step_node_v(self):
-      benchmark = ('CirclePlate_Plastic', 'step_node_v')
-      attributes = ['step.node.v']
+   def test_step_node_displacement_1(self):
+      benchmark = ('CirclePlate_Plastic', 'step_node_displacement_1')
+      attributes = ['step.node.displacement[1]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_step_node_w(self):
-      benchmark = ('CirclePlate_Plastic', 'step_node_w')
-      attributes = ['step.node.w']
+   def test_step_node_displacement_2(self):
+      benchmark = ('CirclePlate_Plastic', 'step_node_displacement_2')
+      attributes = ['step.node.displacement[2]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_element_id(self):
+      benchmark = ('CirclePlate_Plastic', 'element_id')
+      attributes = ['element.id']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_element_info_0(self):
+      benchmark = ('CirclePlate_Plastic', 'element_info_0')
+      attributes = ['element.info[0]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_element_info_2(self):
+      benchmark = ('CirclePlate_Plastic', 'element_info_2')
+      attributes = ['element.info[2]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_step_gauss_scalar_0(self):
+      benchmark = ('CirclePlate_Plastic', 'step_gauss_scalar_0')
+      attributes = ['step.gauss_scalar[0]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_step_gauss_scalar_3(self):
+      benchmark = ('CirclePlate_Plastic', 'step_gauss_scalar_3')
+      attributes = ['step.gauss_scalar[3]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+
+   def test_step_element_gauss_scalar_data_0(self):
+      benchmark = ('CirclePlate_Plastic', 'step_element_gauss_scalar_data_0')
+      attributes = ['step.element.gauss_scalar_data[0]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_step_element_gauss_scalar_data_15(self):
+      benchmark = ('CirclePlate_Plastic', 'step_element_gauss_scalar_data_15')
+      attributes = ['step.element.gauss_scalar_data[15]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+
+   def test_step_nodal_scalar_0(self):
+      benchmark = ('CirclePlate_Plastic', 'step_nodal_scalar_0')
+      attributes = ['step.nodal_scalar[0]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_step_nodal_scalar_3(self):
+      benchmark = ('CirclePlate_Plastic', 'step_nodal_scalar_3')
+      attributes = ['step.nodal_scalar[3]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+
+   def test_step_element_nodal_scalar_data_0(self):
+      benchmark = ('CirclePlate_Plastic', 'step_element_nodal_scalar_data_0')
+      attributes = ['step.element.nodal_scalar_data[0]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_step_element_nodal_scalar_data_31(self):
+      benchmark = ('CirclePlate_Plastic', 'step_element_nodal_scalar_data_31')
+      attributes = ['step.element.nodal_scalar_data[31]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
@@ -95,21 +161,21 @@ class TestSingleAttributes(DefaultTest):
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_buckling_node_u(self):
-      benchmark = ('SquarePlate', 'buckling_node_u')
-      attributes = ['buckling.node.u']
+   def test_buckling_node_displacement_0(self):
+      benchmark = ('SquarePlate', 'buckling_node_displacement_0')
+      attributes = ['buckling.node.displacement[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_buckling_node_v(self):
-      benchmark = ('SquarePlate', 'buckling_node_v')
-      attributes = ['buckling.node.v']
+   def test_buckling_node_displacement_1(self):
+      benchmark = ('SquarePlate', 'buckling_node_displacement_1')
+      attributes = ['buckling.node.displacement[1]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_buckling_node_w(self):
-      benchmark = ('SquarePlate', 'buckling_node_w')
-      attributes = ['buckling.node.w']
+   def test_buckling_node_displacement_2(self):
+      benchmark = ('SquarePlate', 'buckling_node_displacement_2')
+      attributes = ['buckling.node.displacement[2]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
@@ -125,21 +191,21 @@ class TestSingleAttributes(DefaultTest):
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_vibration_node_u(self):
-      benchmark = ('HeartPlate', 'vibration_node_u')
-      attributes = ['vibration.node.u']
+   def test_vibration_node_displacement_0(self):
+      benchmark = ('HeartPlate', 'vibration_node_displacement_0')
+      attributes = ['vibration.node.displacement[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_vibration_node_v(self):
-      benchmark = ('HeartPlate', 'vibration_node_v')
-      attributes = ['vibration.node.v']
+   def test_vibration_node_displacement_1(self):
+      benchmark = ('HeartPlate', 'vibration_node_displacement_1')
+      attributes = ['vibration.node.displacement[1]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
-   def test_vibration_node_w(self):
-      benchmark = ('HeartPlate', 'vibration_node_w')
-      attributes = ['vibration.node.w']
+   def test_vibration_node_displacement_2(self):
+      benchmark = ('HeartPlate', 'vibration_node_displacement_2')
+      attributes = ['vibration.node.displacement[2]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
 
@@ -152,13 +218,13 @@ class TestMultipleAttributes(DefaultTest):
    
    def test_multiple_2(self):
       benchmark = ('CirclePlate_Plastic', 'multiple_2')
-      attributes = ['step.factor', 'step.node.u']
+      attributes = ['step.factor', 'step.node.displacement[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
    def test_multiple_3(self):
       benchmark = ('CirclePlate_Plastic', 'multiple_3')
-      attributes = ['step.node.u', 'node.id', 'node.x']
+      attributes = ['step.node.displacement[0]', 'node.id', 'node.coord[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
@@ -170,7 +236,7 @@ class TestMultipleAttributes(DefaultTest):
    
    def test_multiple_unrelated_2(self):
       benchmark = ('CirclePlate_Plastic', 'multiple_ur_2')
-      attributes = ['node.id', 'step.id', 'node.x']
+      attributes = ['node.id', 'step.id', 'node.coord[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    

@@ -1,4 +1,4 @@
-node.id,node.x
+node.id,node.coord[0]
 1,0.0
 2,2.0
 3,4.0

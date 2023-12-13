@@ -255,20 +255,35 @@ class Attribute:
    type_relations = {
       'str': str,
       'int': int,
-      'float': float
+      'float': float,
+      'list': list
    }
    extraction_attributes = searcher.get_database('extraction_attributes')
 
    def __init__(self, name: str):
-      self.name = name
-
       # Extraindo Informações do Atributo da Database
       try:
+         # Extraindo Index Informado para o Atributo se Houver
+         self.name = name
+         attribute_index = None
+         if result := re.match('([\w.]+)\[(-?\d+)\]', name):
+            name = result.group(1)
+            attribute_index = int(result.group(2))
+
+         # Atribuindo Informações ao Atributo com base na Database
          info = Attribute.extraction_attributes[name]
-         self.type = Attribute.type_relations[info['data_type']]
          self.format = info['format']
-         
-         # Organizado Atributos Relacionados
+
+         # Verificando se atributos do tipo "list" tiveram um index informado
+         self.type = Attribute.type_relations[info['data_type']]
+         if self.type is list:
+            if attribute_index is not None:
+               self.index = attribute_index
+               self.sub_type = Attribute.type_relations[info['sub_type']]
+            else:
+               raise SyntaxError(f'The Attribute "{name}" must have an associated index.')
+            
+         # Organizando Atributos Relacionados
          self.related_attributes = dict()
          for related_attribute in info['related_attributes']:
             data_type =  Attribute.extraction_attributes[related_attribute]['data_type']
@@ -276,7 +291,7 @@ class Attribute:
             self.related_attributes[related_attribute] = type_class
 
       except KeyError:
-         raise KeyError('Syntax', f'Unsupported attribute "{name}" was used.')
+         raise KeyError(f'Unsupported attribute "{name}" was used.')
 
    def extract_from(self, pos_data: str, condition: Condition):
       # Instanciando Tabela de Resultado
@@ -296,6 +311,13 @@ class Attribute:
             line_related = line_match.groupdict()
             value = line_related.pop('value')
 
+            # Tratamento Especial para Atributos do Tipo "list"
+            if self.type is list:
+               try:
+                  value = value.split()[self.index]
+               except IndexError:
+                  raise IndexError(f'The Index "[{self.index}]" is out of range in "{self.name}".')
+
             # Combinando Atributos Relacionados
             line_related.update(keyword_related)
 
@@ -307,7 +329,7 @@ class Attribute:
 
             # Criando Dicionários com Todos os Tipos do Atributo (Próprio e Relacionados)
             attribute_types = dict()
-            attribute_types[self.name] = self.type
+            attribute_types[self.name] = self.type if (self.type is not list) else self.sub_type
             attribute_types.update(self.related_attributes)
 
             # Aprovando ou Não Valores para a Tabela de Resultado com Base na Condição
