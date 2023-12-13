@@ -1,4 +1,44 @@
 {
+   "material.id": {
+      "data_type": "int",
+      "related_attributes": [],
+      "format": {
+         "keywords": "%MATERIAL\\.(.+)\n\\d+\n(?P<line>[^%]+)",
+         "line": "(?P<value>\\d+)"
+      }
+   },
+   "material.isotropic.E": {
+      "data_type": "float",
+      "related_attributes": ["material.id"],
+      "format": {
+         "keywords": "%MATERIAL\\.ISOTROPIC\n\\d+\n(?P<line>[^%]+)",
+         "line": "(?P<material_id>\\d+)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
+      }
+   },
+   "material.isotropic.poisson": {
+      "data_type": "float",
+      "related_attributes": ["material.id", "material.isotropic.E"],
+      "format": {
+         "keywords": "%MATERIAL\\.ISOTROPIC\n\\d+\n(?P<line>[^%]+)",
+         "line": "(?P<material_id>\\d+)\\s+(?P<material_isotropic_E>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
+      }
+   },
+   "section.id": {
+      "data_type": "int",
+      "related_attributes": [],
+      "format": {
+         "keywords": "%SECTION\\.(.+)\n\\d+\n(?P<line>[^%]+)",
+         "line": "(?P<value>\\d+)"
+      }
+   },
+   "section.bar.circle.radius": {
+      "data_type": "float",
+      "related_attributes": ["section.id", "material.id"],
+      "format": {
+         "keywords": "%SECTION\\.BAR\\.CIRCLE\n\\d+\n(?P<line>[^%]+)",
+         "line": "(?P<section_id>\\d+)\\s+(?P<material_id>\\d+)\\s+(?P<value>.+)"
+      }
+   },
    "step.id": {
       "data_type": "int",
       "related_attributes": [],
