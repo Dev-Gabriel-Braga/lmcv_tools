@@ -291,7 +291,7 @@ class Attribute:
             self.related_attributes[related_attribute] = type_class
 
       except KeyError:
-         raise KeyError('Syntax', f'Unsupported attribute "{name}" was used.')
+         raise KeyError(f'Unsupported attribute "{name}" was used.')
 
    def extract_from(self, pos_data: str, condition: Condition):
       # Instanciando Tabela de Resultado
