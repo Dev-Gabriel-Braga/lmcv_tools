@@ -23,52 +23,22 @@
          "line": "^(?P<value>\\d+)"
       }
    },
-   "node.x": {
-      "data_type": "float",
+   "node.coord": {
+      "data_type": "list",
+      "sub_type": "float",
       "related_attributes": ["node.id"],
       "format": {
          "keywords": "%NODE\\.COORD\n\\d+\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
+         "line": "^(?P<node_id>\\d+)\\s+(?P<value>.+)"
       }
    },
-   "node.y": {
-      "data_type": "float",
-      "related_attributes": ["node.id"],
-      "format": {
-         "keywords": "%NODE\\.COORD\n\\d+\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
-      }
-   },
-   "node.z": {
-      "data_type": "float",
-      "related_attributes": ["node.id"],
-      "format": {
-         "keywords": "%NODE\\.COORD\n\\d+\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?:[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)\\s+(?P<value>[+-]?\\d+\\.\\d+(?:e[+-]\\d+)?)"
-      }
-   },
-   "step.node.u": {
-      "data_type": "float",
+   "step.node.displacement": {
+      "data_type": "list",
+      "sub_type": "float",
       "related_attributes": ["step.id", "node.id"],
       "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.DISPLACEMENT\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
-      }
-   },
-   "step.node.v": {
-      "data_type": "float",
-      "related_attributes": ["step.id", "node.id"],
-      "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.DISPLACEMENT\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
-      }
-   },
-   "step.node.w": {
-      "data_type": "float",
-      "related_attributes": ["step.id", "node.id"],
-      "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.DISPLACEMENT\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+         "keywords": "%RESULT\\.CASE\\.STEP\n(?P<step_id>\\d+)\n\n%RESULT\\.CASE\\.STEP\\.FACTOR\n(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.DISPLACEMENT\n\\d+\\s+'displacement'\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?P<value>.+)"
       }
    },
    "element.id": {
@@ -104,28 +74,13 @@
          "line": "^(?P<buckling_id>\\d+)\\s+(?P<value>[+-]?\\d+\\.\\d+e[+-]\\d+)"
       }
    },
-   "buckling.node.u": {
-      "data_type": "float",
+   "buckling.node.displacement": {
+      "data_type": "list",
+      "sub_type": "float",
       "related_attributes": ["buckling.id", "node.id"],
       "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.FACTOR\n(?P<buckling_id>\\d+)\\s+(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
-      }
-   },
-   "buckling.node.v": {
-      "data_type": "float",
-      "related_attributes": ["buckling.id", "node.id"],
-      "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.FACTOR\n(?P<buckling_id>\\d+)\\s+(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
-      }
-   },
-   "buckling.node.w": {
-      "data_type": "float",
-      "related_attributes": ["buckling.id", "node.id"],
-      "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.FACTOR\n(?P<buckling_id>\\d+)\\s+(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+         "keywords": "%RESULT\\.CASE\\.STEP\\.BUCKLING\\.FACTOR\n(?P<buckling_id>\\d+)\\s+(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n\\d+\\s+'Buckling mode'\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?P<value>.+)"
       }
    },
    "vibration.id": {
@@ -144,28 +99,13 @@
          "line": "^(?P<vibration_id>\\d+)\\s+(?P<value>[+-]?\\d+\\.\\d+e[+-]\\d+)"
       }
    },
-   "vibration.node.u": {
-      "data_type": "float",
+   "vibration.node.displacement": {
+      "data_type": "list",
+      "sub_type": "float",
       "related_attributes": ["vibration.id", "node.id"],
       "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\\.NATURAL\\.FREQUENCY\n(?P<vibration_id>\\d+)\\s+(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
-      }
-   },
-   "vibration.node.v": {
-      "data_type": "float",
-      "related_attributes": ["vibration.id", "node.id"],
-      "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\\.NATURAL\\.FREQUENCY\n(?P<vibration_id>\\d+)\\s+(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
-      }
-   },
-   "vibration.node.w": {
-      "data_type": "float",
-      "related_attributes": ["vibration.id", "node.id"],
-      "format": {
-         "keywords": "%RESULT\\.CASE\\.STEP\\.NATURAL\\.FREQUENCY\n(?P<vibration_id>\\d+)\\s+(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n(?P<line>[^%]+)",
-         "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
+         "keywords": "%RESULT\\.CASE\\.STEP\\.NATURAL\\.FREQUENCY\n(?P<vibration_id>\\d+)\\s+(?:.+)\n\n%RESULT\\.CASE\\.STEP\\.NODAL\\.EIGENVECTOR\n\\d+\\s+'Vibration mode'\n(?P<line>[^%]+)",
+         "line": "^(?P<node_id>\\d+)\\s+(?P<value>.+)"
       }
    }
 }
