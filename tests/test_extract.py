@@ -83,6 +83,24 @@ class TestSingleAttributes(DefaultTest):
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
+   def test_element_id(self):
+      benchmark = ('CirclePlate_Plastic', 'element_id')
+      attributes = ['element.id']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_element_info_0(self):
+      benchmark = ('CirclePlate_Plastic', 'element_info_0')
+      attributes = ['element.info[0]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
+   def test_element_info_2(self):
+      benchmark = ('CirclePlate_Plastic', 'element_info_2')
+      attributes = ['element.info[2]']
+      condition = ''
+      self.default_test(*benchmark, attributes, condition)
+   
    def test_buckling_id(self):
       benchmark = ('SquarePlate', 'buckling_id')
       attributes = ['buckling.id']

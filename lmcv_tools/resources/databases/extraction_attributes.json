@@ -71,6 +71,23 @@
          "line": "^(?P<node_id>\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?:[+-]\\d+\\.\\d+e[+-]\\d+)\\s+(?P<value>[+-]\\d+\\.\\d+e[+-]\\d+)"
       }
    },
+   "element.id": {
+      "data_type": "int",
+      "related_attributes": [],
+      "format": {
+         "keywords": "%ELEMENT\\.(.+)\n\\d+\n(?P<line>[^%]+)",
+         "line": "^(?P<value>\\d+)"
+      }
+   },
+   "element.info": {
+      "data_type": "list",
+      "sub_type": "int",
+      "related_attributes": ["element.id"],
+      "format": {
+         "keywords": "%ELEMENT\\.(.+)\n\\d+\n(?P<line>[^%]+)",
+         "line": "^(?P<element_id>\\d+)\\s+(?P<value>.+)"
+      }
+   },
    "buckling.id": {
       "data_type": "int",
       "related_attributes": [],
