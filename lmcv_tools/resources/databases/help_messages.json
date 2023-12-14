@@ -6,7 +6,7 @@
             "version": "Show version",
             "help": "Show a help text. Without arguments, show this text. With a command name as argument, show a help text about this command",
             "translate": "Translate file to another format. Example: translate Job-1.inp to .dat",
-            "extract": "Extract attributes from .pos file to CSV format. Example: extract [attributes] from [path/to/.pos]",
+            "extract": "Extract attributes from .pos (or .dat) file to CSV format. Example: extract [attributes] from [path/to/.pos]",
             "generate": "Generate special artifacts. Example: generate [artifact name]",
             "reorder": "Add a nodal solver order in .dat files. Example: reorder [method] [path/to/.dat]"
          }
@@ -42,10 +42,34 @@
       "usage": "extract [attributes] from [path/to/.pos] where [condition] to [path/to/.csv]",
       "topics": {
          "Possible Arguments": {
-            "[attributes]": "Required argument. List of names (at least one) that represent a piece of data from a .pos file. Supported attributes: step.id, step.factor, node.id, node.x, node.y, node.z, step.node.u, step.node.v, step.node.w, buckling.id, buckling.factor, buckling.node.u, buckling.node.v, buckling.node.w, vibration.id, vibration.factor, vibration.node.u, vibration.node.v, vibration.node.w",
+            "[attributes]": "Required argument. List of names (at least one) that represent a piece of data from a .pos file",
             "[path/to/.pos]": "Required argument. Relative path to .pos file",
             "[condition]": "Optional argument. Series of attribute constraints, combining attribute names, operators and test values. Supported operators: and, or, =, >, <, >=, <=, !=, in. Remembering that the symbols '>' and '<' must be encapsulated by quotes. Otherwise, they will be interpreted by the shell as redirection operators. Example: [...] where step.id '>' 5 and step.factor '<' 1.0",
             "[path/to/.csv]": "Optional argument. Relative path to .csv file. If it is not given, it will be the same as the .pos file"
+         },
+         "Supported Attributes": {
+            "step.id": "Type: int",
+            "step.factor": "Type: float, Related: step.id",
+            "node.id": "Type: int",
+            "node.coord": "Type: list[float], Related: node.id",
+            "step.node.displacement": "Type: list[float], Related: step.id, node.id",
+            "step.gauss.scalar": "Type: list[str], Related: step.id",
+            "step.nodal.scalar": "Type: list[str], Related: step.id",
+            "element.id": "Type: int",
+            "element.info": "Type: list[int], Related: element.id",
+            "step.element.gauss.scalar.data": "Type: list[float], Related: step.id, element.id",
+            "step.element.nodal.scalar.data": "Type: list[float], Related: step.id, element.id",
+            "buckling.id": "Type: int",
+            "buckling.factor": "Type: float, Related: buckling.id",
+            "buckling.node.displacement": "Type: list[float], Related: buckling.id, node.id",
+            "vibration.id": "Type: int",
+            "vibration.factor": "Type: float, Related: vibration.id",
+            "vibration.node.displacement": "Type: list[float], Related: vibration.id, node.id",
+            "material.id": "Type: int",
+            "material.isotropic.E": "Type: float, Related: material.id",
+            "material.isotropic.poisson": "Type: float, Related: material.id, material.isotropic.E",
+            "section.id": "Type: int",
+            "section.bar.circle.radius": "Type: float, Related: section.id"
          }
       }
    },

@@ -1,4 +1,4 @@
-step.gauss_scalar[0]
+step.gauss.scalar[0]
 'STRESS_XX'
 'STRESS_XX'
 'STRESS_XX'

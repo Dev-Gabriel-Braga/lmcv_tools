@@ -1,4 +1,4 @@
-step.element.nodal_scalar_data[0]
+step.element.nodal.scalar.data[0]
 +6.10269e+02
 +5.69654e+02
 +4.83781e+02

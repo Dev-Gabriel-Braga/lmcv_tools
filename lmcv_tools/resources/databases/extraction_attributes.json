@@ -58,7 +58,7 @@
          "line": "^(?P<element_id>\\d+)\\s+(?P<value>.+)"
       }
    },
-   "step.gauss_scalar": {
+   "step.gauss.scalar": {
       "data_type": "list",
       "sub_type": "str",
       "related_attributes": ["step.id"],
@@ -67,7 +67,7 @@
          "line": "(?P<value>.+)"
       }
    },
-   "step.element.gauss_scalar_data": {
+   "step.element.gauss.scalar.data": {
       "data_type": "list",
       "sub_type": "float",
       "related_attributes": ["step.id", "element.id"],
@@ -76,7 +76,7 @@
          "line": "^(?P<element_id>\\d+)\n\\d+\n(?P<value>(?:[+-]\\d+\\.\\d+e[+-]\\d+\\s+)+)"
       }
    },
-   "step.nodal_scalar": {
+   "step.nodal.scalar": {
       "data_type": "list",
       "sub_type": "str",
       "related_attributes": ["step.id"],
@@ -85,7 +85,7 @@
          "line": "(?P<value>.+)"
       }
    },
-   "step.element.nodal_scalar_data": {
+   "step.element.nodal.scalar.data": {
       "data_type": "list",
       "sub_type": "float",
       "related_attributes": ["step.id", "element.id"],

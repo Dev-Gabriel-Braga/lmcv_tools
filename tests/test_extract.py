@@ -103,49 +103,49 @@ class TestSingleAttributes(DefaultTest):
    
    def test_step_gauss_scalar_0(self):
       benchmark = ('CirclePlate_Plastic', 'step_gauss_scalar_0')
-      attributes = ['step.gauss_scalar[0]']
+      attributes = ['step.gauss.scalar[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
    def test_step_gauss_scalar_3(self):
       benchmark = ('CirclePlate_Plastic', 'step_gauss_scalar_3')
-      attributes = ['step.gauss_scalar[3]']
+      attributes = ['step.gauss.scalar[3]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
 
    def test_step_element_gauss_scalar_data_0(self):
       benchmark = ('CirclePlate_Plastic', 'step_element_gauss_scalar_data_0')
-      attributes = ['step.element.gauss_scalar_data[0]']
+      attributes = ['step.element.gauss.scalar.data[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
    def test_step_element_gauss_scalar_data_15(self):
       benchmark = ('CirclePlate_Plastic', 'step_element_gauss_scalar_data_15')
-      attributes = ['step.element.gauss_scalar_data[15]']
+      attributes = ['step.element.gauss.scalar.data[15]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
 
    def test_step_nodal_scalar_0(self):
       benchmark = ('CirclePlate_Plastic', 'step_nodal_scalar_0')
-      attributes = ['step.nodal_scalar[0]']
+      attributes = ['step.nodal.scalar[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
    def test_step_nodal_scalar_3(self):
       benchmark = ('CirclePlate_Plastic', 'step_nodal_scalar_3')
-      attributes = ['step.nodal_scalar[3]']
+      attributes = ['step.nodal.scalar[3]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
 
    def test_step_element_nodal_scalar_data_0(self):
       benchmark = ('CirclePlate_Plastic', 'step_element_nodal_scalar_data_0')
-      attributes = ['step.element.nodal_scalar_data[0]']
+      attributes = ['step.element.nodal.scalar.data[0]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    
    def test_step_element_nodal_scalar_data_31(self):
       benchmark = ('CirclePlate_Plastic', 'step_element_nodal_scalar_data_31')
-      attributes = ['step.element.nodal_scalar_data[31]']
+      attributes = ['step.element.nodal.scalar.data[31]']
       condition = ''
       self.default_test(*benchmark, attributes, condition)
    

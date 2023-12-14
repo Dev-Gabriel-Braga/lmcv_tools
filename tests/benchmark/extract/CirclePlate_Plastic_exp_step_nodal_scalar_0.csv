@@ -1,4 +1,4 @@
-step.nodal_scalar[0]
+step.nodal.scalar[0]
 'STRESS_XX'
 'STRESS_XX'
 'STRESS_XX'
