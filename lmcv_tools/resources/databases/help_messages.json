@@ -8,7 +8,8 @@
             "translate": "Translate file to another format. Example: translate Job-1.inp to .dat",
             "extract": "Extract attributes from .pos file to CSV format. Example: extract [attributes] from [path/to/.pos]",
             "generate": "Generate special artifacts. Example: generate [artifact name]",
-            "reorder": "Add a nodal solver order in .dat files. Example: reorder [method] [path/to/.dat]"
+            "reorder": "Add a nodal solver order in .dat files. Example: reorder [method] [path/to/.dat]",
+            "change": "Change attributes from .dat (or .pos) files. Example: change [attribute] to [value] in [path/to/.dat]"
          }
       }
    },
@@ -83,6 +84,17 @@
          },
          "Possible Flags": {
             "-i or --info": "Show info about bandwidth reduction and execution time"
+         }
+      }
+   },
+   "change": {
+      "usage": "change [attribute] to [value] in [path/to/.dat] where [condition]",
+      "topics": {
+         "Possible Arguments": {
+            "[attribute]": "Required argument. List of names (at least one) that represent a piece of data from a .dat file. Supported attributes: They are the same as those used in the extract command",
+            "[value]": "Required argument. New value for the given atribute",
+            "[path/to/.dat]": "Required argument. Relative path to .dat file",
+            "[condition]": "Optional argument. They are the same as those used in the extract command"
          }
       }
    }
