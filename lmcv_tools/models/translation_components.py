@@ -143,14 +143,19 @@ class INP_Interpreter:
       # Identificando Nodes
       keyword_format = '\*Node\n([^*]*)'
       node = '(-?\d+.\d*e?-?\+?\d*)'
-      line_format = f'(\d+),\s*{node},\s*{node},\s*{node}'
+      line_format = f'(\d+),\s*{node},\s*{node}(?:,\s*{node})?'
 
       # Inserindo Nodes
       lines_data = re.findall(keyword_format, inp_data)[0]
       nodes = re.findall(line_format, lines_data)
       for node in nodes:
-         ide, x, y, z = map(float, node)
+         ide, x, y, z = node
+
+         # Convertendo Valores
          ide = int(ide)
+         x, y = float(x), float(y)
+         z = 0.0 if z == '' else float(z)
+
          self.model.add_node(ide, x, y, z)
    
    def read_node_sets(self, inp_data: str):
@@ -758,19 +763,24 @@ class DAT_Interpreter:
 
          # Escrevendo Cada Elemento - Elementos de Lagrange
          if geometry.base == 'Lagrange':
+            # Alterando Informações para casos Especiais
+            if geometry.shape == 'Line':
+               more_info = '1'
+            else:
+               more_info = '1  1'
+            
             for ide, element in group.elements.items():
                offset = span - len(str(ide))
                offset = ' ' * offset
-               more_info = '1  1'
                node_ides = '   '.join([ f'{nis:>{node_ide_span}}' for nis in element.node_ides ])
                output += f'{ide}{offset}   {more_info}   {node_ides}\n'
          
          # Escrevendo Cada Elemento - Elementos de Bezier
          elif geometry.base == 'Bezier':
+            more_info = f'1  1  1  {geometry.grade}'
             for ide, element in group.elements.items():
                offset = span - len(str(ide))
                offset = ' ' * offset
-               more_info = f'1  1  1  {geometry.grade}'
                node_ides = '   '.join([ f'{nis:>{node_ide_span}}' for nis in element.node_ides ])
                output += f'{ide}{offset}   {more_info}   {node_ides}\n'
 

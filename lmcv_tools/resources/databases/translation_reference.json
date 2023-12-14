@@ -1,6 +1,13 @@
 {
     "inp": {
         "elements": {
+            "T2D2": {
+                "shape": "Line",
+                "base": "Lagrange",
+                "grade": 1,
+                "n_nodes": 2,
+                "n_dimensions": 1
+            },
             "S3": {
                 "theory": "ShallowShell",
                 "shape": "Triangle",
@@ -249,6 +256,13 @@
     },
     "dat": {
         "elements": {
+            "PLTRUSS": {
+                "shape": "Line",
+                "base": "Lagrange",
+                "grade": 1,
+                "n_nodes": 2,
+                "n_dimensions": 1
+            },
             "T3": {
                 "shape": "Triangle",
                 "base": "Lagrange",
@@ -348,6 +362,9 @@
     },
     "inp_to_dat": {
         "nodes_reordering": {
+            "Line": {
+                "1": [1, 2]
+            },
             "Triangle": {
                 "1": [ 2, 3, 1 ],
                 "2": [ 2, 5, 3, 6, 1, 4 ]
