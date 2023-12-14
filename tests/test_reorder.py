@@ -32,7 +32,7 @@ class DefaultTest(unittest.TestCase):
       temp_file = open(temp_path, 'r')
       temp_data = temp_file.read()
       temp_file.close()
-      self.assertEqual(temp_data, exp_data, 'A extração está incorreta.')
+      self.assertEqual(temp_data, exp_data, 'A reordenação está incorreta.')
 
       # Removendo Arquivo Temporário Gerado
       os.remove(temp_path)
