@@ -363,6 +363,13 @@ class Attribute:
             line_related = line_match.groupdict()
             value = line_related.pop('value')
 
+            # Tratamento Especial para Atributos do Tipo "list"
+            if self.type is list:
+               try:
+                  value = value.split()[self.index]
+               except IndexError:
+                  raise IndexError(f'The Index "[{self.index}]" is out of range in "{self.name}".')
+
             # Combinando Atributos Relacionados
             line_related.update(keyword_related)
 
@@ -374,7 +381,7 @@ class Attribute:
 
             # Criando Dicionários com Todos os Tipos do Atributo (Próprio e Relacionados)
             attribute_types = dict()
-            attribute_types[self.name] = self.type
+            attribute_types[self.name] = self.type if (self.type is not list) else self.sub_type
             attribute_types.update(self.related_attributes)
 
             # Aprovando ou Não Valores para a Alteração com Base na Condição
