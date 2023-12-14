@@ -124,6 +124,43 @@ def pre_reorder(args: list[str], flags: list[str] = []):
    # Executando Reordenação
    reorder.start(method, dat_path, flags)
 
+def pre_change(terms: list[str], flags: list[str] = []):
+   from ..commands import change
+
+   # Verificando Sintaxe Básica da Sentença
+   if 'in' not in terms:
+      raise CommandError('The keyword "in" is required.', help=True)
+   
+   # Verificando se a Mudança foi fornecida
+   index = terms.index('in')
+   changes_terms = terms[:index]
+   if len(changes_terms) == 0:
+      raise CommandError('One change before "in" is required.')
+   
+   # Verificando Sintaxe da Mudança
+   changes_terms = ' '.join(changes_terms)
+   changes_terms = changes_terms.split(' to ')
+   if len(changes_terms) != 2:
+      raise CommandError('The Syntax chosen to write a change is incorrect.')
+
+   # Verificando se o Path do Arquivo .dat foi fornecido
+   try:
+      dat_path = terms[index + 1]
+   except IndexError:
+      raise CommandError('The path to .dat file after "in" is required.')
+   
+   # Verificando se uma Condição foi fornecida
+   condition = None
+   if 'where' in terms[index + 1:]:
+      index_where = terms.index('where')
+      condition = terms[index_where + 1:]
+      if len(condition) == 0:
+         raise CommandError('The Syntax "where [condition]" is optional, but it is incomplete.')
+      condition = ' '.join(condition)
+
+   # Alterando Atributosno Arquivo .dat
+   change.start(changes_terms, dat_path, condition)
+
 # Relação Comando/Função
 commands = {
    'version': show_version,
@@ -131,7 +168,8 @@ commands = {
    'translate': pre_translate,
    'extract': pre_extract,
    'generate': pre_generate,
-   'reorder': pre_reorder
+   'reorder': pre_reorder,
+   'change': pre_change
 }
 
 # Funções de Inicialização

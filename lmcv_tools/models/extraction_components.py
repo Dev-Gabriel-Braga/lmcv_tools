@@ -337,3 +337,71 @@ class Attribute:
                result_table.add_row(attribute_values)
       
       return result_table
+
+   def change_to(self, value_to_change: str, dat_data: str, condition: Condition):
+      # Verificando se Atributos Condicionados são Relacionados com o Atributo a ser Alterado
+      related_attributes = set(self.related_attributes.keys())
+      related_attributes.add(self.name)
+      if (
+         (not condition.is_none_condition) and 
+         (len(condition.conditioned_attributes | related_attributes) > len(related_attributes))
+      ):
+         raise KeyError('All Conditioned Attributes must be related to the Attribute that will be changed.') 
+
+      # Percorrendo Keywords do Atributo
+      keyword_matches = re.finditer(self.format['keywords'], dat_data)
+      for keyword_match in keyword_matches:
+         # Identificando Atributos Relacionados ao Atual a Nível de Keyword
+         keyword_related = keyword_match.groupdict()
+         line_data = keyword_related.pop('line')
+         line_matches = re.finditer(self.format['line'], line_data, re.MULTILINE)
+
+         # Extraindo Dados a partir das Linhas de Keyword
+         new_line_data = line_data
+         for line_match in line_matches:
+            # Identificando Atributos Relacionados ao Atual a Nível de Linha
+            line_related = line_match.groupdict()
+            value = line_related.pop('value')
+
+            # Tratamento Especial para Atributos do Tipo "list"
+            if self.type is list:
+               try:
+                  value = value.split()[self.index]
+               except IndexError:
+                  raise IndexError(f'The Index "[{self.index}]" is out of range in "{self.name}".')
+
+            # Combinando Atributos Relacionados
+            line_related.update(keyword_related)
+
+            # Criando Dicionários com Todos os Valores do Atributo (Próprio e Relacionados)
+            attribute_values = dict()
+            attribute_values[self.name] = value
+            for key, value in line_related.items():
+               attribute_values[key.replace('_', '.')] = value
+
+            # Criando Dicionários com Todos os Tipos do Atributo (Próprio e Relacionados)
+            attribute_types = dict()
+            attribute_types[self.name] = self.type if (self.type is not list) else self.sub_type
+            attribute_types.update(self.related_attributes)
+
+            # Aprovando ou Não Valores para a Alteração com Base na Condição
+            if condition.approve(attribute_values, attribute_types):
+               # Instanciando Linha Antiga e Linha Nova
+               old_line = line_match.group()
+               new_line = self.format['line']
+
+               # Substituindo Formatos Regex pelos Valores para a Nova Linha
+               attribute_values.pop(self.name)
+               attribute_values['value'] = value_to_change
+               for name, value in attribute_values.items():
+                  name = name.replace('.', '_')
+                  new_line = re.sub(f'\(\?P<{name}>[^\)]+[^\(]+\)', value, new_line)
+               new_line = new_line.replace('\s+', '   ')
+               
+               # Substituindo Linha Antiga pela Nova no Conjunto de Linhas
+               new_line_data = new_line_data.replace(old_line, new_line)
+
+         # Substituindo Conjunto de Linhas Antigo pelo Novo no .dat
+         dat_data = dat_data.replace(line_data, new_line_data)
+
+      return dat_data
