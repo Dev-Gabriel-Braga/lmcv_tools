@@ -1,6 +1,6 @@
 from ..interface import filer, searcher
 from ..models.geometry import projection_isometric
-from ..models.translation_components import (
+from ..models.interpreters import (
    INP_Interpreter,
    DAT_Interpreter,
    SVG_Interpreter
