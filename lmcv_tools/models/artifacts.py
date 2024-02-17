@@ -1,5 +1,9 @@
 from .simulation import (
-   FGMMicromechanicalModel
+   SimulationModel,
+   FGM_MicromechanicalModel
+)
+from .interpreters import (
+   DAT_Interpreter
 )
 
 # --------------------------------------------------
@@ -39,7 +43,7 @@ class VirtualLaminas(Artifact):
       thickness: float,
       power_law_exponent: float,
       element_configuration: ElementConfiguration,
-      micromechanical_model: FGMMicromechanicalModel,
+      micromechanical_model: FGM_MicromechanicalModel,
       smart: bool = False
    ):
       super().__init__('virtual_laminas', 'inp')
@@ -182,3 +186,171 @@ class VirtualLaminas(Artifact):
 
       # Inseridos dados Inp no Atributo de Dados
       self.data = inp_data
+
+# --------------------------------------------------
+# 3 - Classes do Artefato "cuboid"
+# --------------------------------------------------
+class Cuboid(Artifact):
+   # Funções de Geração de Coordenadas e Incidência de Elementos
+   def _brick20_coordinates(self):
+      # Renomeando Atributos
+      width, height, deep = self.dimensions
+      nx, ny, nz = self.discretization
+
+      # Calculando Valores Necessários
+      delta_x = width / nx
+      delta_y = height / ny
+      delta_z = deep / nz
+      x_values = [delta_x / 2 * i for i in range(2 * nx + 1)]
+      y_values = [delta_y / 2 * i for i in range(2 * ny + 1)]
+      z_values = [delta_z / 2 * i for i in range(2 * nz + 1)]
+
+      # Gerando Coordenadas
+      ide = 1
+      for i_z, z in enumerate(z_values):
+         # Mudando Valores de y com base em z
+         ys = y_values if i_z % 2 == 0 else y_values[::2]
+
+         for i_y, y in enumerate(ys):
+            # Mudando Valores de x com base em y e z
+            xs = x_values
+            if (
+               ((i_z % 2 == 0) and (i_y % 2 == 1)) or
+               (i_z % 2 == 1)
+            ):
+               xs = x_values[::2]
+
+            for x in xs:
+               self.model.add_node(ide, x, y, z)
+               ide += 1
+
+   def _brick20_incidence(self, i: int) -> list[int]:
+      # Inicializando Variáveis
+      nx, ny, _ = self.discretization
+      inc = [0] * 20
+      x_order = i % nx
+      if x_order == 0: x_order = nx
+      layer_order = i % (nx * ny)
+      if layer_order == 0: layer_order = nx * ny
+      y_order = layer_order // nx
+      if layer_order % nx != 0: y_order += 1
+      z_order = i // (nx * ny)
+      if i % (nx * ny) != 0: z_order += 1
+      
+      # Determinando Nó Inicial
+      inc[0] = (2 * x_order - 1) + (y_order - 1) * (3 * nx + 2) + (z_order - 1) * ((nx + 1) * (ny + 1) + (2 * nx + 1) * (2 * ny + 1) - nx * ny)
+
+      # Camada 1
+      inc[1] = inc[0] + 1
+      inc[2] = inc[0] + 2
+      inc[3] = inc[0] + 2 * nx + 3 - x_order
+      inc[4] = inc[3] + nx + 1 + x_order
+      inc[5] = inc[4] - 1
+      inc[6] = inc[4] - 2
+      inc[7] = inc[3] - 1
+
+      # Camada 2
+      inc[8] = inc[0] + 2 * nx - x_order + 2 + (ny + 1 - y_order) * (3 * nx + 2) + (y_order - 1) * (nx + 1)
+      inc[9] = inc[8] + 1
+      inc[10] = inc[8] + nx + 2
+      inc[11] = inc[10] - 1
+      
+      # Camada 3
+      inc[12] = inc[8] + nx - x_order + 1 + (ny + 1 - y_order) * (nx + 1) + (y_order - 1) * (3 * nx + 2) + 2 * (x_order - 1) + 1
+      inc[13] = inc[12] + 1
+      inc[14] = inc[12] + 2
+      inc[15] = inc[12] + 2 * nx + 3 - x_order
+      inc[16] = inc[15] + nx + 1 + x_order
+      inc[17] = inc[16] - 1
+      inc[18] = inc[16] - 2
+      inc[19] = inc[15] - 1
+
+      # Ordenando Conforme o FAST
+      fast_order = [12, 13, 14, 15, 16, 17, 18, 19, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7]
+      inc = [inc[i] for i in fast_order]
+
+      return inc
+
+   def _brick20_geometry(self) -> int:
+      return self.model.add_element_geometry(
+         shape = 'Hexahedron',
+         base = 'Lagrange',
+         grade = 2,
+         n_nodes = 20,
+         n_dimensions = 3
+      )
+
+
+   # Elementos Suportados
+   supported_elements = {
+      'BRICK20': {
+         'coordinates': _brick20_coordinates,
+         'incidence': _brick20_incidence,
+         'geometry': _brick20_geometry,
+      }
+   }
+
+   def __init__(
+      self,
+      element_type: str,
+      dimensions: list[float],
+      discretization: list[int]
+   ):
+      # Chamando Construtor da Superclasse
+      super().__init__('cuboid', 'dat')
+
+      # Verificando se Tipo de Elemento Fornecido é Suportado
+      if element_type not in Cuboid.supported_elements.keys():
+         raise ValueError(f'Element Type "{element_type}" is not supported for cuboid generation.')   
+
+      # Verificando se o Número de Dimensões e Discretização foram passadas Corretamente
+      if len(dimensions) != 3:
+         raise ValueError('A Cuboid needs exactly 3 dimensions (width, height and deep).')
+      if len(discretization) != 3:
+         raise ValueError('A Cuboid needs exactly 3 discretization values (number of elements in width, height and deep).')
+
+      # Atribuindo Atributos
+      self.element_type = element_type
+      self.dimensions = dimensions
+      self.discretization = discretization
+      self.model = SimulationModel()
+      self._coordinates = Cuboid.supported_elements[element_type]['coordinates']
+      self._incidence = Cuboid.supported_elements[element_type]['incidence']
+      self._geometry = Cuboid.supported_elements[element_type]['geometry']
+
+   def coordinates(self):
+      return self._coordinates(self)
+   
+   def incidence(self, i: int) -> list[int]:
+      return self._incidence(self, i)
+   
+   def geometry(self) -> int:
+      return self._geometry(self)
+
+   def generate(self):
+      # Renomeando Atributos
+      nx, ny, nz = self.discretization
+
+      # Gerando Coordenadas e Nodes
+      self.coordinates()
+
+      # Configurações dos Elementos
+      geometry_ide = self.geometry()
+      self.model.add_element_group(1, geometry_ide, None)
+
+      # Gerando Elementos (BRICK20)
+      for i in range(nx * ny * nz):
+         # Gerando Incidência
+         nodal_incidence = self.incidence(i + 1)
+
+         # Cadastrando Elemento
+         self.model.add_element(
+            group_ide = 1,
+            ide = i + 1,
+            node_ides = nodal_incidence
+         )
+
+      # Escrevendo Dados do .dat
+      dati = DAT_Interpreter()
+      dati.model = self.model
+      self.data = dati.write()

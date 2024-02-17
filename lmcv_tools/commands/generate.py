@@ -1,15 +1,16 @@
 from inspect import signature
 from ..interface import filer
+from ..models.graphics import PromptGenerateVirtualLaminas
+from ..models.custom_errors import CommandError
 from ..models.artifacts import (
    VirtualLaminas,
-   ElementConfiguration
+   ElementConfiguration,
+   Cuboid
 )
 from ..models.simulation import (
    Material,
-   FGMMicromechanicalModel
+   FGM_MicromechanicalModel
 )
-from ..models.graphics import PromptGenerateVirtualLaminas
-from ..models.custom_errors import CommandError
 
 # Funções de Geração de Artefatos
 def generate_virtual_laminas(
@@ -36,7 +37,7 @@ def generate_virtual_laminas(
    materials.append(Material(E2, nu2, pho2))
 
    # Instanciando Modelo Micromecânico
-   model = FGMMicromechanicalModel(micromechanical_model, materials)
+   model = FGM_MicromechanicalModel(micromechanical_model, materials)
    
    # Instanciando Artefato de Lâminas Virtuais
    virtual_laminas = VirtualLaminas(
@@ -50,6 +51,20 @@ def generate_virtual_laminas(
    virtual_laminas.generate()
 
    return virtual_laminas
+
+def generate_cuboid(
+   element_type: str, 
+   dimensions: list[float], 
+   discretization: list[int]
+) -> Cuboid:
+   # Instanciando Artefato
+   cuboid = Cuboid(element_type, dimensions, discretization)
+
+   # Gerando Cuboid
+   cuboid.generate()
+
+   # Retornando Cuboid
+   return cuboid
 
 # Funções de Parâmetros de Artefatos
 def params_virtual_laminas(args: list[str]) -> dict:
@@ -84,11 +99,26 @@ def params_virtual_laminas(args: list[str]) -> dict:
    
    return params, args
 
+def params_cuboid(args: list[str]) -> dict:
+   # Iniciando Parâmetros
+   params = dict()
+
+   # Tentando Converter Tipos de Dados
+   params['element_type'] = args[0]
+   params['dimensions'] = list(map(float, args[1:4]))
+   params['discretization'] = list(map(int, args[4:7]))
+   
+   return params, args[7:]
+
 # Relação Artefato/Funções
 artifacts = {
    'virtual_laminas': {
       'params': params_virtual_laminas,
       'generate': generate_virtual_laminas
+   },
+   'cuboid': {
+      'params': params_cuboid,
+      'generate': generate_cuboid
    }
 }
 

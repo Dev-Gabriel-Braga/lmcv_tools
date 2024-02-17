@@ -146,7 +146,7 @@ class Material:
       # Calculando Módulo de Cisalhamento
       self.G = self.E / (2 * (1 + self.nu))
 
-class FGMMicromechanicalModel:
+class FGM_MicromechanicalModel:
    # Funções de Homogeneização Privadas
    def _voigt(self, volume_fractions: list[float]):
       E, nu, pho = 0, 0, 0
@@ -213,7 +213,7 @@ class FGMMicromechanicalModel:
       self.name = name
       self.materials = materials
       try:
-         self._homogenize = FGMMicromechanicalModel.homogenize_functions[name]
+         self._homogenize = FGM_MicromechanicalModel.homogenize_functions[name]
       except KeyError:
          raise ValueError(f'Micromechanical Model "{name}" is not supported.')
    
