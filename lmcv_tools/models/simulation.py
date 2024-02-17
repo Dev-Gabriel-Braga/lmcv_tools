@@ -75,7 +75,7 @@ class SimulationModel:
       n_dimensions: int,
       knot_vectors: list[list[float]] = None, 
       node_space: list[int] = None
-   ):
+   ) -> int:
       # Verificando se Geometria Já Existe
       for geometry_ide, element_geometry in self.element_geometries.items():
          if (
