@@ -1,12 +1,14 @@
 from inspect import signature
 from ..interface import filer
-from ..models.generation_artifacts import (
+from ..models.artifacts import (
    VirtualLaminas,
-   ElementConfiguration,
-   MicromechanicalModel,
-   Material
+   ElementConfiguration
 )
-from ..models.graphical_interfaces import PromptGenerateVirtualLaminas
+from ..models.simulation import (
+   Material,
+   FGMMicromechanicalModel
+)
+from ..models.graphics import PromptGenerateVirtualLaminas
 from ..models.custom_errors import CommandError
 
 # Funções de Geração de Artefatos
@@ -34,7 +36,7 @@ def generate_virtual_laminas(
    materials.append(Material(E2, nu2, pho2))
 
    # Instanciando Modelo Micromecânico
-   model = MicromechanicalModel(micromechanical_model, materials)
+   model = FGMMicromechanicalModel(micromechanical_model, materials)
    
    # Instanciando Artefato de Lâminas Virtuais
    virtual_laminas = VirtualLaminas(

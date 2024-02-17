@@ -1,3 +1,10 @@
+from .simulation import (
+   FGMMicromechanicalModel
+)
+
+# --------------------------------------------------
+# 1 - Classe Abstrata de Artefato
+# --------------------------------------------------
 class Artifact:
    def __init__(self, name: str, file_extension: str, data: str = ''):
       self.name = name
@@ -12,92 +19,9 @@ class Artifact:
    def generate(self):
       return self.data
 
-class Material:
-   def __init__(self, elastic_modulus: float, poisson_coefficient: float, density: float) -> None:
-      self.E = elastic_modulus
-      self.nu = poisson_coefficient
-      self.pho = density
-
-      # Calculando Módulo Volumétrico
-      self.K = self.E / (3 * (1 - 2 * self.nu))
-
-      # Calculando Módulo de Cisalhamento
-      self.G = self.E / (2 * (1 + self.nu))
-
-class MicromechanicalModel:
-   # Funções de Homogeneização Privadas
-   def _voigt(self, volume_fractions: list[float]):
-      E, nu, pho = 0, 0, 0
-      for V, M in zip(volume_fractions, self.materials):
-         E += V * M.E
-         nu += V * M.nu
-         pho += V * M.pho
-      return E, nu, pho
-   
-   def _hashin_shtrikman(bound: str):
-      def function(self, volume_fractions: list[float]):
-         # Definindo Valores Especiais
-         V, M = volume_fractions, self.materials
-         V1, V2 = V[0], V[1]
-         K1, K2 = M[0].K, M[1].K
-         G1, G2 = M[0].G, M[1].G
-         pho_1, pho_2 = M[0].pho, M[1].pho
-
-         # Valores Iniciais do que é Matriz e do que são as Inclusões
-         Vm, Vi = V1, V2
-         Km, Ki = K1, K2
-         Gm, Gi = G1, G2
-         pho_m, pho_i = pho_1, pho_2
-
-         # Trocando Ordem com base no Bound Escolhido
-         if (
-            bound == 'upper' and M[0].E < M[1].E or
-            bound == 'lower' and M[0].E > M[1].E
-         ):
-            Vm, Vi = V2, V1
-            Km, Ki = K2, K1
-            Gm, Gi = G2, G1
-            pho_m, pho_i = pho_2, pho_1
-
-         # Calculando Valores Auxilizares
-         FK = (3 * Vm) / (3 * Km + 4 * Gm)
-         FG = 6 * Vm * (Km + 2 * Gm) / (5 * Gm * (3 * Km + 4 * Gm))
-
-         # Calculando Módulo Volumétrico
-         K = Km + Vi / ((1 / (Ki - Km)) + FK)
-
-         # Calculando Módulo de Cisalhamento
-         G = Gm + Vi / ((1 / (Gi - Gm)) + FG)
-
-         # Calculando Propriedades Efetivas
-         E = (9 * G * K) / (G + 3 * K)
-         nu = (3 * K - 2 * G) / (2 * (G + 3 * K))
-
-         # Densidade Calculada pelo Modelo de voigt
-         pho = Vi * pho_i + Vm * pho_m
-
-         return E, nu, pho
-      return function
-
-   # Relação Modelo/Função de Homogeneização
-   homogenize_functions = {
-      'voigt': _voigt,
-      'mori_tanaka': _hashin_shtrikman('lower'),
-      'hashin_shtrikman_upper_bound': _hashin_shtrikman('upper'),
-      'hashin_shtrikman_lower_bound': _hashin_shtrikman('lower'),
-   }
-
-   def __init__(self, name: str, materials: list[Material]) -> None:
-      self.name = name
-      self.materials = materials
-      try:
-         self._homogenize = MicromechanicalModel.homogenize_functions[name]
-      except KeyError:
-         raise ValueError(f'Micromechanical Model "{name}" is not supported.')
-   
-   def homogenize(self, volume_fractions: list[float]):
-      return self._homogenize(self, volume_fractions)
-
+# --------------------------------------------------
+# 2 - Classes do Artefato "virtual_laminas"
+# --------------------------------------------------
 class ElementConfiguration:
    # Elementos Suportados
    supported_types = {'Solid', 'Shell'}
@@ -115,7 +39,7 @@ class VirtualLaminas(Artifact):
       thickness: float,
       power_law_exponent: float,
       element_configuration: ElementConfiguration,
-      micromechanical_model: MicromechanicalModel,
+      micromechanical_model: FGMMicromechanicalModel,
       smart: bool = False
    ):
       super().__init__('virtual_laminas', 'inp')
