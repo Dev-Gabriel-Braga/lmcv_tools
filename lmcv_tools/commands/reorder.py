@@ -2,7 +2,7 @@ from time import time
 from itertools import combinations
 from math import inf, floor
 from ..interface import filer, messenger
-from ..models.translation_components import DAT_Interpreter
+from ..models.interpreters import DAT_Interpreter
 from ..models.ansi_style import Color, Effect
 
 # Funções de Grafos
