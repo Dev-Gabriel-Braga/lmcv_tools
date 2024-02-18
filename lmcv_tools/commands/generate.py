@@ -8,8 +8,8 @@ from ..models.artifacts import (
    Cuboid
 )
 from ..models.simulation import (
-   Material,
-   FGM_MicromechanicalModel
+   IsotropicMaterial,
+   FunctionallyGradedMaterial
 )
 
 # Funções de Geração de Artefatos
@@ -24,8 +24,8 @@ def generate_virtual_laminas(
    E2: float,
    nu1: float,
    nu2: float,
-   pho1: float,
-   pho2: float,
+   rho1: float,
+   rho2: float,
    smart: bool
 ) -> VirtualLaminas:
    # Instanciando Configuração do Elemento
@@ -33,11 +33,11 @@ def generate_virtual_laminas(
 
    # Instanciando Materiais
    materials = list()
-   materials.append(Material(E1, nu1, pho1))
-   materials.append(Material(E2, nu2, pho2))
+   materials.append(IsotropicMaterial(E1, nu1, rho1))
+   materials.append(IsotropicMaterial(E2, nu2, rho2))
 
-   # Instanciando Modelo Micromecânico
-   model = FGM_MicromechanicalModel(micromechanical_model, materials)
+   # Instanciando FGM
+   fgm = FunctionallyGradedMaterial(micromechanical_model, materials)
    
    # Instanciando Artefato de Lâminas Virtuais
    virtual_laminas = VirtualLaminas(
@@ -45,7 +45,7 @@ def generate_virtual_laminas(
       thickness,
       power_law_exponent,
       element,
-      model,
+      fgm,
       smart
    )
    virtual_laminas.generate()

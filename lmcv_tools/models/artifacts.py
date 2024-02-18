@@ -1,6 +1,6 @@
 from .simulation import (
    SimulationModel,
-   FGM_MicromechanicalModel
+   FunctionallyGradedMaterial
 )
 from .interpreters import (
    DAT_Interpreter
@@ -43,7 +43,7 @@ class VirtualLaminas(Artifact):
       thickness: float,
       power_law_exponent: float,
       element_configuration: ElementConfiguration,
-      micromechanical_model: FGM_MicromechanicalModel,
+      fgm: FunctionallyGradedMaterial,
       smart: bool = False
    ):
       super().__init__('virtual_laminas', 'inp')
@@ -51,7 +51,7 @@ class VirtualLaminas(Artifact):
       self.thickness = thickness
       self.power_law_exponent = power_law_exponent
       self.element_configuration = element_configuration
-      self.micromechanical_model = micromechanical_model
+      self.fgm = fgm
       self.smart = smart
    
    def volume_fraction(self, z: float):
@@ -163,10 +163,10 @@ class VirtualLaminas(Artifact):
          material_names.append(name)
 
          # Homogeneizando Propriedades
-         E, nu, pho = self.micromechanical_model.homogenize([V, 1 - V])
+         E, nu, rho = self.fgm.homogenize([V, 1 - V])
 
          # Adicionando Dados
-         inp_data += f'*Material, name={name}\n    *Density\n    {pho:.7E},\n    *Elastic\n    {E:.7E}, {nu:.3f}\n'
+         inp_data += f'*Material, name={name}\n    *Density\n    {rho:.7E},\n    *Elastic\n    {E:.7E}, {nu:.3f}\n'
          
          index += 1
       
