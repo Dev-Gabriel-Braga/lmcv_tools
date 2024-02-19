@@ -11,7 +11,9 @@ from .simulation import (
    ElementGeometry,
    ElementGroup,
    IsotropicMaterial,
-   FunctionallyGradedMaterial
+   FunctionallyGradedMaterial,
+   HIM_3D_Section,
+   FGM_3D_Section
 )
 
 class INP_Interpreter:
@@ -467,6 +469,94 @@ class DAT_Interpreter:
       }
    }
 
+   # Funções Privadas de Leitura de Seção
+   def _read_section_him_3d(self, line_data: str) -> None:
+      line_data = line_data.split()
+      for i in range(0, len(line_data), 2):
+         # Separando Valores
+         try:
+            section_ide, material_ide = map(int, line_data[i:i + 2])
+         except ValueError:
+            raise ValueError('A Homogeneous Isotropic 3D Section does not have the necessary data in .dat file definition.')
+
+         # Cadastrando Seção
+         section = HIM_3D_Section(material_ide)
+         self.model.sections[section_ide] = section
+
+   def _read_section_fgm_3d(self, line_data: str) -> None:
+      line_data = line_data.split()
+      n_volume_fractions = 0
+      i = 0
+      while i < len(line_data):
+         # Separando Valores
+         try:
+            # Lendo Dados Conhecidos
+            section_ide, material_ide, n_volume_fractions = map(int, line_data[i:i + 3])
+            
+            # Calculando o Index de Início da Próxima Seção
+            next_section_index = i + 3 + 2 * n_volume_fractions
+            
+            # Lendo ID dos Nós e sua Respectiva Fração de Volume
+            volume_fractions = dict()
+            for j in range(i + 3, next_section_index, 2):
+               node_ide = int(line_data[j])
+               volume_fraction = float(line_data[j + 1])
+               volume_fractions[node_ide] = volume_fraction
+
+         except ValueError:
+            raise ValueError('A FGM 3D Section does not have the necessary data in .dat file definition.')
+
+         # Cadastrando Seção
+         section = FGM_3D_Section(material_ide, volume_fractions)
+         self.model.sections[section_ide] = section
+
+         # Definindo Próximo Index
+         i = next_section_index
+
+   # Funções Privadas de Escrita de Seção
+   def _write_section_him_3d(group: dict[int, HIM_3D_Section]) -> str:
+      # Iniciando Output
+      n_sections = len(group)
+      span = len(str(max(group.keys())))
+      output = f'\n%SECTION.HOMOGENEOUS.ISOTROPIC.3D\n{n_sections}\n'
+
+      # Escrevendo Cada Seção
+      for ide, section in group.items():
+         output += f'{ide:<{span}}   {section.material_ide}\n'
+      
+      return output
+
+   def _write_section_fgm_3d(group: dict[int, FGM_3D_Section]) -> str:
+      # Iniciando Output
+      n_sections = len(group)
+      span = len(str(max(group.keys())))
+      output = f'\n%SECTION.FGM.3D\n{n_sections}\n'
+
+      # Escrevendo Cada Seção
+      for ide, section in group.items():
+         output += f'{ide:<{span}}   {section.material_ide}   {len(section.volume_fractions)}\n'
+         
+         # Escrevendo Cada Fração de Volume
+         node_span = len(str(max(section.volume_fractions.keys())))
+         for node_ide, volume_fraction in section.volume_fractions.items():
+            output += f'{node_ide:<{node_span}}   {volume_fraction:.8e}\n'
+      
+      return output
+
+   # Seções Suportadas
+   supported_sections = {
+      'HOMOGENEOUS.ISOTROPIC.3D': {
+         'class': HIM_3D_Section,
+         'read': _read_section_him_3d,
+         'write': _write_section_him_3d
+      },
+      'FGM.3D': {
+         'class': FGM_3D_Section,
+         'read': _read_section_fgm_3d,
+         'write': _write_section_fgm_3d
+      }
+   }
+
    def __init__(self):
       self.model = SimulationModel()
       self.reference = searcher.get_database('translation_reference')['dat']
@@ -679,7 +769,7 @@ class DAT_Interpreter:
       # Identificando Materiais
       keyword_format = '%MATERIAL\.(.+)\n\d+\n([^%]*)'
 
-      # Inserindo Supports
+      # Inserindo Materiais
       lines_data = re.findall(keyword_format, dat_data)
       for line_data in lines_data:
          # Extraindo Informações
@@ -691,6 +781,23 @@ class DAT_Interpreter:
             read_function(self, line_data)
          except KeyError:
             raise KeyError(f'The Material Type "{type}" is not supported for .dat files.')
+
+   def read_sections(self, dat_data: str):
+      # Identificando Seções
+      keyword_format = '%SECTION\.(.+)\n\d+\n([^%]*)'
+
+      # Inserindo Seções
+      lines_data = re.findall(keyword_format, dat_data)
+      for line_data in lines_data:
+         # Extraindo Informações
+         type, line_data = line_data
+
+         # Tentando Ler Seção de Acordo com o Tipo
+         try:
+            read_function = DAT_Interpreter.supported_sections[type]['read']
+            read_function(self, line_data)
+         except KeyError:
+            raise KeyError(f'The Section Type "{type}" is not supported for .dat files.')
 
    def read(self, dat_data: str):
       # Interpretando Nodes
@@ -710,6 +817,9 @@ class DAT_Interpreter:
 
       # Interpretando Materiais
       self.read_materials(dat_data)
+
+      # Interpretando Seções
+      self.read_sections(dat_data)
    
    def write_nodes(self) -> str:
       # Parâmetros Iniciais
@@ -866,24 +976,61 @@ class DAT_Interpreter:
             output += self.supported_materials[type]['write'](group)
 
       return output
+   
+   def write_sections(self) -> str:
+      # Parâmetros Iniciais
+      n_sections = len(self.model.sections)
+      output = f'\n%SECTION\n{n_sections}\n'
+
+      # Criando Grupos de Seções
+      groups = dict()
+      for type in DAT_Interpreter.supported_sections.keys():
+         groups[type] = dict()
+
+      # Tentando Organizar Seções em Grupos
+      for ide, section in self.model.sections.items():
+         # Verificando se a Seção é Supportada
+         for type, s in DAT_Interpreter.supported_sections.items():
+            if s.get('class') and isinstance(section, s['class']):
+               groups[type][ide] = section
+               break
+         else:
+            raise TypeError(f'The Section Type "{section.__class__.__name__}" is not supported for .dat files.')
+      
+      # Escrevendo Grupos
+      for type, group in groups.items():
+         if len(group) > 0:
+            output += self.supported_sections[type]['write'](group)
+
+      return output
 
    def write(self) -> str:
       # Inicializando Output
       output = '%HEADER\n'
 
       # Escrevendo Nodes
-      output += self.write_nodes()
+      if len(self.model.nodes) > 0:
+         output += self.write_nodes()
 
       # Escrevendo Supports
       if len(self.model.supports) > 0:
          output += self.write_supports()
+      
+      # Escrevendo Materiais
+      if len(self.model.materials) > 0:
+         output += self.write_materials()
+
+      # Escrevendo Seções
+      if len(self.model.sections) > 0:
+         output += self.write_sections()
 
       # Escrevendo Ordem de Resolução (Se existir)
       if len(self.model.node_solver_order) > 0:
          output += self.write_node_solver_order()
 
       # Escrevendo Elementos
-      output += self.write_elements()
+      if len(self.model.element_groups) > 0:
+         output += self.write_elements()
 
       # Finalizando Output
       output += '\n%END'

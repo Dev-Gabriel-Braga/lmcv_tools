@@ -239,12 +239,15 @@ class Section:
    def __init__(self, material_ide: int) -> None:
       self.material_ide = material_ide
 
-class Section_FGM_3D(Section):
+class HIM_3D_Section(Section):
+   def __init__(self, material_ide: int) -> None:
+      # Chamando Construtor da Superclasse
+      super().__init__(material_ide)
+
+class FGM_3D_Section(Section):
    def __init__(self, material_ide: int, volume_fractions: dict[int, float]) -> None:
       # Chamando Construtor da Superclasse
       super().__init__(material_ide)
 
       # Atribuindo Atributos
       self.volume_fractions = volume_fractions
-
-
