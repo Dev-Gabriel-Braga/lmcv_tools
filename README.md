@@ -4,7 +4,19 @@
 
 LMCV Tools is a **command line tool**  that provides a series of useful functionalities for the day-to-day simulations of the "Laboratório de Mecânica Computacional e Visualização" of the "Universidade Federal do Ceará" (UFC).
 
-### 1.1 - Build and Install from Source
+### 1.1 - Install
+
+```text
+$ pip install lmcv_tools
+```
+
+### 1.2 - Update to Last Version
+
+```text
+$ pip install --upgrade lmcv_tools
+```
+
+### 1.3 - Build and Install from Source
 
 ```text
 $ pip install build
@@ -12,7 +24,7 @@ $ python -m build
 $ pip install dist/[name of wheel file].whl
 ```
 
-### 1.2 - How to Use
+### 1.4 - How to Use
 
 Once installed, the basic form of the LMCV Tools commands is:
 
@@ -189,6 +201,7 @@ $ lmcv_tools generate [artifact name] [args] [path/to/artifact]
 
 Implemented artifacts are listed below:
 - virtual_laminas
+- cuboid
 
 #### 2.3.1 - Virtual Laminas
 Virtual Laminas (virtual_laminas) are a model that approximates the behavior of a Functionally Graded Material. The idea is to represent these materials as a stack of isotropic homogeneous laminas. The more laminas used, the more accurate the simulation results. However, tools like Abaqus or FAST do not have a fast and automated way to generate these laminas, so this artifact was developed as a solution.
@@ -202,29 +215,48 @@ $ lmcv_tools generate virtual_laminas
 Other syntax possible is based in a long and exaustive list of required arguments:
 
 ```text
-$ lmcv_tools generate virtual_laminas [args] [path/to/artifact]
+$ lmcv_tools generate virtual_laminas [params] [path/to/virtual_laminas]
 ```
 
-| Parameters            | Description                                          |
-| ---                   | ---                                                  |
-| Laminas Count         | Total number of laminas.                             |
-| Laminas Thickness     | Thinkcness of laminas.                               |
-| Power Law Exponent    | Exponent of Power Law.                               |
-| Micromechanical Model | Model to calculate effective properties.             |
-| Element Type          | Supported: Solid, Shell.                             |
-| E1                    | Elastic Modulus of Material 1.                       |
-| E2                    | Elastic Modulus of Material 2.                       |
-| nu1                   | Poisson's Coefficient of Material 1.                 |
-| nu2                   | Poisson's Coefficient of Material 2.                 |
-| pho1                  | Density of Material 1.                               |
-| pho2                  | Density of Material 2.                               |
-| Smart Laminas         | If True, a new smart generation method will be used. |
+| Parameters            | Type  | Description                                          |
+| ---                   |---    | ---                                                  |
+| Laminas Count         | int   | Total number of laminas.                             |
+| Laminas Thickness     | float | Thinkcness of laminas.                               |
+| Power Law Exponent    | float | Exponent of Power Law.                               |
+| Micromechanical Model | str   | Model to calculate effective properties.             |
+| Element Type          | str   | Supported: Solid, Shell.                             |
+| E1                    | float | Elastic Modulus of Material 1.                       |
+| E2                    | float | Elastic Modulus of Material 2.                       |
+| nu1                   | float | Poisson's Coefficient of Material 1.                 |
+| nu2                   | float | Poisson's Coefficient of Material 2.                 |
+| pho1                  | float | Density of Material 1.                               |
+| pho2                  | float | Density of Material 2.                               |
+| Smart Laminas         | bool  | If True, a new smart generation method will be used. |
 
 **Supported Micromechanical Models:**
 - voigt
 - mori_tanaka
 - hashin_shtrikman_lower_bound
 - hashin_shtrikman_upper_bound
+
+#### 2.3.2 - Cuboid
+Cuboids are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of cuboids in .dat format.
+
+Proper Syntax:
+
+```text
+$ lmcv_tools generate cuboid [params] [path/to/cuboid]
+```
+
+| Parameters   | Type  | Description                   |
+| ---          |---    | ---                           |
+| Element Type | str   | Supported: BRICK20.           |
+| Width        | float | Cuboid Width (x).             |
+| Height       | float | Cuboid Height (y).            |
+| Deep         | float | Cuboid Deep (z).              |
+| Nx           | int   | Number of Elements in Width.  | 
+| Ny           | int   | Number of Elements in Height. |
+| Nz           | int   | Number of Elements in Deep.   |  
 
 ### 2.4 - Reorder
 

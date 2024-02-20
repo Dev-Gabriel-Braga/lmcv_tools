@@ -1,13 +1,16 @@
 from inspect import signature
 from ..interface import filer
-from ..models.generation_artifacts import (
+from ..models.graphics import PromptGenerateVirtualLaminas
+from ..models.custom_errors import CommandError
+from ..models.artifacts import (
    VirtualLaminas,
    ElementConfiguration,
-   MicromechanicalModel,
-   Material
+   Cuboid
 )
-from ..models.graphical_interfaces import PromptGenerateVirtualLaminas
-from ..models.custom_errors import CommandError
+from ..models.simulation import (
+   IsotropicMaterial,
+   FunctionallyGradedMaterial
+)
 
 # Funções de Geração de Artefatos
 def generate_virtual_laminas(
@@ -21,8 +24,8 @@ def generate_virtual_laminas(
    E2: float,
    nu1: float,
    nu2: float,
-   pho1: float,
-   pho2: float,
+   rho1: float,
+   rho2: float,
    smart: bool
 ) -> VirtualLaminas:
    # Instanciando Configuração do Elemento
@@ -30,11 +33,11 @@ def generate_virtual_laminas(
 
    # Instanciando Materiais
    materials = list()
-   materials.append(Material(E1, nu1, pho1))
-   materials.append(Material(E2, nu2, pho2))
+   materials.append(IsotropicMaterial(E1, nu1, rho1))
+   materials.append(IsotropicMaterial(E2, nu2, rho2))
 
-   # Instanciando Modelo Micromecânico
-   model = MicromechanicalModel(micromechanical_model, materials)
+   # Instanciando FGM
+   fgm = FunctionallyGradedMaterial(micromechanical_model, materials)
    
    # Instanciando Artefato de Lâminas Virtuais
    virtual_laminas = VirtualLaminas(
@@ -42,12 +45,26 @@ def generate_virtual_laminas(
       thickness,
       power_law_exponent,
       element,
-      model,
+      fgm,
       smart
    )
    virtual_laminas.generate()
 
    return virtual_laminas
+
+def generate_cuboid(
+   element_type: str, 
+   dimensions: list[float], 
+   discretization: list[int]
+) -> Cuboid:
+   # Instanciando Artefato
+   cuboid = Cuboid(element_type, dimensions, discretization)
+
+   # Gerando Cuboid
+   cuboid.generate()
+
+   # Retornando Cuboid
+   return cuboid
 
 # Funções de Parâmetros de Artefatos
 def params_virtual_laminas(args: list[str]) -> dict:
@@ -82,11 +99,26 @@ def params_virtual_laminas(args: list[str]) -> dict:
    
    return params, args
 
+def params_cuboid(args: list[str]) -> dict:
+   # Iniciando Parâmetros
+   params = dict()
+
+   # Tentando Converter Tipos de Dados
+   params['element_type'] = args[0]
+   params['dimensions'] = list(map(float, args[1:4]))
+   params['discretization'] = list(map(int, args[4:7]))
+   
+   return params, args[7:]
+
 # Relação Artefato/Funções
 artifacts = {
    'virtual_laminas': {
       'params': params_virtual_laminas,
       'generate': generate_virtual_laminas
+   },
+   'cuboid': {
+      'params': params_cuboid,
+      'generate': generate_cuboid
    }
 }
 

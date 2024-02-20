@@ -234,19 +234,19 @@ class PromptGenerateVirtualLaminas:
       )
       self.entry['nu1'].grid(row = 1, column = 3, sticky = 'w', padx = 5)
 
-      self.label['pho1'] = Label(
+      self.label['rho1'] = Label(
          master = self.frame['materials_params'],
          text = 'ρ1 = ',
          padding = (0, 5, 0, 5),
       )
-      self.label['pho1'].grid(row = 1, column = 4, sticky = 'w', padx = 5)
+      self.label['rho1'].grid(row = 1, column = 4, sticky = 'w', padx = 5)
 
-      self.entry['pho1'] = Entry(
+      self.entry['rho1'] = Entry(
          master = self.frame['materials_params'], 
          width = 6,
          font = self.default_font,
       )
-      self.entry['pho1'].grid(row = 1, column = 5, sticky = 'w')
+      self.entry['rho1'].grid(row = 1, column = 5, sticky = 'w')
 
       self.label['E2'] = Label(
          master = self.frame['materials_params'],
@@ -277,19 +277,19 @@ class PromptGenerateVirtualLaminas:
       )
       self.entry['nu2'].grid(row = 2, column = 3, sticky = 'w', padx = 5)
 
-      self.label['pho2'] = Label(
+      self.label['rho2'] = Label(
          master = self.frame['materials_params'],
          text = 'ρ2 = ',
          padding = (0, 5, 0, 5),
       )
-      self.label['pho2'].grid(row = 2, column = 4, sticky = 'w', padx = 5)
+      self.label['rho2'].grid(row = 2, column = 4, sticky = 'w', padx = 5)
 
-      self.entry['pho2'] = Entry(
+      self.entry['rho2'] = Entry(
          master = self.frame['materials_params'], 
          width = 6,
          font = self.default_font,
       )
-      self.entry['pho2'].grid(row = 2, column = 5, sticky = 'w')
+      self.entry['rho2'].grid(row = 2, column = 5, sticky = 'w')
 
    def layout_action(self):
       self.frame['action'] = Frame(

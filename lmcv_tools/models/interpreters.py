@@ -1,138 +1,20 @@
-from ..interface import searcher
-from .geometry import bezier_equiv_coord, bernstein_polynomial
 import re
 from math import floor
-
-class SimulationModel:
-   def __init__(self):
-      # Nodes - Atributos Relacionados
-      self.nodes = dict()
-      self.node_sets = dict()
-      self.node_solver_order = list()
-
-      # Elements - Atributos Relacionados
-      self.element_geometries = dict()
-      self.element_groups = dict()
-      self.element_sets = dict()
-
-      # Supports - Atributos Relacionados
-      self.supports = dict()
-      self.supported_dofs = ('u', 'v', 'w', 'rx', 'ry', 'rz')
-   
-   # Métodos - Adição de Entidades
-   def add_node(
-      self, 
-      ide: int, 
-      x: float, 
-      y: float, 
-      z: float, 
-      weight: float = None
-   ):
-      self.nodes[ide] = self.Node(x, y, z, weight)
-   
-   def add_element_geometry(
-      self,
-      shape: str,
-      base: str,
-      grade: int | list[int],
-      n_nodes: int,
-      n_dimensions: int,
-      knot_vectors: list[list[float]] = None, 
-      node_space: list[int] = None
-   ):
-      # Verificando se Geometria Já Existe
-      for geometry_ide, element_geometry in self.element_geometries.items():
-         if (
-            (shape == element_geometry.shape) and
-            (base == element_geometry.base) and
-            (grade == element_geometry.grade) and
-            (n_nodes == element_geometry.n_nodes) and
-            (n_dimensions == element_geometry.n_dimensions)
-         ):
-            if base == 'BSpline':
-               if knot_vectors == element_geometry.knot_vectors and node_space == element_geometry.node_space:
-                  break
-               continue
-            break
-      else:
-         # Criando Geometria (Já que não Existe)
-         geometry_ide = len(self.element_geometries) + 1
-         self.element_geometries[geometry_ide] = self.ElementGeometry(shape, base, grade, n_nodes, n_dimensions, knot_vectors, node_space)
-
-      # Retornando Ide da Geometria
-      return geometry_ide
-   
-   def add_element_group(self, ide: int, geometry_ide, theory: str):
-      if geometry_ide not in self.element_geometries:
-         raise ValueError(f'The Element Geometry with ide = {geometry_ide} does not exist.')
-      self.element_groups[ide] = self.ElementGroup(geometry_ide, theory)
-
-   def add_element(
-      self, group_ide: int,
-      ide: int,
-      node_ides: list[int], 
-      knot_span: list[int] = None
-   ):
-      # Verificando se Ides de Nodes são Válidos
-      for node_ide in node_ides:
-         if node_ide not in self.nodes:
-            raise ValueError(f'The Node with ide = {node_ide} does not exist.')
-      
-      # Criando Elemento
-      self.element_groups[group_ide].elements[ide] = self.Element(node_ides, knot_span)
-   
-   def add_support(self, node_ide: int, dof: str):
-      # Verificando Entradas
-      if node_ide not in self.nodes:
-         raise ValueError(f'The Node with ide = {node_ide} does not exist.')
-      if dof not in self.supported_dofs:
-         raise ValueError(f'The Degree of Freedom "{dof}" is not supported.')
-      
-      # Relacionando Grau de Liberdade Restrito com o Node
-      if self.supports.get(node_ide) is None:
-         self.supports[node_ide] = set()
-      self.supports[node_ide].add(dof)
-
-   # Classes de Etidades
-   class Node:
-      def __init__(self, x: float, y: float, z: float, weight: float = None):
-         self.x = x
-         self.y = y
-         self.z = z
-         self.weight = weight
-   
-   class ElementGeometry:
-      def __init__(
-         self,
-         shape: str, 
-         base: str, 
-         grade: int | list[int],
-         n_nodes: int,
-         n_dimensions: int,
-         knot_vectors: list[list[float]] = None, 
-         node_space: list[int] = None
-      ):
-         # Atributos de Geometrias em Geral
-         self.shape = shape
-         self.base = base
-         self.grade = grade
-         self.n_nodes = n_nodes
-         self.n_dimensions = n_dimensions
-
-         # Atributos de Geometria com Base BSpline
-         self.knot_vectors = knot_vectors
-         self.node_space = node_space
-
-   class ElementGroup:
-      def __init__(self, geometry_ide: int, theory: str):
-         self.geometry_ide = geometry_ide
-         self.theory = theory
-         self.elements = dict()
-   
-   class Element:
-      def __init__(self, node_ides: list[int], knot_span: list[int] = None):
-         self.node_ides = node_ides
-         self.knot_span = knot_span
+from ..interface import searcher
+from .geometry import (
+   bezier_equiv_coord, 
+   bernstein_polynomial
+)
+from .simulation import (
+   SimulationModel,
+   Node,
+   ElementGeometry,
+   ElementGroup,
+   IsotropicMaterial,
+   FunctionallyGradedMaterial,
+   HIM_3D_Section,
+   FGM_3D_Section
+)
 
 class INP_Interpreter:
    def __init__(self):
@@ -308,196 +190,7 @@ class INP_Interpreter:
       self.read_supports(inp_data)
 
 class DAT_Interpreter:
-   def __init__(self):
-      self.model = SimulationModel()
-      self.reference = searcher.get_database('translation_reference')['dat']
-   
-   def read_nodes(self, dat_data: str):
-      # Identificando Nodes
-      keyword_format = '%NODE\n\d+\n\n%NODE.COORD\n\d+\n([^%]*)'
-      node = '([+-]?\d+.\d+e?[+-]?\d*)'
-      line_format = f'(\d+)\s+{node}\s+{node}\s+{node}'
-
-      # Inserindo Nodes
-      lines_data = re.findall(keyword_format, dat_data)[0]
-      nodes = re.findall(line_format, lines_data)
-      for node in nodes:
-         ide, x, y, z = map(float, node)
-         ide = int(ide)
-         self.model.add_node(ide, x, y, z)
-      
-      # Identificando Pesos
-      keyword_format = '%CONTROL.POINT.WEIGHT\n\d+\n([^%]*)'
-      line_format = f'(\d+)\s+([+-]?\d+.\d+e?[+-]?\d*)'
-
-      # Inserindo Nodes
-      lines_data = re.findall(keyword_format, dat_data)
-      if lines_data:
-         lines_data = lines_data[0]
-         weights = re.findall(line_format, lines_data)
-         for node_ide, weight in weights:
-            node_ide = int(node_ide)
-            weight = float(weight)
-            if weight == 1.0:
-               continue
-            self.model.nodes[node_ide].weight = weight
-   
-   def read_node_solver_order(self, dat_data: str) -> str:
-      # Identificando Ordem de Resolução
-      keyword_format = '%NODE.SOLVER.ORDER\n\d+\n([^%]*)'
-
-      # Inserindo Ordem de Resolução
-      node_ides = re.findall(keyword_format, dat_data)
-      if len(node_ides) > 0:
-         self.model.node_solver_order = [int(ide) for ide in node_ides[0].split()]
-
-   def read_patches(self, dat_data: str):
-      # Identificando Patches
-      keyword_format = '%PATCH\n(\d+)\n([^%]*)'
-      lines_data = re.findall(keyword_format, dat_data)
-
-      # Verificando se Há Patches
-      if len(lines_data) > 0:
-         # Nomeando Dados
-         n_patches = int(lines_data[0][0])
-         lines_data = lines_data[0][1]
-         supported_types = '|'.join(["'" + st + "'" for st in self.reference['patch_types']])
-         patch_start_format = f'(\d+)\s+({supported_types})\s+1'
-
-         # Separando Patches
-         for _ in range(n_patches):
-            # Localizando Dados Iniciais do Patch
-            result = re.search(patch_start_format, lines_data)
-            patch_ide, patch_type = result.groups()
-            patch_ide = int(patch_ide)
-            patch_type = patch_type[1:-1]
-            index_start = result.end()
-
-            # Determinando Geometria do Patch
-            patch_geometry = self.reference['patch_types'][patch_type]
-
-            # Localizando Dados Finais do Patch
-            result = re.search(patch_start_format, lines_data[index_start:])
-            index_end = None
-            if result:
-               index_end = result.start() + index_start
-            
-            # Lendo Knot Vectors
-            patch_data = lines_data[index_start:index_end]
-            vector_format = "(\d+)\s+'General'\s+(\d+)\s+(.*)"
-            vector_data = re.findall(vector_format, patch_data)
-            knot_vectors = list()
-            grade = list()
-            for grade_i, n_knots_i, more_data in vector_data:
-               # Tipificando Dados
-               grade_i = int(grade_i)
-               n_knots_i = int(n_knots_i)
-               more_data = more_data.split()
-
-               # Construindo Vetor de Knot
-               knot_vector = []
-               for knot, multiplicity in zip(more_data[:n_knots_i], more_data[n_knots_i:]):
-                  knot = float(knot)
-                  multiplicity = int(multiplicity)
-                  knot_vector += [knot] * multiplicity
-               
-               # Salvando Valores 
-               knot_vectors.append(knot_vector)
-               grade.append(grade_i)
-
-            # Lendo Node Space
-            node_space = patch_data.strip().split('\n')[-1]
-            node_space = list(map(int, node_space.split()))
-
-            # Calculando Número de Nodes por Elementos
-            n_nodes = 1
-            for p in grade:
-               n_nodes *= p + 1
-
-            # Adicionando Patch como Uma Geometria
-            self.model.element_geometries[patch_ide] = SimulationModel.ElementGeometry(
-               shape = patch_geometry['shape'],
-               base = patch_geometry['base'],
-               grade = grade,
-               n_nodes = n_nodes,
-               n_dimensions = patch_geometry['n_dimensions'],
-               knot_vectors =  knot_vectors,
-               node_space = node_space
-            )
-            
-            # Descartando Patch Localizado
-            lines_data = lines_data[index_start:]
-
-   def read_elements(self, dat_data: str):
-      # Identificando Grupos de Elementos
-      keyword_format = '%ELEMENT\.(.*)\n\d+\n([^%]*)'
-      groups_data = re.findall(keyword_format, dat_data)
-
-      # Analisando Cada Grupo
-      group_ide = 1
-      for element_type, lines_data in groups_data:
-         # Dividindo Tipo e Teoria do Grupo de Elementos
-         element_theory = None
-         if element_type not in self.reference['elements']: 
-            splited = element_type.split('.')
-            if len(splited) > 1:
-               # Tentando Identificar Teoria de Elemento
-               element_theory = splited[0]
-               try:
-                  element_theory = self.reference['theories'][element_theory]
-               except KeyError:
-                  raise KeyError(f'The Element Theory "{element_theory}" is not supported for .dat files.')
-               
-               # Corrigindo Tipo de Elemento
-               element_type = '.'.join(splited[1:])
-
-         # Identificando Elementos
-         try:
-            type_info = self.reference['elements'][element_type]
-         except KeyError:
-            raise KeyError(f'The Element Type "{element_type}" is not supported for .dat files.')
-         
-         # Adaptando Leitura - Elementos de Bezier
-         if type_info['base'] == 'Bezier':
-            if type_info['shape'] == 'Triangle':
-               group_ide = self._add_bezier_triangles(group_ide, lines_data, element_theory)
-            elif type_info['shape'] == 'Quadrilateral':
-               group_ide = self._add_bezier_surface(group_ide, lines_data, element_theory)
-            else:
-               raise KeyError(f'The Shape \"{type_info["shape"]}\" with Base \"{type_info["base"]}\" is not supported for .dat files.')
-         
-         # Adaptando Leitura - Elementos de BSpline
-         elif type_info['base'] == 'BSpline':
-            group_ide = self._add_bspline_elements(group_ide, lines_data, element_theory)
-         
-         # Adaptando Leitura - Elementos de Langrange
-         else:
-            int_ide = '(\d+)'
-            node_ide = '\s+' + int_ide
-            property_ides = '\s+\d+' * 2
-            line_format = int_ide + property_ides + type_info['n_nodes'] * node_ide
-            elements = re.findall(line_format, lines_data)
-
-            # Criando Geometria
-            geometry_ide = self.model.add_element_geometry(
-               type_info['shape'],
-               type_info['base'],
-               type_info['grade'],
-               type_info['n_nodes'],
-               type_info['n_dimensions']
-            )
-
-            # Criando Grupo de Elementos
-            self.model.add_element_group(group_ide, geometry_ide, element_theory)
-
-            # Inserindo Elementos
-            for element in elements:
-               ide, *node_ides = map(int, element)
-               self.model.add_element(group_ide, ide, node_ides)
-         
-         # Incrementando Ide do Grupo
-         group_ide += 1
-   
+   # Funções Privadas de Adição de Elementos Específicos
    def _add_bezier_triangles(self, group_ide: int, lines_data: str, element_theory: str):
       # Identificando Elementos
       int_ide = '(\d+)'
@@ -642,6 +335,418 @@ class DAT_Interpreter:
       # Retornando Último Valor de Ide de Grupo
       return group_ide
 
+   # Funções Privadas de Leitura de Material
+   def _read_material_isotropic(self, line_data: str) -> None:
+      line_data = line_data.split()
+      for i in range(0, len(line_data), 3):
+         # Separando Valores
+         try:
+            material_ide, E, nu = line_data[i:i + 3]
+         except ValueError:
+            raise ValueError('An Isotropic Material does not have the necessary data in .dat file definition.')
+
+         # Convertendo Valores
+         material_ide = int(material_ide)
+         E = float(E)
+         nu = float(nu)
+
+         # Cadastrando Material
+         material = IsotropicMaterial(E, nu, 0.0)
+         self.model.materials[material_ide] = material
+
+   def _read_material_density(self, line_data: str) -> None:
+      line_data = line_data.split()
+      for i in range(0, len(line_data), 2):
+         # Separando Valores
+         try:
+            material_ide, rho = line_data[i:i + 2]
+         except ValueError:
+            raise ValueError('A Density definition of Isotropic Material is not correct in .dat file.')
+         
+         # Convertendo Valores
+         material_ide = int(material_ide)
+         rho = float(rho)
+
+         # Verificando se Há um Material Istrópico para Atribuir a Densidade
+         if not self.model.materials.get(material_ide):
+            raise IndexError(f'The Material with ID "{material_ide}" does not exist.')
+         elif not isinstance(self.model.materials[material_ide], IsotropicMaterial):
+            raise TypeError(f'The Material with ID "{material_ide}" is not an Isotropic Material.')
+         else:
+            self.model.materials[material_ide].rho = rho
+   
+   def _read_material_fgm(self, line_data: str) -> None:
+      line_data = line_data.split()
+      for i in range(0, len(line_data), 8):
+         # Separando Valores
+         try:
+            material_ide, E1, nu1, rho1, E2, nu2, rho2, mm = line_data[i:i + 8]
+         except ValueError:
+            raise ValueError('A FGM Material does not have necessary data in .dat file definition.')
+         
+         # Convertendo Valores
+         material_ide = int(material_ide)
+         E1, E2 = float(E1), float(E2)
+         nu1, nu2 = float(nu1), float(nu2)
+         rho1, rho2 = float(rho1), float(rho2)
+         mm = int(mm)
+
+         # Verificando se Há Suporte Para o Modelo Micromecânico Fornecido
+         mm_relation = DAT_Interpreter.supported_materials['FGM']['mm_relation']
+         try:
+            mm = mm_relation[mm]
+         except KeyError:
+            str_supported = ', '.join(f'{n} (\'{m}\')' for n, m in mm_relation.items())
+            raise ValueError(f'The FGM Micromechanical Model "{mm}" is not supported, only: {str_supported}.')
+
+         # Cadastrando Material
+         m1 = IsotropicMaterial(E1, nu1, rho1)
+         m2 = IsotropicMaterial(E2, nu2, rho2)
+         material = FunctionallyGradedMaterial(mm, [m1, m2])
+         self.model.materials[material_ide] = material
+
+   # Funções Privadas de Escrita de Material
+   def _write_material_isotropic(group: dict[int, IsotropicMaterial]) -> str:
+      # Iniciando Output
+      n_materials = len(group)
+      span = len(str(max(group.keys())))
+      output = f'\n%MATERIAL.ISOTROPIC\n{n_materials}\n'
+
+      # Escrevendo Cada Material
+      for ide, material in group.items():
+         output += f'{ide:<{span}}   {material.E:.8e}   {material.nu:.3f}\n'
+
+      # Escrevendo Densidades
+      output += f'\n%MATERIAL.DENSITY\n{n_materials}\n'
+      for ide, material in group.items():
+         output += f'{ide:<{span}}   {material.rho:.8e}\n'
+      
+      return output
+
+   def _write_material_fgm(group: dict[int, FunctionallyGradedMaterial]) -> str:
+      # Iniciando Output
+      n_materials = len(group)
+      span = len(str(max(group.keys())))
+      output = f'\n%MATERIAL.FGM\n{n_materials}\n'
+
+      # Escrevendo Cada Material
+      mm_relation = DAT_Interpreter.supported_materials['FGM']['mm_relation']
+      for ide, material in group.items():
+         # Tentando Determinar o Número do Modelo Micromecânico
+         for n, mm_name in mm_relation.items():
+            if mm_name == material.micromechanical_model:
+               mm_number = n
+               break
+         else:
+            raise ValueError(f'The FGM Micromechanical Model "{material.micromechanical_model}" of Material with ID "{ide}" is not supported for .dat files.')
+
+         # Segregando Materiais
+         m1, m2 = material.materials
+
+         # Escrevendo Material
+         output += f'{ide:<{span}}   {m1.E:.8e}   {m1.nu:.3f}   {m1.rho:.8e}   {m2.E:.8e}   {m2.nu:.3f}   {m2.rho:.8e}   {mm_number}\n'
+      
+      return output
+
+   # Materiais Suportados
+   supported_materials = {
+      'ISOTROPIC': {
+         'class': IsotropicMaterial,
+         'read': _read_material_isotropic,
+         'write': _write_material_isotropic
+      },
+      'DENSITY': {
+         'read': _read_material_density
+      },
+      'FGM': {
+         'class': FunctionallyGradedMaterial,
+         'read': _read_material_fgm,
+         'write': _write_material_fgm,
+         'mm_relation': {
+            1: 'voigt',
+            2: 'mori_tanaka'
+         }
+      }
+   }
+
+   # Funções Privadas de Leitura de Seção
+   def _read_section_him_3d(self, line_data: str) -> None:
+      line_data = line_data.split()
+      for i in range(0, len(line_data), 2):
+         # Separando Valores
+         try:
+            section_ide, material_ide = map(int, line_data[i:i + 2])
+         except ValueError:
+            raise ValueError('A Homogeneous Isotropic 3D Section does not have the necessary data in .dat file definition.')
+
+         # Cadastrando Seção
+         section = HIM_3D_Section(material_ide)
+         self.model.sections[section_ide] = section
+
+   def _read_section_fgm_3d(self, line_data: str) -> None:
+      line_data = line_data.split()
+      n_volume_fractions = 0
+      i = 0
+      while i < len(line_data):
+         # Separando Valores
+         try:
+            # Lendo Dados Conhecidos
+            section_ide, material_ide, n_volume_fractions = map(int, line_data[i:i + 3])
+            
+            # Calculando o Index de Início da Próxima Seção
+            next_section_index = i + 3 + 2 * n_volume_fractions
+            
+            # Lendo ID dos Nós e sua Respectiva Fração de Volume
+            volume_fractions = dict()
+            for j in range(i + 3, next_section_index, 2):
+               node_ide = int(line_data[j])
+               volume_fraction = float(line_data[j + 1])
+               volume_fractions[node_ide] = volume_fraction
+
+         except ValueError:
+            raise ValueError('A FGM 3D Section does not have the necessary data in .dat file definition.')
+
+         # Cadastrando Seção
+         section = FGM_3D_Section(material_ide, volume_fractions)
+         self.model.sections[section_ide] = section
+
+         # Definindo Próximo Index
+         i = next_section_index
+
+   # Funções Privadas de Escrita de Seção
+   def _write_section_him_3d(group: dict[int, HIM_3D_Section]) -> str:
+      # Iniciando Output
+      n_sections = len(group)
+      span = len(str(max(group.keys())))
+      output = f'\n%SECTION.HOMOGENEOUS.ISOTROPIC.3D\n{n_sections}\n'
+
+      # Escrevendo Cada Seção
+      for ide, section in group.items():
+         output += f'{ide:<{span}}   {section.material_ide}\n'
+      
+      return output
+
+   def _write_section_fgm_3d(group: dict[int, FGM_3D_Section]) -> str:
+      # Iniciando Output
+      n_sections = len(group)
+      span = len(str(max(group.keys())))
+      output = f'\n%SECTION.FGM.3D\n{n_sections}\n'
+
+      # Escrevendo Cada Seção
+      for ide, section in group.items():
+         output += f'{ide:<{span}}   {section.material_ide}   {len(section.volume_fractions)}\n'
+         
+         # Escrevendo Cada Fração de Volume
+         node_span = len(str(max(section.volume_fractions.keys())))
+         for node_ide, volume_fraction in section.volume_fractions.items():
+            output += f'{node_ide:<{node_span}}   {volume_fraction:.8e}\n'
+      
+      return output
+
+   # Seções Suportadas
+   supported_sections = {
+      'HOMOGENEOUS.ISOTROPIC.3D': {
+         'class': HIM_3D_Section,
+         'read': _read_section_him_3d,
+         'write': _write_section_him_3d
+      },
+      'FGM.3D': {
+         'class': FGM_3D_Section,
+         'read': _read_section_fgm_3d,
+         'write': _write_section_fgm_3d
+      }
+   }
+
+   def __init__(self):
+      self.model = SimulationModel()
+      self.reference = searcher.get_database('translation_reference')['dat']
+   
+   def read_nodes(self, dat_data: str):
+      # Identificando Nodes
+      keyword_format = '%NODE\n\d+\n\n%NODE.COORD\n\d+\n([^%]*)'
+      node = '([+-]?\d+.\d+e?[+-]?\d*)'
+      line_format = f'(\d+)\s+{node}\s+{node}\s+{node}'
+
+      # Inserindo Nodes
+      lines_data = re.findall(keyword_format, dat_data)[0]
+      nodes = re.findall(line_format, lines_data)
+      for node in nodes:
+         ide, x, y, z = map(float, node)
+         ide = int(ide)
+         self.model.add_node(ide, x, y, z)
+      
+      # Identificando Pesos
+      keyword_format = '%CONTROL.POINT.WEIGHT\n\d+\n([^%]*)'
+      line_format = f'(\d+)\s+([+-]?\d+.\d+e?[+-]?\d*)'
+
+      # Inserindo Nodes
+      lines_data = re.findall(keyword_format, dat_data)
+      if lines_data:
+         lines_data = lines_data[0]
+         weights = re.findall(line_format, lines_data)
+         for node_ide, weight in weights:
+            node_ide = int(node_ide)
+            weight = float(weight)
+            if weight == 1.0:
+               continue
+            self.model.nodes[node_ide].weight = weight
+   
+   def read_node_solver_order(self, dat_data: str) -> str:
+      # Identificando Ordem de Resolução
+      keyword_format = '%NODE.SOLVER.ORDER\n\d+\n([^%]*)'
+
+      # Inserindo Ordem de Resolução
+      node_ides = re.findall(keyword_format, dat_data)
+      if len(node_ides) > 0:
+         self.model.node_solver_order = [int(ide) for ide in node_ides[0].split()]
+
+   def read_patches(self, dat_data: str):
+      # Identificando Patches
+      keyword_format = '%PATCH\n(\d+)\n([^%]*)'
+      lines_data = re.findall(keyword_format, dat_data)
+
+      # Verificando se Há Patches
+      if len(lines_data) > 0:
+         # Nomeando Dados
+         n_patches = int(lines_data[0][0])
+         lines_data = lines_data[0][1]
+         supported_types = '|'.join(["'" + st + "'" for st in self.reference['patch_types']])
+         patch_start_format = f'(\d+)\s+({supported_types})\s+1'
+
+         # Separando Patches
+         for _ in range(n_patches):
+            # Localizando Dados Iniciais do Patch
+            result = re.search(patch_start_format, lines_data)
+            patch_ide, patch_type = result.groups()
+            patch_ide = int(patch_ide)
+            patch_type = patch_type[1:-1]
+            index_start = result.end()
+
+            # Determinando Geometria do Patch
+            patch_geometry = self.reference['patch_types'][patch_type]
+
+            # Localizando Dados Finais do Patch
+            result = re.search(patch_start_format, lines_data[index_start:])
+            index_end = None
+            if result:
+               index_end = result.start() + index_start
+            
+            # Lendo Knot Vectors
+            patch_data = lines_data[index_start:index_end]
+            vector_format = "(\d+)\s+'General'\s+(\d+)\s+(.*)"
+            vector_data = re.findall(vector_format, patch_data)
+            knot_vectors = list()
+            grade = list()
+            for grade_i, n_knots_i, more_data in vector_data:
+               # Tipificando Dados
+               grade_i = int(grade_i)
+               n_knots_i = int(n_knots_i)
+               more_data = more_data.split()
+
+               # Construindo Vetor de Knot
+               knot_vector = []
+               for knot, multiplicity in zip(more_data[:n_knots_i], more_data[n_knots_i:]):
+                  knot = float(knot)
+                  multiplicity = int(multiplicity)
+                  knot_vector += [knot] * multiplicity
+               
+               # Salvando Valores 
+               knot_vectors.append(knot_vector)
+               grade.append(grade_i)
+
+            # Lendo Node Space
+            node_space = patch_data.strip().split('\n')[-1]
+            node_space = list(map(int, node_space.split()))
+
+            # Calculando Número de Nodes por Elementos
+            n_nodes = 1
+            for p in grade:
+               n_nodes *= p + 1
+
+            # Adicionando Patch como Uma Geometria
+            self.model.element_geometries[patch_ide] = ElementGeometry(
+               shape = patch_geometry['shape'],
+               base = patch_geometry['base'],
+               grade = grade,
+               n_nodes = n_nodes,
+               n_dimensions = patch_geometry['n_dimensions'],
+               knot_vectors =  knot_vectors,
+               node_space = node_space
+            )
+            
+            # Descartando Patch Localizado
+            lines_data = lines_data[index_start:]
+
+   def read_elements(self, dat_data: str):
+      # Identificando Grupos de Elementos
+      keyword_format = '%ELEMENT\.(.*)\n\d+\n([^%]*)'
+      groups_data = re.findall(keyword_format, dat_data)
+
+      # Analisando Cada Grupo
+      group_ide = 1
+      for element_type, lines_data in groups_data:
+         # Dividindo Tipo e Teoria do Grupo de Elementos
+         element_theory = None
+         if element_type not in self.reference['elements']: 
+            splited = element_type.split('.')
+            if len(splited) > 1:
+               # Tentando Identificar Teoria de Elemento
+               element_theory = splited[0]
+               try:
+                  element_theory = self.reference['theories'][element_theory]
+               except KeyError:
+                  raise KeyError(f'The Element Theory "{element_theory}" is not supported for .dat files.')
+               
+               # Corrigindo Tipo de Elemento
+               element_type = '.'.join(splited[1:])
+
+         # Identificando Elementos
+         try:
+            type_info = self.reference['elements'][element_type]
+         except KeyError:
+            raise KeyError(f'The Element Type "{element_type}" is not supported for .dat files.')
+         
+         # Adaptando Leitura - Elementos de Bezier
+         if type_info['base'] == 'Bezier':
+            if type_info['shape'] == 'Triangle':
+               group_ide = self._add_bezier_triangles(group_ide, lines_data, element_theory)
+            elif type_info['shape'] == 'Quadrilateral':
+               group_ide = self._add_bezier_surface(group_ide, lines_data, element_theory)
+            else:
+               raise KeyError(f'The Shape \"{type_info["shape"]}\" with Base \"{type_info["base"]}\" is not supported for .dat files.')
+         
+         # Adaptando Leitura - Elementos de BSpline
+         elif type_info['base'] == 'BSpline':
+            group_ide = self._add_bspline_elements(group_ide, lines_data, element_theory)
+         
+         # Adaptando Leitura - Elementos de Langrange
+         else:
+            int_ide = '(\d+)'
+            node_ide = '\s+' + int_ide
+            property_ides = '\s+\d+' * 2
+            line_format = int_ide + property_ides + type_info['n_nodes'] * node_ide
+            elements = re.findall(line_format, lines_data)
+
+            # Criando Geometria
+            geometry_ide = self.model.add_element_geometry(
+               type_info['shape'],
+               type_info['base'],
+               type_info['grade'],
+               type_info['n_nodes'],
+               type_info['n_dimensions']
+            )
+
+            # Criando Grupo de Elementos
+            self.model.add_element_group(group_ide, geometry_ide, element_theory)
+
+            # Inserindo Elementos
+            for element in elements:
+               ide, *node_ides = map(int, element)
+               self.model.add_element(group_ide, ide, node_ides)
+         
+         # Incrementando Ide do Grupo
+         group_ide += 1
+   
    def read_supports(self, dat_data: str):
       # Identificando Supports
       keyword_format = '%NODE\.SUPPORT\n\d+\n([^%]*)'
@@ -660,6 +765,40 @@ class DAT_Interpreter:
                   dof = self.model.supported_dofs[index]
                   self.model.add_support(node_ide, dof)
 
+   def read_materials(self, dat_data: str):
+      # Identificando Materiais
+      keyword_format = '%MATERIAL\.(.+)\n\d+\n([^%]*)'
+
+      # Inserindo Materiais
+      lines_data = re.findall(keyword_format, dat_data)
+      for line_data in lines_data:
+         # Extraindo Informações
+         type, line_data = line_data
+
+         # Tentando Ler Material de Acordo com o Tipo
+         try:
+            read_function = DAT_Interpreter.supported_materials[type]['read']
+            read_function(self, line_data)
+         except KeyError:
+            raise KeyError(f'The Material Type "{type}" is not supported for .dat files.')
+
+   def read_sections(self, dat_data: str):
+      # Identificando Seções
+      keyword_format = '%SECTION\.(.+)\n\d+\n([^%]*)'
+
+      # Inserindo Seções
+      lines_data = re.findall(keyword_format, dat_data)
+      for line_data in lines_data:
+         # Extraindo Informações
+         type, line_data = line_data
+
+         # Tentando Ler Seção de Acordo com o Tipo
+         try:
+            read_function = DAT_Interpreter.supported_sections[type]['read']
+            read_function(self, line_data)
+         except KeyError:
+            raise KeyError(f'The Section Type "{type}" is not supported for .dat files.')
+
    def read(self, dat_data: str):
       # Interpretando Nodes
       self.read_nodes(dat_data)
@@ -675,6 +814,12 @@ class DAT_Interpreter:
 
       # Interpretando Supports
       self.read_supports(dat_data)
+
+      # Interpretando Materiais
+      self.read_materials(dat_data)
+
+      # Interpretando Seções
+      self.read_sections(dat_data)
    
    def write_nodes(self) -> str:
       # Parâmetros Iniciais
@@ -804,24 +949,88 @@ class DAT_Interpreter:
          dofs_str = ' '.join(dofs_str)
          output += f'{node_ide}{offset}   {dofs_str}\n'
       return output
+   
+   def write_materials(self) -> str:
+      # Parâmetros Iniciais
+      n_materials = len(self.model.materials)
+      output = f'\n%MATERIAL\n{n_materials}\n'
+
+      # Criando Grupos de Materiais
+      groups = dict()
+      for type in DAT_Interpreter.supported_materials.keys():
+         groups[type] = dict()
+
+      # Tentando Organizar Materiais em Grupos
+      for ide, material in self.model.materials.items():
+         # Verificando se o Material é Supportado
+         for type, s in DAT_Interpreter.supported_materials.items():
+            if s.get('class') and isinstance(material, s['class']):
+               groups[type][ide] = material
+               break
+         else:
+            raise TypeError(f'The Material Type "{material.__class__.__name__}" is not supported for .dat files.')
+      
+      # Escrevendo Grupos
+      for type, group in groups.items():
+         if len(group) > 0:
+            output += self.supported_materials[type]['write'](group)
+
+      return output
+   
+   def write_sections(self) -> str:
+      # Parâmetros Iniciais
+      n_sections = len(self.model.sections)
+      output = f'\n%SECTION\n{n_sections}\n'
+
+      # Criando Grupos de Seções
+      groups = dict()
+      for type in DAT_Interpreter.supported_sections.keys():
+         groups[type] = dict()
+
+      # Tentando Organizar Seções em Grupos
+      for ide, section in self.model.sections.items():
+         # Verificando se a Seção é Supportada
+         for type, s in DAT_Interpreter.supported_sections.items():
+            if s.get('class') and isinstance(section, s['class']):
+               groups[type][ide] = section
+               break
+         else:
+            raise TypeError(f'The Section Type "{section.__class__.__name__}" is not supported for .dat files.')
+      
+      # Escrevendo Grupos
+      for type, group in groups.items():
+         if len(group) > 0:
+            output += self.supported_sections[type]['write'](group)
+
+      return output
 
    def write(self) -> str:
       # Inicializando Output
       output = '%HEADER\n'
 
       # Escrevendo Nodes
-      output += self.write_nodes()
+      if len(self.model.nodes) > 0:
+         output += self.write_nodes()
 
       # Escrevendo Supports
       if len(self.model.supports) > 0:
          output += self.write_supports()
+      
+      # Escrevendo Materiais
+      if len(self.model.materials) > 0:
+         output += self.write_materials()
+
+      # Escrevendo Seções
+      if len(self.model.sections) > 0:
+         output += self.write_sections()
 
       # Escrevendo Ordem de Resolução (Se existir)
       if len(self.model.node_solver_order) > 0:
          output += self.write_node_solver_order()
 
       # Escrevendo Elementos
-      output += self.write_elements()
+      if len(self.model.element_groups) > 0:
+         output += self.write_elements()
 
       # Finalizando Output
       output += '\n%END'
@@ -837,7 +1046,7 @@ class SVG_Interpreter:
       self.element_stroke_width = 1
       self.element_stroke_color = 'black'
 
-   def calculate_colinearity(self, points: list[SimulationModel.Node]) -> float:
+   def calculate_colinearity(self, points: list[Node]) -> float:
       factor = 0
       for i in range(0, len(points) - 2):
          diag1 = points[i].x * points[i + 1].y + points[i + 1].x * points[i + 2].y + points[i + 2].x * points[i].y
@@ -845,7 +1054,7 @@ class SVG_Interpreter:
          factor += abs(diag1 - diag2)
       return abs(factor)
    
-   def tesselate_bezier_curve(self, grade: int, points: list[SimulationModel.Node], n_regions: int):
+   def tesselate_bezier_curve(self, grade: int, points: list[Node], n_regions: int):
       # Variáveis Iniciais
       tesselated_points = list()
       p = grade
@@ -887,7 +1096,7 @@ class SVG_Interpreter:
       output += '\n   </g>'
       return output
    
-   def write_bezier_triangles(self, grade: int, group: SimulationModel.ElementGroup) -> str:
+   def write_bezier_triangles(self, grade: int, group: ElementGroup) -> str:
       # Parâmetros Iniciais
       output = ''
       p = grade
@@ -942,7 +1151,7 @@ class SVG_Interpreter:
       
       return output
 
-   def write_finite_elements(self, grade: int, group: SimulationModel.ElementGroup) -> str:
+   def write_finite_elements(self, grade: int, group: ElementGroup) -> str:
       output = ''
 
       # Tratamento para Elementos Lineares
