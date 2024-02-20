@@ -1,3 +1,4 @@
+# Importações - Bibliotecas Nativas
 import json
 from importlib.resources import files
 

@@ -1,3 +1,4 @@
+# Importações - Bibliotecas Locais
 from . import messenger
 from ..models.custom_errors import CommandError
 
@@ -199,17 +200,14 @@ def execute_command(name: str, args: list[str]):
       message = exc.args[0]
       messenger.error(message, name)
 
-def show_welcome():
-   show_version()
-   messenger.show(message_welcome)
-
 def start_interactive_mode():
    # Informando que o Modo Interativo foi Iniciado
    global in_interactive_mode
    in_interactive_mode = True
 
    # Exibindo Mensagem de Boas-Vindas
-   show_welcome()
+   show_version()
+   messenger.show(message_welcome)
 
    # Iniciando Loop
    while True:

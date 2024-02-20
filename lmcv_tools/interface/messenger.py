@@ -1,4 +1,7 @@
+# Importações - Bibliotecas Nativas
 from sys import exit
+
+# Importações - Bibliotecas Locais
 from ..models.ansi_style import Color, Effect
 
 # Funções Globais
