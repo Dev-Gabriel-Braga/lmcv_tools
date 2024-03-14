@@ -262,7 +262,9 @@ def start(method: str, dat_path: str, flags: list[str] = []):
 
    # Interpretando Informações
    dat_interpreter = DAT_Interpreter()
-   dat_interpreter.read(dat_data)
+   dat_interpreter.read_nodes(dat_data)
+   dat_interpreter.read_patches(dat_data)
+   dat_interpreter.read_elements(dat_data)
    model = dat_interpreter.model
 
    # Criando Matriz do Grafo para Reordenação
