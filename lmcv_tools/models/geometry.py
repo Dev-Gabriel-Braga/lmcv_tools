@@ -37,6 +37,17 @@ class BSpline:
             N += N2 / D2 * self.basis(p - 1, i + 1, t)
         return N
     
+    def knot_insertion_alpha(self, k: int, knot: float, i: int):
+        p = self.degree
+        if i <= (k - p):
+            alpha = 1
+        elif (i >= (k - p + 1)) and (i <= k):
+            alpha = knot - self.knot_vector[i]
+            alpha /= (self.knot_vector[i + p] - self.knot_vector[i])
+        elif i >= (k + 1):
+            alpha = 0
+        return alpha
+        
     def knot_insertion(self, k: int, knot: float):
         # Adicionando Knot
         p = self.degree
@@ -47,13 +58,7 @@ class BSpline:
         new_control_points = list()
         for i in range(0, self.n_basis + 1):
             # Determinando Alfa
-            if i <= (k - p):
-                alpha = 1
-            elif (i >= (k - p + 1)) and (i <= k):
-                alpha = knot - self.knot_vector[i]
-                alpha /= (self.knot_vector[i + p] - self.knot_vector[i])
-            elif i >= (k + 1):
-                alpha = 0
+            alpha = self.knot_insertion_alpha(k, knot, i)
 
             # Calculando Pontos
             control_point = [0] * self.dimension
@@ -69,7 +74,15 @@ class BSpline:
         self.knot_vector = new_knot_vector
         self.control_points = new_control_points
     
+    def knot_insertions(self, knots: list[float]):
+        for knot in reversed(knots):
+            self.knot_insertion(self.degree, knot)
+    
     def degree_elevation(self, times: float):
+        # Verificando se a B-Spline é Equivalente à uma Curva de Bézier
+        if len(set(self.knot_vector)) != 2:
+            raise RuntimeError('The Curve must be a Bézier Equivalent Curve.')
+
         # Calculando Novo Número de Funções de Base
         t = times
         s = len(set(self.knot_vector)) - 2
@@ -77,9 +90,12 @@ class BSpline:
 
         # Calculando Novo Vetor de Knots
         new_knot_vector = list()
-        for knot in set(self.knot_vector):
+        added_knots = set()
+        for knot in self.knot_vector:
             new_multiplicity = self.knot_vector.count(knot) + t
-            new_knot_vector.extend([knot] * new_multiplicity)
+            if knot not in added_knots:
+                new_knot_vector.extend([knot] * new_multiplicity)
+                added_knots.add(knot)
 
         # Criando Novos Pontos de Controle
         p = self.degree
@@ -112,7 +128,109 @@ class BSpline:
         return point
 
 # --------------------------------------------------
-# 2 - Curvas de Bézier - Funções Relacionadas
+# 2 - NURBS - Classes Relacionadas
+# --------------------------------------------------
+class NURBS(BSpline):
+    def __init__(
+        self, 
+        degree: int, 
+        knot_vector: list[float], 
+        control_points: list[list],
+        weights: list[float]
+    ) -> None:
+        # Chamando Construtor da Super-Classe
+        super().__init__(degree, knot_vector, control_points)
+
+        # Conferindo Pesos dos Pontos de Controle
+        if len(weights) != len(control_points):
+            raise ValueError('The number of weights and the number of control points must be the same.')
+        self.weights = weights.copy()
+    
+    def knot_insertion(self, k: int, knot: float):
+        # Fazer Inserção de Knot para Pesos
+        new_weights = list()
+        for i in range(0, self.n_basis + 1):
+            # Determinando Alfa
+            alpha = self.knot_insertion_alpha(k, knot, i)
+
+            # Calculando Peso
+            weight = 0.0
+            if alpha:
+                weight += alpha * self.weights[i]
+            if (1 - alpha):
+                weight += (1 - alpha) * self.weights[i - 1]
+            new_weights.append(weight)
+
+        # Atualizando Pontos de Controle a Partir dos Pesos
+        for d in range(self.dimension):
+            for i in range(len(self.control_points)):
+                self.control_points[i][d] *= self.weights[i]
+
+        # Fazendo Inserção de Knot da Super-Classe
+        super().knot_insertion(k, knot)
+
+        # Atualizando Pesos
+        self.weights = new_weights.copy()
+
+        # Atualizando Pontos de Controle a Partir dos Pesos
+        for d in range(self.dimension):
+            for i in range(len(self.control_points)):
+                self.control_points[i][d] /= self.weights[i]
+    
+    def degree_elevation(self, times: float):
+        # Fazendo Elevação de Grau para Pesos
+        t = times
+        p = self.degree
+        s = len(set(self.knot_vector)) - 2
+        new_weights = list()
+        for i in range(0, p + s + t + 1):
+            weight = sum(
+                comb(p, j) * comb(t, i - j) * self.weights[j] / comb(p + t, i)
+                for j in range(
+                    max(0, i - t),
+                    min(p, i) + 1
+                )
+            )
+            new_weights.append(weight)
+        
+        # Atualizando Pontos de Controle a Partir dos Pesos
+        for d in range(self.dimension):
+            for i in range(len(self.control_points)):
+                self.control_points[i][d] *= self.weights[i]
+
+        # Fazendo Elevação de Grau da Super-Classe
+        super().degree_elevation(times)
+
+        # Atualizando Pesos
+        self.weights = new_weights.copy()
+
+        # Atualizando Pontos de Controle a Partir dos Pesos
+        for d in range(self.dimension):
+            for i in range(len(self.control_points)):
+                self.control_points[i][d] /= self.weights[i]
+
+    def __call__(self, t: float):
+        # Inicializando Ponto
+        point = list()
+
+        # Calculando Denominador Comum da NURBS
+        D = sum([
+            self.basis(self.degree, i, t) * self.weights[i]
+            for i in range(self.n_basis)
+        ])
+
+        # Calculando Cada Dimensão do Ponto
+        for d in range(self.dimension):
+            N = sum([
+                self.basis(self.degree, i, t) * self.control_points[i][d] * self.weights[i]
+                for i in range(self.n_basis)
+            ])
+            point.append(N / D)
+        
+        return point
+
+# --------------------------------------------------
+# 3 - Curvas de Bézier - Funções Relacionadas
 # --------------------------------------------------
 def bezier_equiv_coord(c: float, c0: float, c2: float):
    return 2 * c - 0.5 * (c0 + c2)
@@ -129,7 +247,7 @@ def bernstein_polynomial(index: int, grade: int, region: float):
    return (factorial(p) / (factorial(i) * factorial(p - i))) * t ** i * (1 - t) ** (p - i)
 
 # --------------------------------------------------
-# 2 - Projeção - Funções Relacionadas
+# 4 - Projeção - Funções Relacionadas
 # --------------------------------------------------
 def projection_isometric(x: float, y: float, z: float):
    theta = radians(30)
