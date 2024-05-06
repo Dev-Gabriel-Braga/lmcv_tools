@@ -133,7 +133,7 @@ class ElementGroup:
    def __init__(self, geometry_ide: int, theory: str):
       self.geometry_ide = geometry_ide
       self.theory = theory
-      self.elements = dict()
+      self.elements = dict[int, Element]()
 
 class Element:
    def __init__(self, node_ides: list[int], knot_span: list[int] = None):

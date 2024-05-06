@@ -254,9 +254,48 @@ $ lmcv_tools generate cuboid [params] [path/to/cuboid]
 | Width        | float | Cuboid Width (x).             |
 | Height       | float | Cuboid Height (y).            |
 | Deep         | float | Cuboid Deep (z).              |
-| Nx           | int   | Number of Elements in Width.  | 
+| Nx           | int   | Number of Elements in Width.  |
 | Ny           | int   | Number of Elements in Height. |
-| Nz           | int   | Number of Elements in Deep.   |  
+| Nz           | int   | Number of Elements in Deep.   |
+
+#### 2.3.3 - NURBS Rectangles
+NURBS Rectangles are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of NURBS meshes of Rectangles in .dat format.
+
+Proper Syntax:
+
+```text
+$ lmcv_tools generate cuboid [params] [path/to/nurbs_rectangle]
+```
+
+| Parameters   | Type  | Description                   |
+| ---          |---    | ---                           |
+| Dx           | int   | Degree in Width.              |
+| Dy           | int   | Degree in Height.             |
+| Width        | float | Cuboid Width (x).             |
+| Height       | float | Cuboid Height (y).            |
+| Nx           | int   | Number of Elements in Width.  |
+| Ny           | int   | Number of Elements in Height. |
+
+#### 2.3.4 - NURBS Cuboid
+NURBS Cuboids are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of NURBS meshes of Cuboids in .dat format.
+
+Proper Syntax:
+
+```text
+$ lmcv_tools generate cuboid [params] [path/to/nurbs_cuboid]
+```
+
+| Parameters   | Type  | Description                   |
+| ---          |---    | ---                           |
+| Dx           | int   | Degree in Width.              |
+| Dy           | int   | Degree in Height.             |
+| Dz           | int   | Degree in Deep.               |
+| Width        | float | Cuboid Width (x).             |
+| Height       | float | Cuboid Height (y).            |
+| Deep         | float | Cuboid Deep (z).              |
+| Nx           | int   | Number of Elements in Width.  |
+| Ny           | int   | Number of Elements in Height. |
+| Nz           | int   | Number of Elements in Deep.   |
 
 ### 2.4 - Reorder
 

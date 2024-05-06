@@ -1,3 +1,4 @@
+from ..interface import searcher
 from .simulation import (
    SimulationModel,
    FunctionallyGradedMaterial
@@ -5,6 +6,7 @@ from .simulation import (
 from .interpreters import (
    DAT_Interpreter
 )
+from .geometry import NURBS
 
 # --------------------------------------------------
 # 1 - Classe Abstrata de Artefato
@@ -271,22 +273,11 @@ class Cuboid(Artifact):
 
       return inc
 
-   def _brick20_geometry(self) -> int:
-      return self.model.add_element_geometry(
-         shape = 'Hexahedron',
-         base = 'Lagrange',
-         grade = 2,
-         n_nodes = 20,
-         n_dimensions = 3
-      )
-
-
    # Elementos Suportados
    supported_elements = {
       'BRICK20': {
          'coordinates': _brick20_coordinates,
-         'incidence': _brick20_incidence,
-         'geometry': _brick20_geometry,
+         'incidence': _brick20_incidence
       }
    }
 
@@ -316,7 +307,7 @@ class Cuboid(Artifact):
       self.model = SimulationModel()
       self._coordinates = Cuboid.supported_elements[element_type]['coordinates']
       self._incidence = Cuboid.supported_elements[element_type]['incidence']
-      self._geometry = Cuboid.supported_elements[element_type]['geometry']
+      self.reference = searcher.get_database('translation_reference')
 
    def coordinates(self):
       return self._coordinates(self)
@@ -325,7 +316,8 @@ class Cuboid(Artifact):
       return self._incidence(self, i)
    
    def geometry(self) -> int:
-      return self._geometry(self)
+      element_info = self.reference['dat']['elements'][self.element_type]
+      return self.model.add_element_geometry(**element_info)
 
    def generate(self):
       # Renomeando Atributos
@@ -349,6 +341,240 @@ class Cuboid(Artifact):
             ide = i + 1,
             node_ides = nodal_incidence
          )
+
+      # Escrevendo Dados do .dat
+      dati = DAT_Interpreter()
+      dati.model = self.model
+      self.data = dati.write()
+
+# --------------------------------------------------
+# 4 - Classes do Artefato "nurbs_rectangle"
+# --------------------------------------------------
+class NURBS_Rectangle(Artifact):
+   def __init__(
+      self,
+      degrees: list[int],
+      dimensions: list[float],
+      discretization: list[int]
+   ):
+      # Chamando Construtor da Superclasse
+      super().__init__('nurbs_rectangle', 'dat')  
+
+      # Verificando se o Número de Dimensões e Discretização foram passadas Corretamente
+      if len(degrees) != 2:
+         raise ValueError('A NURBS Rectangle needs exactly 2 degrees (degrees in width and height).')
+      if len(dimensions) != 2:
+         raise ValueError('A NURBS Rectangle needs exactly 2 dimensions (width and height).')
+      if len(discretization) != 2:
+         raise ValueError('A NURBS Rectangle needs exactly 2 discretization values (number of elements in width and height).')
+
+      # Atribuindo Atributos
+      self.degrees = degrees
+      self.dimensions = dimensions
+      self.discretization = discretization
+      self.model = SimulationModel()
+
+   def coordinates(self) -> list[NURBS]:
+      # Renomeando Atributos
+      dx, dy = self.degrees
+      width, height = self.dimensions
+      nx, ny = self.discretization
+
+      # Calculando Valores Necessários (Em X)
+      nurbs_x = NURBS(1, [0, 0, 1, 1], [[0.0], [width]], [1.0, 1.0])
+      nurbs_x.degree_elevation(dx - 1)
+      x_knots = [i / nx for i in range(1, nx)]
+      nurbs_x.knot_insertions(x_knots)
+      x_values = [cp[0] for cp in nurbs_x.control_points]
+
+      # Calculando Valores Necessários (Em y)
+      nurbs_y = NURBS(1, [0, 0, 1, 1], [[0.0], [height]], [1.0, 1.0])
+      nurbs_y.degree_elevation(dy - 1)
+      y_knots = [i / ny for i in range(1, ny)]
+      nurbs_y.knot_insertions(y_knots)
+      y_values = [cp[0] for cp in nurbs_y.control_points]
+
+      # Gerando Coordenadas
+      ide = 1
+      for y in y_values:
+         for x in x_values:
+            self.model.add_node(ide, x, y, 0.0, 1.0)
+            ide += 1
+
+      return nurbs_x, nurbs_y
+
+   def generate(self):
+      # Renomeando Atributos
+      dx, dy = self.degrees
+      nx, ny = self.discretization
+
+      # Gerando Coordenadas e Nodes
+      nurbs_x, nurbs_y = self.coordinates()
+
+      # Configurações dos Elementos
+      node_space = list(
+         map(
+            lambda n: n + 1,
+            range(len(self.model.nodes))
+         )
+      )
+      geometry_ide = self.model.add_element_geometry(
+         shape = 'Quadrilateral',
+         base = 'BSpline',
+         grade = [nurbs_x.degree, nurbs_y.degree],
+         n_nodes = (nurbs_x.degree + 1) * (nurbs_y.degree + 1),
+         n_dimensions = 2,
+         knot_vectors = [nurbs_x.knot_vector, nurbs_y.knot_vector],
+         node_space = node_space,
+      )
+      self.model.add_element_group(1, geometry_ide, 'ShallowShell')
+
+      # Gerando Matriz do Node Space
+      node_space_matrix = list()
+      for i in range(0, len(node_space), nx + dx):
+         node_space_matrix.append(node_space[i:i + nx + dx])
+
+      # Gerando Elementos
+      ide = 1
+      for ks2 in range(ny):
+         for ks1 in range(nx):
+            # Determinando Nodes do Elemento
+            node_ides = list()
+            for i in range(ks2, ks2 + dy + 1):
+               for j in range(ks1, ks1 + dx + 1):
+                  node_ides.append(node_space_matrix[i][j])
+
+            # Cadastrando Elemento
+            self.model.add_element(
+               group_ide = 1,
+               ide = ide,
+               node_ides = node_ides,
+               knot_span = [ks1 + 1, ks2 + 1]
+            )
+            ide += 1
+
+      # Escrevendo Dados do .dat
+      dati = DAT_Interpreter()
+      dati.model = self.model
+      self.data = dati.write()
+   
+# --------------------------------------------------
+# 5 - Classes do Artefato "nurbs_cuboid"
+# --------------------------------------------------
+class NURBS_Cuboid(Artifact):
+   def __init__(
+      self,
+      degrees: list[int],
+      dimensions: list[float],
+      discretization: list[int]
+   ):
+      # Chamando Construtor da Superclasse
+      super().__init__('nurbs_cuboid', 'dat')  
+
+      # Verificando se o Número de Dimensões e Discretização foram passadas Corretamente
+      if len(degrees) != 3:
+         raise ValueError('A NURBS Cuboid needs exactly 3 degrees (degrees in width, height and deep).')
+      if len(dimensions) != 3:
+         raise ValueError('A NURBS Cuboid needs exactly 3 dimensions (width, height and deep).')
+      if len(discretization) != 3:
+         raise ValueError('A NURBS Cuboid needs exactly 3 discretization values (number of elements in width, height and deep).')
+
+      # Atribuindo Atributos
+      self.degrees = degrees
+      self.dimensions = dimensions
+      self.discretization = discretization
+      self.model = SimulationModel()
+
+   def coordinates(self) -> list[NURBS]:
+      # Renomeando Atributos
+      dx, dy, dz = self.degrees
+      width, height, deep = self.dimensions
+      nx, ny, nz = self.discretization
+
+      # Calculando Valores Necessários (Em X)
+      nurbs_x = NURBS(1, [0, 0, 1, 1], [[0.0], [width]], [1.0, 1.0])
+      nurbs_x.degree_elevation(dx - 1)
+      x_knots = [i / nx for i in range(1, nx)]
+      nurbs_x.knot_insertions(x_knots)
+      x_values = [cp[0] for cp in nurbs_x.control_points]
+
+      # Calculando Valores Necessários (Em y)
+      nurbs_y = NURBS(1, [0, 0, 1, 1], [[0.0], [height]], [1.0, 1.0])
+      nurbs_y.degree_elevation(dy - 1)
+      y_knots = [i / ny for i in range(1, ny)]
+      nurbs_y.knot_insertions(y_knots)
+      y_values = [cp[0] for cp in nurbs_y.control_points]
+
+      # Calculando Valores Necessários (Em z)
+      nurbs_z = NURBS(1, [0, 0, 1, 1], [[0.0], [deep]], [1.0, 1.0])
+      nurbs_z.degree_elevation(dz - 1)
+      z_knots = [i / nz for i in range(1, nz)]
+      nurbs_z.knot_insertions(z_knots)
+      z_values = [cp[0] for cp in nurbs_z.control_points]
+
+      # Gerando Coordenadas
+      ide = 1
+      for z in reversed(z_values):
+         for y in y_values:
+            for x in x_values:
+               self.model.add_node(ide, x, y, z, 1.0)
+               ide += 1
+
+      return nurbs_x, nurbs_y, nurbs_z
+
+   def generate(self):
+      # Renomeando Atributos
+      dx, dy, dz = self.degrees
+      nx, ny, nz = self.discretization
+
+      # Gerando Coordenadas e Nodes
+      nurbs_x, nurbs_y, nurbs_z = self.coordinates()
+
+      # Configurações dos Elementos
+      node_space = list(
+         map(
+            lambda n: n + 1,
+            range(len(self.model.nodes))
+         )
+      )
+      geometry_ide = self.model.add_element_geometry(
+         shape = 'Hexahedron',
+         base = 'BSpline',
+         grade = [nurbs_x.degree, nurbs_y.degree, nurbs_z.degree],
+         n_nodes = (nurbs_x.degree + 1) * (nurbs_y.degree + 1) * (nurbs_z.degree + 1),
+         n_dimensions = 3,
+         knot_vectors = [nurbs_x.knot_vector, nurbs_y.knot_vector, nurbs_z.knot_vector],
+         node_space = node_space,
+      )
+      self.model.add_element_group(1, geometry_ide, None)
+
+      # Gerando Matriz do Node Space
+      node_space_matrix = list()
+      for i in range(0, len(node_space), (ny + dy) * (nx + dx)):
+         node_space_matrix.append(list())
+         for j in range(i, i + (ny + dy) * (nx + dx), nx + dx):
+            node_space_matrix[-1].append(node_space[j:j + nx + dx])
+
+      # Gerando Elementos
+      ide = 1
+      for ks3 in range(nz):
+         for ks2 in range(ny):
+            for ks1 in range(nx):
+               # Determinando Nodes do Elemento
+               node_ides = list()
+               for i in range(ks3, ks3 + dz + 1):
+                  for j in range(ks2, ks2 + dy + 1):
+                     for l in range(ks1, ks1 + dx + 1):
+                        node_ides.append(node_space_matrix[i][j][l])
+
+               # Cadastrando Elemento
+               self.model.add_element(
+                  group_ide = 1,
+                  ide = ide,
+                  node_ides = node_ides,
+                  knot_span = [ks1 + 1, ks2 + 1, ks3 + 1]
+               )
+               ide += 1
 
       # Escrevendo Dados do .dat
       dati = DAT_Interpreter()

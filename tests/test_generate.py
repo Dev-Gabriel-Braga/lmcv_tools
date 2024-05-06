@@ -93,3 +93,31 @@ class TestCuboid(DefaultTest):
       test_id = 'brick20_cuboid'
       args = ['BRICK20', '0.333', '0.6789', '1.314159', '2', '3', '4']
       self.default_test(test_id, args)
+
+class TestNURBS_Rectangle(DefaultTest):
+   def default_test(self, test_id: str, args: list):
+      super().default_test('nurbs_rectangle', 'dat', test_id, args)
+
+   def test_nurbs_square(self):
+      test_id = 'nurbs_square'
+      args = ['3', '3', '1.0', '1.0', '1', '1']
+      self.default_test(test_id, args)
+
+   def test_nurbs_rectangle(self):
+      test_id = 'nurbs_rectangle'
+      args = ['2', '5', '0.333', '1.314159', '7', '9']
+      self.default_test(test_id, args)
+
+class TestNURBS_Cuboid(DefaultTest):
+   def default_test(self, test_id: str, args: list):
+      super().default_test('nurbs_cuboid', 'dat', test_id, args)
+
+   def test_nurbs_cube(self):
+      test_id = 'nurbs_cube'
+      args = ['3', '3', '3', '1.0', '1.0', '1.0', '1', '1', '1']
+      self.default_test(test_id, args)
+
+   def test_nurbs_cuboid(self):
+      test_id = 'nurbs_cuboid'
+      args = ['2', '7', '5', '0.333', '0.6789', '1.314159', '2', '3', '4']
+      self.default_test(test_id, args)
