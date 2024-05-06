@@ -282,52 +282,47 @@ class DAT_Interpreter:
          geometry_ide = int(geometry_ide)
          knot_span = list(map(int, knot_span.split()))
 
+         # Recuperando Geometria
+         geometry = self.model.element_geometries[geometry_ide]
+
          # Verificando se Ide do Patch Já foi Usado
          if geometry_ide not in geometry_to_info:
-            # Recuperando Geometria
-            geometry = self.model.element_geometries[geometry_ide]
-
-            # Mapeando Node Space pelos Knot Spans
-            node_space_maps = list()
-            for k, p in zip(geometry.knot_vectors, geometry.grade):
-               # Inicializando Mapa por Knot Vector
-               space_map = list()
-               last_span_end = 0
-
-               # Completando Mapa
-               for i in range(0, len(k) - (p + 2)):
-                  # Adicionando Indices Dimensionais do Node Space no Mapa
-                  if k[i + p + 1] != last_span_end:
-                     last_span_end = k[i + p + 1]
-                     space_map.append(list(range(i, i + p + 1)))
-
-               node_space_maps.append(space_map)
+            # Gerando Matrix do Node Space
+            node_space_matrix = list()
+            n = [len(set(knot_vector)) - 1 for knot_vector in geometry.knot_vectors]
+            d = geometry.grade
+            if geometry.n_dimensions == 2:
+               for i in range(0, len(geometry.node_space), n[0] + d[0]):
+                  node_space_matrix.append(geometry.node_space[i:i + n[0] + d[0]])
+            else:
+               for i in range(0, len(geometry.node_space), (n[1] + d[1]) * (n[0] + d[0])):
+                  node_space_matrix.append(list())
+                  for j in range(i, i + (n[1] + d[1]) * (n[0] + d[0]), n[0] + d[0]):
+                     node_space_matrix[-1].append(geometry.node_space[j:j + n[0] + d[0]])
             
             # Adicionando Informações Pertinentes
-            geometry_to_info[geometry_ide] = (group_ide, node_space_maps)
+            geometry_to_info[geometry_ide] = (group_ide, node_space_matrix)
             self.model.add_element_group(group_ide, geometry_ide, element_theory)
             group_ide += 1
 
-         # Definindo Nodes que Influenciam o Elemento
-         node_space_maps = geometry_to_info[geometry_ide][1]
+         # Recuperando Matriz do Node Space
+         node_space_matrix = geometry_to_info[geometry_ide][1]
          node_ides = list()
-         node_space_indexes = [m[ref - 1] for m, ref in zip(node_space_maps, knot_span)]
-         node_space_dimensions = [len(k) - p - 1 for k, p in zip(geometry.knot_vectors, geometry.grade)]
+         k = knot_span
+         d = geometry.grade
 
          # Tratamento para Elementos 2D
          if geometry.n_dimensions == 2:
-            for i in node_space_indexes[0]:
-               for j in node_space_indexes[1]:
-                  node_ide_index = i + node_space_dimensions[0] * j
-                  node_ides.append(geometry.node_space[node_ide_index])
+            for i in range(k[1], k[1] + d[1] + 1):
+               for j in range(k[0], k[0] + d[0] + 1):
+                  node_ides.append(node_space_matrix[i - 1][j - 1])
 
          # Tratamento para Elementos 3D
          else:
-            for i in node_space_indexes[0]:
-               for j in node_space_indexes[1]:
-                  for k in node_space_indexes[2]:
-                     node_ide_index = i + node_space_dimensions[0] * j + node_space_dimensions[0] * node_space_dimensions[1] * k
-                     node_ides.append(geometry.node_space[node_ide_index])
+            for i in range(k[2], k[2] + d[2] + 1):
+               for j in range(k[1], k[1] + d[1] + 1):
+                  for l in range(k[0], k[0] + d[0] + 1):
+                     node_ides.append(node_space_matrix[i - 1][j - 1][l - 1])
 
          # Inserindo Elementos
          self.model.add_element(geometry_to_info[geometry_ide][0], ide, node_ides, knot_span)
@@ -633,21 +628,32 @@ class DAT_Interpreter:
             
             # Lendo Knot Vectors
             patch_data = lines_data[index_start:index_end]
-            vector_format = "(\d+)\s+'General'\s+(\d+)\s+(.*)"
-            vector_data = re.findall(vector_format, patch_data)
             knot_vectors = list()
             grade = list()
-            for grade_i, n_knots_i, more_data in vector_data:
-               # Tipificando Dados
+            while True:
+               vector_format = "(\d+)\s+'General'\s+(\d+)"
+               vector_result = re.search(vector_format, patch_data)
+
+               # Parando Loop se Nenhum Knot Vector for Encontrado
+               if not vector_result:
+                  break
+
+               # Atualizando Patch Data para Não incluir o Início do Patch Atual
+               patch_data = patch_data[vector_result.end():]
+
+               # Lendo Informações Básicas do Knot Vector
+               grade_i, n_knots_i = vector_result.groups()
                grade_i = int(grade_i)
                n_knots_i = int(n_knots_i)
-               more_data = more_data.split()
 
+               # Fatiando Itens do Patch Data e Lendo Knots e Multiplicidades
+               patch_data_splited = patch_data.split()
+               knot_set = [float(patch_data_splited[i]) for i in range(n_knots_i)]
+               knot_multiplicity = [int(patch_data_splited[i]) for i in range(n_knots_i, 2 * n_knots_i)]
+               
                # Construindo Vetor de Knot
                knot_vector = []
-               for knot, multiplicity in zip(more_data[:n_knots_i], more_data[n_knots_i:]):
-                  knot = float(knot)
-                  multiplicity = int(multiplicity)
+               for knot, multiplicity in zip(knot_set, knot_multiplicity):
                   knot_vector += [knot] * multiplicity
                
                # Salvando Valores 
@@ -655,8 +661,7 @@ class DAT_Interpreter:
                grade.append(grade_i)
 
             # Lendo Node Space
-            node_space = patch_data.strip().split('\n')[-1]
-            node_space = list(map(int, node_space.split()))
+            node_space = [int(n) for n in patch_data_splited[2 * n_knots_i:]]
 
             # Calculando Número de Nodes por Elementos
             n_nodes = 1
@@ -828,10 +833,23 @@ class DAT_Interpreter:
       output = f'\n%NODE\n{n_nodes}\n\n%NODE.COORD\n{n_nodes}\n'
 
       # Escrevendo Cada Node
+      weighted_nodes = list()
       for ide, node in self.model.nodes.items():
          offset = span - len(str(ide))
          offset = ' ' * offset
          output += f'{ide}{offset}   {node.x:+.8e}   {node.y:+.8e}   {node.z:+.8e}\n'
+
+         # Verificando se Node tem Peso
+         if node.weight:
+            weighted_nodes.append(ide)
+
+      # Escrevendo Pesos
+      n_weights = len(weighted_nodes)
+      if n_weights > 0:
+         max_width = len(str(n_weights))
+         output += f'\n%CONTROL.POINT.WEIGHT\n{n_weights}\n'
+         for ide in weighted_nodes:
+            output += f'{ide:<{max_width}}   {self.model.nodes[ide].weight:.6e}\n'
       
       return output
    
@@ -848,6 +866,56 @@ class DAT_Interpreter:
          output += '\n'
       
       return output
+
+   def write_patches(self) -> str:
+      # Procurando uma Geometria de base BSpline
+      patch_ides = list()
+      for ide, geometry in self.model.element_geometries.items():
+         if geometry.base == 'BSpline':
+            patch_ides.append(ide)
+      
+      # Escrevendo Patches se Houver Necessidade
+      output = ''
+      n_patches = len(patch_ides)
+      if n_patches > 0:
+         # Escrevendo Keyword do Patch
+         output += f'\n%PATCH\n{n_patches}\n'
+         
+         # Escrevendo cada Patch
+         for patch_ide in patch_ides:
+            # Determinando Tipo do Patch
+            patch_type = ''
+            patch_geometry = self.model.element_geometries[patch_ide]
+            for type, patch_info in self.reference['patch_types'].items():
+               if (
+                  patch_info['shape'] == patch_geometry.shape and
+                  patch_info['n_dimensions'] == patch_geometry.n_dimensions
+               ):
+                  patch_type = type
+                  break
+            else:
+               raise ValueError(f'Patch Type for "BSpline {patch_geometry.shape}" with {patch_geometry.n_dimensions} dimension(s) is not supported for writing.')
+            
+            # Escrevendo Definição Básica de um Patch
+            output += f'{patch_ide} \'{patch_type}\' 1\n'
+
+            # Escrevendo Vetores de Knot
+            for degree, knot_vector in zip(patch_geometry.grade, patch_geometry.knot_vectors):
+               knot_set = list(set(knot_vector))
+               knot_set.sort()
+               n_knot_set = len(knot_set)
+               knot_multiplicity = ' '.join([str(knot_vector.count(k)) for k in knot_set])
+               knot_set = '\n'.join([f'{k:.6e}' for k in knot_set])
+               output += f'{degree}   \'General\'   {n_knot_set}\n{knot_set}\n{knot_multiplicity}\n'
+            
+            # Escrevendo Nodes
+            max_width = len(str(len(self.model.nodes)))
+            for index in range(0, len(patch_geometry.node_space), 15):
+               output += ' '.join([f'{node_ide:>{max_width}}' for node_ide in patch_geometry.node_space[index:index + 15]])
+               output += '\n'
+
+      return output
+
 
    def write_elements(self) -> str:
       # Parâmetros Iniciais
@@ -928,6 +996,15 @@ class DAT_Interpreter:
                offset = ' ' * offset
                node_ides = '   '.join([ f'{nis:>{node_ide_span}}' for nis in element.node_ides ])
                output += f'{ide}{offset}   {more_info}   {node_ides}\n'
+         
+         # Escrevendo Cada Elemento - Elementos de Bezier
+         elif geometry.base == 'BSpline':
+            more_info = f'1  1  {group.geometry_ide}'
+            for ide, element in group.elements.items():
+               offset = span - len(str(ide))
+               offset = ' ' * offset
+               knot_spans = '   '.join([ f'{k:<{node_ide_span}}' for k in element.knot_span ])
+               output += f'{ide}{offset}   {more_info}   {knot_spans}\n'
 
       output = f'\n%ELEMENT\n{total_elements}\n' + output
       return output
@@ -1024,9 +1101,12 @@ class DAT_Interpreter:
       if len(self.model.sections) > 0:
          output += self.write_sections()
 
-      # Escrevendo Ordem de Resolução (Se existir)
+      # Escrevendo Ordem de Resolução
       if len(self.model.node_solver_order) > 0:
          output += self.write_node_solver_order()
+
+      # Escrevendo Patches
+      output += self.write_patches()
 
       # Escrevendo Elementos
       if len(self.model.element_groups) > 0:

@@ -5,7 +5,9 @@ from ..models.custom_errors import CommandError
 from ..models.artifacts import (
    VirtualLaminas,
    ElementConfiguration,
-   Cuboid
+   Cuboid,
+   NURBS_Rectangle,
+   NURBS_Cuboid
 )
 from ..models.simulation import (
    IsotropicMaterial,
@@ -66,6 +68,34 @@ def generate_cuboid(
    # Retornando Cuboid
    return cuboid
 
+def generate_nurbs_rectangle(
+   degrees: list[int],
+   dimensions: list[float],
+   discretization: list[int]
+) -> NURBS_Rectangle:
+   # Instanciando Artefato
+   nurbs_rectangle = NURBS_Rectangle(degrees, dimensions, discretization)
+
+   # Gerando Rectangle
+   nurbs_rectangle.generate()
+
+   # Retornando Rectangle
+   return nurbs_rectangle
+
+def generate_nurbs_cuboid(
+   degrees: list[int],
+   dimensions: list[float],
+   discretization: list[int]
+) -> NURBS_Cuboid:
+   # Instanciando Artefato
+   nurbs_cuboid = NURBS_Cuboid(degrees, dimensions, discretization)
+
+   # Gerando Cuboid
+   nurbs_cuboid.generate()
+
+   # Retornando Cuboid
+   return nurbs_cuboid
+
 # Funções de Parâmetros de Artefatos
 def params_virtual_laminas(args: list[str]) -> dict:
    # Iniciando Parâmetros
@@ -110,6 +140,28 @@ def params_cuboid(args: list[str]) -> dict:
    
    return params, args[7:]
 
+def params_nurbs_rectangle(args: list[str]) -> dict:
+   # Iniciando Parâmetros
+   params = dict()
+
+   # Tentando Converter Tipos de Dados
+   params['degrees'] = list(map(int, args[0:2]))
+   params['dimensions'] = list(map(float, args[2:4]))
+   params['discretization'] = list(map(int, args[4:6]))
+   
+   return params, args[6:]
+
+def params_nurbs_cuboid(args: list[str]) -> dict:
+   # Iniciando Parâmetros
+   params = dict()
+
+   # Tentando Converter Tipos de Dados
+   params['degrees'] = list(map(int, args[0:3]))
+   params['dimensions'] = list(map(float, args[3:6]))
+   params['discretization'] = list(map(int, args[6:9]))
+   
+   return params, args[9:]
+
 # Relação Artefato/Funções
 artifacts = {
    'virtual_laminas': {
@@ -119,6 +171,14 @@ artifacts = {
    'cuboid': {
       'params': params_cuboid,
       'generate': generate_cuboid
+   },
+   'nurbs_rectangle': {
+      'params': params_nurbs_rectangle,
+      'generate': generate_nurbs_rectangle
+   },
+   'nurbs_cuboid': {
+      'params': params_nurbs_cuboid,
+      'generate': generate_nurbs_cuboid
    }
 }
 
