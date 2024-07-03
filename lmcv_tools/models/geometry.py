@@ -247,10 +247,45 @@ def bernstein_polynomial(index: int, grade: int, region: float):
    return (factorial(p) / (factorial(i) * factorial(p - i))) * t ** i * (1 - t) ** (p - i)
 
 # --------------------------------------------------
-# 4 - Projeção - Funções Relacionadas
+# 4 - Projeção - Classes Relacionadas
 # --------------------------------------------------
-def projection_isometric(x: float, y: float, z: float):
-   theta = radians(30)
-   u = x * cos(theta) - y * cos(theta)
-   v = x * sin(theta) + y * sin(theta) + z
-   return u, v
+class Projection:
+    # Método Gerador de Classes Filhas
+    def create(type: str):
+        # Definindo Projeções Suportadas
+        supported_projections = {
+            'plane_xy': ProjectionXY,
+            'plane_yz': ProjectionYZ,
+            'plane_xz': ProjectionXZ, 
+            'isometric': ProjectionIsometric
+        }
+
+        # Verificando se Projeção Fornecida é Supportada
+        if type not in supported_projections.keys():
+            raise KeyError(f'The projection type "{type}" is not supported.')
+        
+        # Retornando Objeto Correpondente
+        return supported_projections[type]()
+    
+    # Método para Projetar (Abstrato - Deve ser Sobescrito)
+    def project(self, x: float, y: float, z: float) -> tuple[float]:
+        raise NotImplementedError('The method "project" was not implemented for a models.geometry.Projection child class.')
+    
+class ProjectionXY(Projection):
+    def project(self, x: float, y: float, z: float) -> tuple[float]:
+        return x, y
+
+class ProjectionYZ(Projection):
+    def project(self, x: float, y: float, z: float) -> tuple[float]:
+        return y, z
+    
+class ProjectionXZ(Projection):
+    def project(self, x: float, y: float, z: float) -> tuple[float]:
+        return x, z
+    
+class ProjectionIsometric(Projection):
+    def project(self, x: float, y: float, z: float) -> tuple[float]:
+        theta = radians(30)
+        u = x * cos(theta) - y * cos(theta)
+        v = x * sin(theta) + y * sin(theta) + z
+        return u, v

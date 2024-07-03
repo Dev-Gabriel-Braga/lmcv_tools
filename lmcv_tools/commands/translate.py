@@ -1,5 +1,5 @@
 from ..interface import filer, searcher
-from ..models.geometry import projection_isometric
+from ..models.geometry import Projection
 from ..models.interpreters import (
    INP_Interpreter,
    DAT_Interpreter,
@@ -47,26 +47,16 @@ def dat_to_svg(input_data: str, args: list[str] = []):
    svg_interpreter.model = dat_interpreter.model
 
    # Identificando Sistema de Projeção
-   supported_projections = ('plane_xy', 'plane_yz', 'plane_xz', 'isometric')
-   projection = supported_projections[0]
+   projection_type = 'plane_xy'
    if len(args) > 0:
-      if args[0] in supported_projections:
-         projection = args[0]
-      else:
-         raise KeyError(f'The projection type "{args[0]}" is not supported.')
+      projection_type = args[0]
+   projection: Projection = Projection.create(projection_type)
 
    # Projetando Coordenadas
-   if projection in supported_projections[:3]:
-      axis_1, axis_2 = projection.split('_')[1]
-      coordinates = [
-         (n.__getattribute__(axis_1), n.__getattribute__(axis_2)) 
-         for n in dat_interpreter.model.nodes.values()
-      ]
-   elif projection == 'isometric':
-      coordinates = [
-         projection_isometric(n.x, n.y, n.z) 
-         for n in dat_interpreter.model.nodes.values()
-      ]
+   coordinates = [
+      projection.project(n.x, n.y, n.z)
+      for n in dat_interpreter.model.nodes.values()
+   ]
    u = [iso[0] for iso in coordinates]
    v = [iso[1] for iso in coordinates]
 
