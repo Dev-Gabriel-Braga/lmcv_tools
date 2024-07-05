@@ -1,9 +1,13 @@
 from math import (
+    pi,
     sin,
     cos,
     radians,
     factorial,
     comb
+)
+from ..models.math import (
+    Matrix
 )
 
 # --------------------------------------------------
@@ -288,4 +292,98 @@ class ProjectionIsometric(Projection):
         theta = radians(30)
         u = x * cos(theta) - y * cos(theta)
         v = x * sin(theta) + y * sin(theta) + z
+        return u, v
+
+class GeometricalTransformer:
+    # Matrizes de Rotação
+    def _Rx(self, angle: float):
+        angle = angle * pi / 180
+        R = Matrix(4, 4)
+        R[0, 0] = 1
+        R[1, 1] = cos(angle)
+        R[1, 2] = sin(angle)
+        R[2, 1] = -sin(angle)
+        R[2, 2] = cos(angle)
+        R[3, 3] = 1
+        return R
+    
+    def _Ry(self, angle: float):
+        angle = angle * pi / 180
+        R = Matrix(4, 4)
+        R[0, 0] = cos(angle)
+        R[0, 2] = -sin(angle)
+        R[1, 1] = 1
+        R[2, 0] = sin(angle)
+        R[2, 2] = cos(angle)
+        R[3, 3] = 1
+        return R
+    
+    def _Rz(self, angle: float):
+        angle = angle * pi / 180
+        R = Matrix(4, 4)
+        R[0, 0] = cos(angle)
+        R[0, 1] = sin(angle)
+        R[1, 0] = -sin(angle)
+        R[1, 1] = cos(angle)
+        R[2, 2] = 1
+        R[3, 3] = 1
+        return R
+    
+    # Métodos Públicos
+    def homogenize_coordinates(self, x: float, y: float, z: float, h: float) -> Matrix:
+        h = Matrix(1, 4)
+        h[0, 0] = x * h
+        h[0, 1] = y * h
+        h[0, 2] = z * h
+        h[0, 3] = 1
+        return
+    
+    def heterogenize_coordinates(self, h_matrix: Matrix) -> list[float]:
+        if h_matrix.n_rows != 1 or h_matrix.n_colmuns != 4:
+            raise ValueError('The homogenized coordinates matrix must have 1 row and 4 columns.')
+        h_matrix = h_matrix.to_list()[0]
+        coordinates = [h_matrix[i] / h_matrix[3] for i in range(3)]
+        return coordinates
+
+    def rotate(self, x: float, y: float, z: float, angle_x: float, angle_y: float, angle_z: float) -> tuple[float]:
+        # Homogenizando Coordenadas
+        h = self.homogenize_coordinates(x, y, z, 1)
+
+        # Gerando Matriz de Rotação 3D
+        R = Matrix(4, 4)
+        R.fill_diagonal(1.0)
+        if angle_x != 0.0:
+            R *= self._Rx(angle_x)
+        if angle_y != 0.0:
+            R *= self._Ry(angle_y)
+        if angle_z != 0.0:
+            R *= self._Rz(angle_z)
+
+        # Rotacionando e Retornando Pontos
+        hr = h * R
+        return self.heterogenize_coordinates(hr)
+    
+    def project_parallel(self, x: float, y: float, z: float) -> tuple[float]:
+        return x, y
+    
+    def project_perspective(self, x: float, y: float, z: float, x_cop: float, y_cop: float, z_cop: float, z_pp: float) -> tuple[float]:
+        # Adequando Coordenadas Z ao Plano de Projeção
+        z -= z_pp
+        z_cop -= z_pp
+
+        # Homogenizando Coordenadas
+        h = self.homogenize_coordinates(y, x, z, 1)
+
+        # Gerando Matriz de Projeção
+        P = Matrix(4, 4)
+        P[0, 0] = 1
+        P[1, 1] = 1
+        P[2, 0] = - y_cop / z_cop 
+        P[2, 1] = - x_cop / z_cop 
+        P[2, 3] = - 1 / z_cop 
+        P[3, 3] = 1
+
+        # Projetando e Retornando Pontos
+        hp = h * P
+        v, u, n = self.heterogenize_coordinates(hp)
         return u, v
