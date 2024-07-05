@@ -12,6 +12,12 @@ class Matrix:
         # Inicializando Elementos
         self._elements = [[0 for j in range(n_columns)] for i in range(n_rows)]
 
+    # Métodos Estáticos
+    def from_list(l: list[list[float]]):
+        M = Matrix(len(l), len(l[0]))
+        M._elements = l
+        return M
+
     # Métodos Públicos
     def fill(self, scalar: float):
         for i in range(self.n_rows):
@@ -96,7 +102,7 @@ class Matrix:
             return mul_matrix
 
         # Tratando Caso da Operação não ser Compatível
-            raise TypeError(f"Unsupported operand for +: {type(self).__name__}' and '{type(other).__name__}'")
+            raise TypeError(f"Unsupported operand for *: {type(self).__name__}' and '{type(other).__name__}'")
         
     def __rmul__(self, other):
         # Tratando Caso do Outro Operando ser Int ou Float

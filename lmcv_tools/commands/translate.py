@@ -1,10 +1,12 @@
+from re import match
 from ..interface import filer, searcher
-from ..models.geometry import Projection
+from ..models.geometry import Projection, GeometricalTransformer
 from ..models.interpreters import (
    INP_Interpreter,
    DAT_Interpreter,
    SVG_Interpreter
 )
+from ..models.math import Matrix
 
 # Funções de Tradução
 def inp_to_dat(input_data: str, args: list[str] = []):
@@ -46,16 +48,56 @@ def dat_to_svg(input_data: str, args: list[str] = []):
    # Transferindo Modelos de Simulação
    svg_interpreter.model = dat_interpreter.model
 
-   # Identificando Sistema de Projeção
-   projection_type = 'plane_xy'
+   # Instanciando Transformador Geométrico e Configurações Padrões de Projeção
+   gt = GeometricalTransformer()
+   projection_type = 'parallel'
+   rotations = list()
+
+   # Identificando tipo de Projeção
    if len(args) > 0:
       projection_type = args[0]
-   projection: Projection = Projection.create(projection_type)
+      args = args[1:]
+      if projection_type not in ('parallel', 'perspective'):
+         raise ValueError(f'The projection type "{projection_type}" is not supported.')
+
+      # Tratando Caso de Tipo de Projeção ser "perspective"
+      if projection_type == 'perspective':
+         try:
+            x_cop, y_cop, z_cop, *_ = args
+            x_cop, y_cop, z_cop, = float(x_cop), float(y_cop), float(z_cop)
+            args = args[3:]
+         except ValueError:
+             raise ValueError(f'The projection type "perspective" requires 3 other parameters after it (the x, y, and z coordinates of the projection center).')
+
+      # Lendo Rotações, se ouverem
+      while len(args) > 0:
+         rotation = args[0]
+         if match_obj := match('R([xyz])=([+-]?\d+(?:.\d+)?)', rotation):
+            axis, angle = match_obj.groups()
+            angle = float(angle)
+            rotations.append(
+               gt.Rx(angle) if axis == 'x' else
+               gt.Ry(angle) if axis == 'y' else
+               gt.Rz(angle)
+            )
+         else:
+            raise ValueError(f'The informed rotation "{rotation}" is in an incorrect format.')
+         args = args[1:]
+   
+   # Transportando Centroid para a Origem
+   coordinates = [(n.x, n.y, n.z) for n in dat_interpreter.model.nodes.values()]
+   centroid = gt.calculate_centroid(coordinates)
+   coordinates = [gt.translate(*c, -centroid[0], -centroid[1], -centroid[2]) for c in coordinates]
+
+   # Rotacionando Coordenadas
+   coordinates = [gt.rotate(*c, rotations) for c in coordinates]
 
    # Projetando Coordenadas
    coordinates = [
-      projection.project(n.x, n.y, n.z)
-      for n in dat_interpreter.model.nodes.values()
+      gt.project_parallel(*c)
+      if projection_type == 'parallel' else
+      gt.project_perspective(*c, x_cop, y_cop, z_cop)
+      for c in coordinates
    ]
    u = [iso[0] for iso in coordinates]
    v = [iso[1] for iso in coordinates]
