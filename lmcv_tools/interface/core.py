@@ -4,7 +4,7 @@ from . import messenger
 from ..models.custom_errors import CommandError
 
 # Constantes Globais
-version = '0.0.22'
+version = '0.0.23'
 in_interactive_mode = False
 message_welcome = '''
 LMCV Tools is a command line tool that provides a series of useful functionali-
@@ -203,10 +203,9 @@ def execute_command(name: str, args: list[str]):
 
    except Exception as exc:
       # Exibindo Mensagem de Erro com o Contexto da Exceção
-      # name = exc.__class__.__name__
-      # message = exc.args[0]
-      # messenger.error(message, name)
-      raise exc
+      name = exc.__class__.__name__
+      message = exc.args[0]
+      messenger.error(message, name)
 
 def start_interactive_mode():
    # Informando que o Modo Interativo foi Iniciado
