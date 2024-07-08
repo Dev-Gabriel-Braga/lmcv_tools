@@ -96,16 +96,35 @@ Example:
 $ lmcv_tools translate Plate.dat to .svg
 ```
 
-In addition, this command variation has an optional argument to choose the projection type. The supported projection types are listed bellow:
-- plane_xy (**default**)
-- plane_yz
-- plane_xz
-- isometric
+In addition, this command has some flags:
 
-Example:
+| Flags              | Description                                                      |
+| ---                | ---                                                              |
+| -p or --projection | Type of projection: parallel or perspective (default: parallel). |
+| -x                 | X-coordinate of the projection center (perspective projection).  |
+| -y                 | Y-coordinate of the projection center (perspective projection).  |
+| -z                 | Z-coordinate of the projection center (perspective projection).  |
+| --Rx               | A rotaion in x-axis.                                             |
+| --Ry               | A rotaion in y-axis.                                             |
+| --Rz               | A rotaion in z-axis.                                             |
+
+Examples:
 ```text
-$ lmcv_tools translate Plate.dat to .svg isometric
+$ lmcv_tools translate Plate.dat to .svg --projection=parallel
+
+$ lmcv_tools translate Plate.dat to .svg -p=perspective -x=0 -y=0 -=30
+
+$ lmcv_tools translate Plate.dat to .svg --Rx=45.0 --Ry=30.0
+
+$ lmcv_tools translate Plate.dat to .svg -p=perspective -x=0 -y=20 -=40.0 --Rx=45.0 --Ry=30.0 --Rx=34
 ```
+
+The use of these flags must consider the following points:
+- The projection plane will always be the **x-y plane**.
+- The -x, -y and -z flags are only necessary if the projection type is “perspective”.
+- The coordinates provided in the -x, -y and -z flags are relative to the **mesh centroid**.
+- The flags --Rx, --Ry and --Rz can be written in any order and **can even be repeated**.
+- The rotations described by --Rx, --Ry, and --Rz will be executed in the order they were written.
 
 ### 2.2 - Extract
 

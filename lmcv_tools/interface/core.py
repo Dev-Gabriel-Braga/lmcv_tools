@@ -1,4 +1,5 @@
 # Importações - Bibliotecas Locais
+from re import match
 from . import messenger
 from ..models.custom_errors import CommandError
 
@@ -18,10 +19,10 @@ To exit     | type the command "exit"
 '''
 
 # Funções Pré-processamento de Comandos
-def show_version(args: list[str] = [], flags: list[str] = []):
+def show_version(args: list[str] = None, flags: dict[str, str] = None):
    messenger.show(f'LMCV Tools - v{version}')
 
-def pre_help(args: list[str] = [], flags: list[str] = []):   
+def pre_help(args: list[str], flags: dict[str, str] = None):   
    from ..commands import help
    
    if len(args) > 0:
@@ -29,7 +30,7 @@ def pre_help(args: list[str] = [], flags: list[str] = []):
    else:
       help.start()
 
-def pre_translate(args: list[str], flags: list[str] = []):
+def pre_translate(args: list[str], flags: dict[str, str]):
    from ..commands import translate
 
    # Verificando Path do Input
@@ -50,9 +51,9 @@ def pre_translate(args: list[str], flags: list[str] = []):
       raise CommandError('An Extension for Output File after "to" keyword is required.')
    
    # Iniciando Tradução
-   translate.start(input_path, output_extension, args[3:])
+   translate.start(input_path, output_extension, args[3:], flags)
 
-def pre_extract(terms: list[str], flags: list[str] = []):
+def pre_extract(terms: list[str], flags: dict[str, str]):
    from ..commands import extract
 
    # Verificando Sintaxe Básica da Sentença
@@ -96,7 +97,7 @@ def pre_extract(terms: list[str], flags: list[str] = []):
    # Extraindo Itens do Arquivo .pos
    extract.start(attributes, pos_path, condition, csv_path)
 
-def pre_generate(args: list[str], flags: list[str] = []):
+def pre_generate(args: list[str], flags: dict[str, str]):
    from ..commands import generate
    
    # Verificando se um Artefato foi Dado
@@ -107,7 +108,7 @@ def pre_generate(args: list[str], flags: list[str] = []):
    artifact = args[0]
    generate.start(artifact, args[1:])
 
-def pre_reorder(args: list[str], flags: list[str] = []):
+def pre_reorder(args: list[str], flags: dict[str, str]):
    from ..commands import reorder
    
    # Verificando se um Método de Reordenação foi Fornecido
@@ -125,7 +126,7 @@ def pre_reorder(args: list[str], flags: list[str] = []):
    # Executando Reordenação
    reorder.start(method, dat_path, flags)
 
-def pre_change(terms: list[str], flags: list[str] = []):
+def pre_change(terms: list[str], flags: dict[str, str]):
    from ..commands import change
 
    # Verificando Sintaxe Básica da Sentença
@@ -183,22 +184,29 @@ def execute_command(name: str, args: list[str]):
       except KeyError:
          raise CommandError('Unknown command.', help=True)
 
-      # Processando Flags
-      flags = list()
-      for index, arg in enumerate(args):
-         if arg.startswith('--'):
-            flags.append(args.pop(index))
-         elif arg.startswith('-') and (len(arg) == 2) and arg[1].isalpha():
-            flags.append(args.pop(index))
+      # Analisando a Presença de Flags
+      flags = dict[str, str]()
+      flag_pattern = '(--?\w+)=?([^\s]+)?'
+      flag_indexes = list()
+      for i, a in enumerate(args):
+         if match_obj := match(flag_pattern, a):
+            flag_name, flag_value = match_obj.groups()
+            flags[flag_name] = flag_value
+            flag_indexes.append(i)
 
+      # Retirando Flags dos Args
+      for redutor, i in enumerate(flag_indexes):
+         args.pop(i - redutor)
+      
       # Executando Comando
       command_function(args, flags)
 
    except Exception as exc:
       # Exibindo Mensagem de Erro com o Contexto da Exceção
-      name = exc.__class__.__name__
-      message = exc.args[0]
-      messenger.error(message, name)
+      # name = exc.__class__.__name__
+      # message = exc.args[0]
+      # messenger.error(message, name)
+      raise exc
 
 def start_interactive_mode():
    # Informando que o Modo Interativo foi Iniciado

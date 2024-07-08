@@ -33,9 +33,14 @@
             "[new extension]": "Required argument. Extension to which the file will be translated"
          },
          "Projections in .dat to .svg": {
-            "Explanation": "The translation \".dat to .svg\" has a third optional argument: [projection type]",
-            "[projection type]": "Optional argument. Supported projections: plane_xy (default), plane_yz, plane_xz, isometric",
-            "Example": "translate Plate.dat to .svg isometric"
+            "Explanation": "The use of these flags must consider the following points: the projection plane will always be the x-y plane; the -x, -y and -z flags are only necessary if the projection type is \"perspective\"; the coordinates provided in the -x, -y and -z flags are relative to the mesh centroid; the flags --Rx, --Ry and --Rz can be written in any order and can even be repeated; the rotations described by --Rx, --Ry, and --Rz will be executed in the order they were written",
+            "-p or --projection": "Type of projection: parallel or perspective (default: parallel)",
+            "-x": "X-coordinate of the projection center (perspective projection)",
+            "-y": "Y-coordinate of the projection center (perspective projection)",
+            "-z": "Z-coordinate of the projection center (perspective projection)",
+            "--Rx": "A rotaion in x-axis",
+            "--Ry": "A rotaion in y-axis",
+            "--Rz": "A rotaion in z-axis"
          }
       }
    },

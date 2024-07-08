@@ -1,15 +1,13 @@
-from re import match
 from ..interface import filer, searcher
-from ..models.geometry import Projection, GeometricalTransformer
+from ..models.geometry import GeometricalTransformer
 from ..models.interpreters import (
    INP_Interpreter,
    DAT_Interpreter,
    SVG_Interpreter
 )
-from ..models.math import Matrix
 
 # Funções de Tradução
-def inp_to_dat(input_data: str, args: list[str] = []):
+def inp_to_dat(input_data: str, flags: dict[str, str]):
    # Instanciando Interpretadores
    inp_interpreter = INP_Interpreter()
    dat_interpreter = DAT_Interpreter()
@@ -37,13 +35,15 @@ def inp_to_dat(input_data: str, args: list[str] = []):
    # Retornando Tradução
    return dat_interpreter.write()
 
-def dat_to_svg(input_data: str, args: list[str] = []):
+def dat_to_svg(input_data: str, flags: dict[str, str]):
    # Instanciando Interpretadores
    dat_interpreter = DAT_Interpreter()
    svg_interpreter = SVG_Interpreter()
 
    # Interpretando Input
-   dat_interpreter.read(input_data)
+   dat_interpreter.read_nodes(input_data)
+   dat_interpreter.read_patches(input_data)
+   dat_interpreter.read_elements(input_data)
 
    # Transferindo Modelos de Simulação
    svg_interpreter.model = dat_interpreter.model
@@ -53,36 +53,34 @@ def dat_to_svg(input_data: str, args: list[str] = []):
    projection_type = 'parallel'
    rotations = list()
 
-   # Identificando tipo de Projeção
-   if len(args) > 0:
-      projection_type = args[0]
-      args = args[1:]
-      if projection_type not in ('parallel', 'perspective'):
-         raise ValueError(f'The projection type "{projection_type}" is not supported.')
+   # Identificando Configurações de Projeção a partir das Flags
+   if len(flags) > 0:
+      flag_keys = flags.keys()
 
-      # Tratando Caso de Tipo de Projeção ser "perspective"
-      if projection_type == 'perspective':
-         try:
-            x_cop, y_cop, z_cop, *_ = args
-            x_cop, y_cop, z_cop, = float(x_cop), float(y_cop), float(z_cop)
-            args = args[3:]
-         except ValueError:
-             raise ValueError(f'The projection type "perspective" requires 3 other parameters after it (the x, y, and z coordinates of the projection center).')
+      # Identificando Tipo de Projeção
+      if ('-p' in flag_keys) or ('--projection' in flag_keys): 
+         projection_type = flags.get('-p') or flags.get('--projection')
+         if projection_type not in ('parallel', 'perspective'):
+            raise ValueError(f'The projection type "{projection_type}" is not supported.')
 
-      # Lendo Rotações, se ouverem
-      while len(args) > 0:
-         rotation = args[0]
-         if match_obj := match('R([xyz])=([+-]?\d+(?:.\d+)?)', rotation):
-            axis, angle = match_obj.groups()
-            angle = float(angle)
+         # Tratando Caso de Tipo de Projeção ser "perspective"
+         if projection_type == 'perspective':
+            try:
+               x_cop = float(flags['-x'])
+               y_cop = float(flags['-y'])
+               z_cop = float(flags['-z'])
+            except KeyError:
+               raise ValueError(f'The projection type "perspective" requires 3 other flags: -x, -y and -z (the coordinates of the projection center).')
+
+      # Lendo Rotações a Partir das Flags, se Ouverem
+      for flag, value in flags.items():
+         if (flag == '--Rx') or (flag == '--Ry') or (flag == '--Rz'):
+            angle = float(value)
             rotations.append(
-               gt.Rx(angle) if axis == 'x' else
-               gt.Ry(angle) if axis == 'y' else
+               gt.Rx(angle) if flag == '--Rx' else
+               gt.Ry(angle) if flag == '--Ry' else
                gt.Rz(angle)
             )
-         else:
-            raise ValueError(f'The informed rotation "{rotation}" is in an incorrect format.')
-         args = args[1:]
    
    # Transportando Centroid para a Origem
    coordinates = [(n.x, n.y, n.z) for n in dat_interpreter.model.nodes.values()]
@@ -130,7 +128,7 @@ supported_translations = {
    ('.dat', '.svg'): dat_to_svg
 }
 
-def start(input_path: str, output_extension: str, args: list[str] = []):
+def start(input_path: str, output_extension: str, args: list[str], flags: dict[str, str]):
    # Lendo Arquivo de Input
    input_data = filer.read(input_path)
 
@@ -144,7 +142,7 @@ def start(input_path: str, output_extension: str, args: list[str] = []):
       raise KeyError(f'The translation of {input_extension} to {output_extension} is not supported.')
    
    # Traduzindo
-   output_data = translation_function(input_data, args)
+   output_data = translation_function(input_data, flags)
 
    # Escrevendo Tradução no Output
    output_path = input_path[:last_dot_index] + output_extension

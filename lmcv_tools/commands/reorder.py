@@ -249,7 +249,7 @@ supported_methods = {
 }
 
 # Função de Inicialização
-def start(method: str, dat_path: str, flags: list[str] = []):
+def start(method: str, dat_path: str, flags: dict[str, str]):
    # Verificando se o Método de Reordenação é Suportado
    try:
       reordering_function = supported_methods[method]
@@ -296,7 +296,8 @@ def start(method: str, dat_path: str, flags: list[str] = []):
    time_write = time() - time_write
 
    # Verificando Flags
-   if ('-i' in flags) or ('--info' in flags):
+   fk = flags.keys()
+   if ('-i' in fk) or ('--info' in fk):
       # Calculando Informações Adiconais sobre a Reordenação
       # Gerando Novo Grafo com a Reordenação
       new_graph = {i: set() for i in range(n)}

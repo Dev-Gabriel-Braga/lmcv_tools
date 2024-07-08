@@ -2,7 +2,7 @@ import unittest
 import os
 
 class DefaultTest(unittest.TestCase):
-   def default_test(self, benchmark_name: str, input_extension: str, output_extension: str, projection: str = ''):
+   def default_test(self, benchmark_name: str, input_extension: str, output_extension: str, flags: str = ''):
       # Definindo paths
       benchmark_name = 'tests/benchmark/translate/' + benchmark_name
       input_path = benchmark_name + input_extension
@@ -10,7 +10,7 @@ class DefaultTest(unittest.TestCase):
       exp_path = input_path[:-4] + '_exp' + output_extension
 
       # Traduzindo Benchmark
-      code = os.system(f'python -m lmcv_tools translate {input_path} to {output_extension} {projection}')
+      code = os.system(f'python -m lmcv_tools translate {input_path} to {output_extension} {flags}')
       self.assertEqual(code, 0, 'A tradução falhou.')
 
       # Comparando Tradução com o Resultado Esperado
@@ -87,8 +87,8 @@ class Test_inp_to_dat(DefaultTest):
       self.default_test('SupportedSquare_S4')
 
 class Test_dat_to_svg(DefaultTest):
-   def default_test(self, benchmark_name: str, projection: str = ''):
-      super().default_test('dat_to_svg/' + benchmark_name, '.dat', '.svg', projection)
+   def default_test(self, benchmark_name: str, flags: str = ''):
+      super().default_test('dat_to_svg/' + benchmark_name, '.dat', '.svg', flags)
 
    def test_circle_T3_Q4_4x4(self):
       self.default_test('Circle_T3_Q4_4x4')
@@ -112,10 +112,13 @@ class Test_dat_to_svg(DefaultTest):
       self.default_test('CirclePlate_BT2_plane_xy', 'plane_xy')
 
    def test_projection_plane_yz(self):
-      self.default_test('CirclePlate_BT2_plane_yz', 'plane_yz')
+      self.default_test('CirclePlate_BT2_plane_yz', '--Rz=-90.0 --Rx=-90.0')
 
    def test_projection_plane_xz(self):
-      self.default_test('CirclePlate_BT2_plane_xz', 'plane_xz')
+      self.default_test('CirclePlate_BT2_plane_xz', '--Rx=-90.0')
 
    def test_projection_isometric(self):
-      self.default_test('CirclePlate_BT2_isometric', 'isometric')
+      self.default_test('CirclePlate_BT2_isometric', '--Rz=45.0 --Rx=54.735610317')
+   
+   def test_projection_perspective(self):
+      self.default_test('Hemisphere_Q8_perspective', '-p=perspective -x=0 -y=15 -z=40 --Ry=-20')
