@@ -107,6 +107,12 @@ class Test_dat_to_svg(DefaultTest):
    
    def test_disform_BT4(self):
       self.default_test('Disform_BT4')
+   
+   def test_rectangle_NURBS_4x7(self):
+      self.default_test('Rectangle_NURBS_4x7')
+   
+   def test_dirform_NURBS_2x2(self):
+      self.default_test('Dirform_NURBS_2x2')
 
    def test_projection_plane_xy(self):
       self.default_test('CirclePlate_BT2_plane_xy', 'plane_xy')

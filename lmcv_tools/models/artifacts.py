@@ -6,7 +6,7 @@ from .simulation import (
 from .interpreters import (
    DAT_Interpreter
 )
-from .geometry import NURBS
+from .geometry import NURBS_Curve
 
 # --------------------------------------------------
 # 1 - Classe Abstrata de Artefato
@@ -374,21 +374,21 @@ class NURBS_Rectangle(Artifact):
       self.discretization = discretization
       self.model = SimulationModel()
 
-   def coordinates(self) -> list[NURBS]:
+   def coordinates(self) -> list[NURBS_Curve]:
       # Renomeando Atributos
       dx, dy = self.degrees
       width, height = self.dimensions
       nx, ny = self.discretization
 
       # Calculando Valores Necessários (Em X)
-      nurbs_x = NURBS(1, [0, 0, 1, 1], [[0.0], [width]], [1.0, 1.0])
+      nurbs_x = NURBS_Curve(1, [0, 0, 1, 1], [[0.0], [width]], [1.0, 1.0])
       nurbs_x.degree_elevation(dx - 1)
       x_knots = [i / nx for i in range(1, nx)]
       nurbs_x.knot_insertions(x_knots)
       x_values = [cp[0] for cp in nurbs_x.control_points]
 
       # Calculando Valores Necessários (Em y)
-      nurbs_y = NURBS(1, [0, 0, 1, 1], [[0.0], [height]], [1.0, 1.0])
+      nurbs_y = NURBS_Curve(1, [0, 0, 1, 1], [[0.0], [height]], [1.0, 1.0])
       nurbs_y.degree_elevation(dy - 1)
       y_knots = [i / ny for i in range(1, ny)]
       nurbs_y.knot_insertions(y_knots)
@@ -421,10 +421,10 @@ class NURBS_Rectangle(Artifact):
       geometry_ide = self.model.add_element_geometry(
          shape = 'Quadrilateral',
          base = 'BSpline',
-         grade = [nurbs_x.degree, nurbs_y.degree],
-         n_nodes = (nurbs_x.degree + 1) * (nurbs_y.degree + 1),
+         grade = [nurbs_x.basis.degree, nurbs_y.basis.degree],
+         n_nodes = (nurbs_x.basis.degree + 1) * (nurbs_y.basis.degree + 1),
          n_dimensions = 2,
-         knot_vectors = [nurbs_x.knot_vector, nurbs_y.knot_vector],
+         knot_vectors = [nurbs_x.basis.knot_vector, nurbs_y.basis.knot_vector],
          node_space = node_space,
       )
       self.model.add_element_group(1, geometry_ide, 'ShallowShell')
@@ -485,28 +485,28 @@ class NURBS_Cuboid(Artifact):
       self.discretization = discretization
       self.model = SimulationModel()
 
-   def coordinates(self) -> list[NURBS]:
+   def coordinates(self) -> list[NURBS_Curve]:
       # Renomeando Atributos
       dx, dy, dz = self.degrees
       width, height, deep = self.dimensions
       nx, ny, nz = self.discretization
 
       # Calculando Valores Necessários (Em X)
-      nurbs_x = NURBS(1, [0, 0, 1, 1], [[0.0], [width]], [1.0, 1.0])
+      nurbs_x = NURBS_Curve(1, [0, 0, 1, 1], [[0.0], [width]], [1.0, 1.0])
       nurbs_x.degree_elevation(dx - 1)
       x_knots = [i / nx for i in range(1, nx)]
       nurbs_x.knot_insertions(x_knots)
       x_values = [cp[0] for cp in nurbs_x.control_points]
 
       # Calculando Valores Necessários (Em y)
-      nurbs_y = NURBS(1, [0, 0, 1, 1], [[0.0], [height]], [1.0, 1.0])
+      nurbs_y = NURBS_Curve(1, [0, 0, 1, 1], [[0.0], [height]], [1.0, 1.0])
       nurbs_y.degree_elevation(dy - 1)
       y_knots = [i / ny for i in range(1, ny)]
       nurbs_y.knot_insertions(y_knots)
       y_values = [cp[0] for cp in nurbs_y.control_points]
 
       # Calculando Valores Necessários (Em z)
-      nurbs_z = NURBS(1, [0, 0, 1, 1], [[0.0], [deep]], [1.0, 1.0])
+      nurbs_z = NURBS_Curve(1, [0, 0, 1, 1], [[0.0], [deep]], [1.0, 1.0])
       nurbs_z.degree_elevation(dz - 1)
       z_knots = [i / nz for i in range(1, nz)]
       nurbs_z.knot_insertions(z_knots)
@@ -540,10 +540,10 @@ class NURBS_Cuboid(Artifact):
       geometry_ide = self.model.add_element_geometry(
          shape = 'Hexahedron',
          base = 'BSpline',
-         grade = [nurbs_x.degree, nurbs_y.degree, nurbs_z.degree],
-         n_nodes = (nurbs_x.degree + 1) * (nurbs_y.degree + 1) * (nurbs_z.degree + 1),
+         grade = [nurbs_x.basis.degree, nurbs_y.basis.degree, nurbs_z.basis.degree],
+         n_nodes = (nurbs_x.basis.degree + 1) * (nurbs_y.basis.degree + 1) * (nurbs_z.basis.degree + 1),
          n_dimensions = 3,
-         knot_vectors = [nurbs_x.knot_vector, nurbs_y.knot_vector, nurbs_z.knot_vector],
+         knot_vectors = [nurbs_x.basis.knot_vector, nurbs_y.basis.knot_vector, nurbs_z.basis.knot_vector],
          node_space = node_space,
       )
       self.model.add_element_group(1, geometry_ide, None)

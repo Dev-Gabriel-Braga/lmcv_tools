@@ -3,7 +3,9 @@ from math import floor
 from ..interface import searcher
 from .geometry import (
    bezier_equiv_coord, 
-   bernstein_polynomial
+   bernstein_polynomial,
+   NURBS_Surface,
+   GeometricalTransformer
 )
 from .simulation import (
    SimulationModel,
@@ -1125,14 +1127,7 @@ class SVG_Interpreter:
       self.element_color = '#fcff5e'
       self.element_stroke_width = 1
       self.element_stroke_color = 'black'
-
-   def calculate_colinearity(self, points: list[Node]) -> float:
-      factor = 0
-      for i in range(0, len(points) - 2):
-         diag1 = points[i].x * points[i + 1].y + points[i + 1].x * points[i + 2].y + points[i + 2].x * points[i].y
-         diag2 = points[i].x * points[i + 2].y + points[i + 1].x * points[i].y + points[i + 2].x * points[i + 1].y
-         factor += abs(diag1 - diag2)
-      return abs(factor)
+      self.gt = GeometricalTransformer()
    
    def tesselate_bezier_curve(self, grade: int, points: list[Node], n_regions: int):
       # Variáveis Iniciais
@@ -1208,7 +1203,7 @@ class SVG_Interpreter:
             points.insert(0, node_corner_1)
 
             # Calculando Fator de Colinearidade dos Pontos
-            c_factor = self.calculate_colinearity(points)
+            c_factor = self.gt.calculate_colinearity([[p.x, p.y] for p in points])
 
             # Resumindo Path em Uma linha reta para um fator baixo
             if c_factor < 0.1:
@@ -1230,6 +1225,101 @@ class SVG_Interpreter:
          output += 'Z" />'
       
       return output
+   
+   def write_bspline_surface(self, geometry: ElementGeometry, group: ElementGroup) -> str:
+      # Montando Matriz de Identificadores do Pontos de Controle
+      output = ''
+      control_points_ides = list()
+      n_basis_u = len(geometry.knot_vectors[0]) - geometry.grade[0] - 1
+      n_basis_v = len(geometry.knot_vectors[1]) - geometry.grade[1] - 1
+      for i in range(n_basis_u):
+         control_points_ides.append(geometry.node_space[i::n_basis_u])
+      
+      # Criando Pontos de Controle e Pesos
+      control_points = [
+         [
+            [
+               self.model.nodes[control_points_ides[i][j]].x,
+               self.model.nodes[control_points_ides[i][j]].y
+            ]
+            for j in range(n_basis_v)
+         ]
+         for i in range(n_basis_u)
+      ]
+      weights = [
+         [
+            self.model.nodes[control_points_ides[i][j]].weight or 1.0
+            for j in range(n_basis_v)
+         ]
+         for i in range(n_basis_u)
+      ]
+
+      # Criando Superfície NURBS
+      nurbs_surface = NURBS_Surface(
+         degree = geometry.grade,
+         knot_vectors = geometry.knot_vectors,
+         control_points = control_points,
+         weights = weights
+      )
+
+      # Criando Intervalos Paramétricos de Elementos
+      d_u, d_v = geometry.grade
+      d_u *= 2
+      d_v *= 2
+      k_u = sorted(list(set(geometry.knot_vectors[0])))
+      k_v = sorted(list(set(geometry.knot_vectors[1])))
+      for j in range(len(k_v) - 1):
+         v1, v2 = k_v[j:j + 2]
+         v = [v1 + k * (v2 - v1) / (d_v) for k in range(d_v)]
+         v.append(v2)
+         for i in range(len(k_u) - 1):
+            u1, u2 = k_u[i:i + 2]
+            u = [u1 + k * (u2 - u1) / (d_u) for k in range(d_u)]
+            u.append(u2)
+
+            # Criando Pontos da Fronteira do Elemento
+            edges = [
+               [
+                  nurbs_surface(ui, v1)
+                  for ui in u
+               ],
+               [
+                  nurbs_surface(u2, vi)
+                  for vi in v
+               ],
+               [
+                  nurbs_surface(ui, v2)
+                  for ui in list(reversed(u))
+               ],
+               [
+                  nurbs_surface(u1, vi)
+                  for vi in list(reversed(v))
+               ]
+            ]
+
+            # Iniciando Path do Elemento
+            output += f'\n      <path d="'
+
+            # Escrevendo Ponto Inicial
+            output += f'M {edges[0][0][0]:.8e} {edges[0][0][1]:.8e} '
+
+            # Percorendo Lados
+            for edge in edges:
+               # Resumindo Path em Uma linha reta para um fator baixo
+               c_factor = self.gt.calculate_colinearity(edge)
+               if c_factor < 0.1:
+                  output += f'L {edge[-1][0]:.8e} {edge[-1][1]:.8e} '
+
+               # Tesselando Curva se o Fator de Colinearidade for Alto
+               else:
+                  for index in range(1, len(edge) - 1, 2):
+                     x_c = bezier_equiv_coord(edge[index][0], edge[index - 1][0], edge[index + 1][0])
+                     y_c = bezier_equiv_coord(edge[index][1], edge[index - 1][1], edge[index + 1][1])
+                     output += f'Q {x_c:.8e} {y_c:.8e}, {edge[index + 1][0]:.8e} {edge[index + 1][1]:.8e} '
+            
+            # Finalizando Path
+            output += 'Z" />'
+      return output
 
    def write_finite_elements(self, grade: int, group: ElementGroup) -> str:
       output = ''
@@ -1245,7 +1335,7 @@ class SVG_Interpreter:
                output += f'{node.x:.8e},{node.y:.8e} ' 
             output += '" />'
 
-      # Tratamento para Elementos Lineares
+      # Tratamento para Elementos Quadráticos
       else:
          for element in group.elements.values():
             # Escrevendo Ponto Inicial
@@ -1275,6 +1365,10 @@ class SVG_Interpreter:
          # Tratamento para Elementos de Bezier
          if geometry.shape == 'Triangle' and geometry.base == 'Bezier':
             output += self.write_bezier_triangles(geometry.grade, group)
+         
+         # Tratamento para Superfícies B-Spline
+         elif geometry.shape == 'Quadrilateral' and geometry.base == 'BSpline':
+            output += self.write_bspline_surface(geometry, group)
 
          # Tratamento para Elementos Finitos Tradicionais
          else:
