@@ -291,43 +291,67 @@ class DAT_Interpreter:
          if geometry_ide not in geometry_to_info:
             # Gerando Matrix do Node Space
             node_space_matrix = list()
-            n = [len(set(knot_vector)) - 1 for knot_vector in geometry.knot_vectors]
-            d = geometry.grade
+            n = [len(kv) - p - 1 for kv, p in zip(geometry.knot_vectors, geometry.grade)]
             if geometry.n_dimensions == 2:
-               for i in range(0, len(geometry.node_space), n[0] + d[0]):
-                  node_space_matrix.append(geometry.node_space[i:i + n[0] + d[0]])
+               for i in range(0, len(geometry.node_space), n[0]):
+                  node_space_matrix.append(geometry.node_space[i:i + n[0]])
             else:
-               for i in range(0, len(geometry.node_space), (n[1] + d[1]) * (n[0] + d[0])):
+               for i in range(0, len(geometry.node_space), (n[1]) * (n[0])):
                   node_space_matrix.append(list())
-                  for j in range(i, i + (n[1] + d[1]) * (n[0] + d[0]), n[0] + d[0]):
-                     node_space_matrix[-1].append(geometry.node_space[j:j + n[0] + d[0]])
+                  for j in range(i, i + (n[1]) * (n[0]), n[0]):
+                     node_space_matrix[-1].append(geometry.node_space[j:j + n[0]])
+
+            # Calculando Multiplicidade dos Knots
+            unit_knots = [
+               list(sorted(set(kv)))
+               for kv in geometry.knot_vectors
+            ]
             
             # Adicionando Informações Pertinentes
-            geometry_to_info[geometry_ide] = (group_ide, node_space_matrix)
+            geometry_to_info[geometry_ide] = {
+               'group_ide': group_ide,
+               'node_space_matrix': node_space_matrix,
+               'unit_knots': unit_knots
+            }
             self.model.add_element_group(group_ide, geometry_ide, element_theory)
             group_ide += 1
 
-         # Recuperando Matriz do Node Space
-         node_space_matrix = geometry_to_info[geometry_ide][1]
+         # Recuperando Matriz do Node Space e Multiplicidade dos Knots
+         unit_knots = geometry_to_info[geometry_ide]['unit_knots']
+         node_space_matrix = geometry_to_info[geometry_ide]['node_space_matrix']
          node_ides = list()
-         k = knot_span
-         d = geometry.grade
 
+         # Renomeando Informações para Simplificar
+         kvs = geometry.knot_vectors
+         ks = knot_span
+         ps = geometry.grade
+         us = unit_knots
+
+         # Calculando Pontos de Paradas dos Ranges da Node Space Matrix
+         stop = list()
+         for kv, k, u in zip(kvs, ks, us):
+            stop.append(kv.index(u[k]))
+         
          # Tratamento para Elementos 2D
          if geometry.n_dimensions == 2:
-            for i in range(k[1], k[1] + d[1] + 1):
-               for j in range(k[0], k[0] + d[0] + 1):
-                  node_ides.append(node_space_matrix[i - 1][j - 1])
+            for i in range(stop[1] - ps[1] - 1, stop[1]):
+               for j in range(stop[0] - ps[0] - 1, stop[0]):
+                  node_ides.append(node_space_matrix[i][j])
 
          # Tratamento para Elementos 3D
          else:
-            for i in range(k[2], k[2] + d[2] + 1):
-               for j in range(k[1], k[1] + d[1] + 1):
-                  for l in range(k[0], k[0] + d[0] + 1):
-                     node_ides.append(node_space_matrix[i - 1][j - 1][l - 1])
+            for i in range(stop[2] - ps[2] - 1, stop[2]):
+               for j in range(stop[1] - ps[1] - 1, stop[1]):
+                  for l in range(stop[0] - ps[0] - 1, stop[0]):
+                     node_ides.append(node_space_matrix[i][j][l])
 
          # Inserindo Elementos
-         self.model.add_element(geometry_to_info[geometry_ide][0], ide, node_ides, knot_span)
+         self.model.add_element(
+            geometry_to_info[geometry_ide]['group_ide'], 
+            ide,
+            node_ides,
+            knot_span
+         )
       
       # Retornando Último Valor de Ide de Grupo
       return group_ide
