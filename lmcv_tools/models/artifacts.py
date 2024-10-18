@@ -190,7 +190,134 @@ class VirtualLaminas(Artifact):
       self.data = inp_data
 
 # --------------------------------------------------
-# 3 - Classes do Artefato "cuboid"
+# 3 - Classes do Artefato "rectangle"
+# --------------------------------------------------
+class Rectangle(Artifact):
+   # Funções de Geração de Coordenadas e Incidência de Elementos
+   def _q8_coordinates(self):
+      # Renomeando Atributos
+      width, height = self.dimensions
+      nx, ny = self.discretization
+
+      # Calculando Valores Necessários
+      delta_x = width / nx
+      delta_y = height / ny
+      x_values = [delta_x / 2 * i for i in range(2 * nx + 1)]
+      y_values = [delta_y / 2 * i for i in range(2 * ny + 1)]
+
+      # Gerando Coordenadas
+      ide = 1
+      for i_y, y in enumerate(y_values):
+         # Mudando Valores de x com base em y
+         xs = x_values if i_y % 2 == 0 else x_values[::2]
+
+         for x in xs:
+            self.model.add_node(ide, x, y, 0.0)
+            ide += 1
+
+   def _q8_incidence(self, i: int) -> list[int]:
+      # Inicializando Variáveis
+      nx, _ = self.discretization
+      inc = [0] * 8
+      x_order = i % nx
+      if x_order == 0: x_order = nx
+      y_order = i // nx
+      if i % nx != 0: y_order += 1
+      
+      # Determinando Nó Inicial
+      inc[0] = (2 * x_order - 1) + (y_order - 1) * (3 * nx + 2)
+
+      # Determinando Restante da Incidência
+      inc[1] = inc[0] + 1
+      inc[2] = inc[0] + 2
+      inc[3] = inc[0] + 2 * nx + 3 - x_order
+      inc[4] = inc[3] + nx + 1 + x_order
+      inc[5] = inc[4] - 1
+      inc[6] = inc[4] - 2
+      inc[7] = inc[3] - 1
+
+      # Ordenando Conforme o FAST
+      fast_order = [0, 1, 2, 3, 4, 5, 6, 7]
+      inc = [inc[i] for i in fast_order]
+
+      return inc
+
+   # Elementos Suportados
+   supported_elements = {
+      'Q8': {
+         'coordinates': _q8_coordinates,
+         'incidence': _q8_incidence
+      }
+   }
+
+   def __init__(
+      self,
+      element_type: str,
+      dimensions: list[float],
+      discretization: list[int]
+   ):
+      # Chamando Construtor da Superclasse
+      super().__init__('rectangle', 'dat')
+
+      # Verificando se Tipo de Elemento Fornecido é Suportado
+      if element_type not in Rectangle.supported_elements.keys():
+         raise ValueError(f'Element Type "{element_type}" is not supported for rectangle generation.')   
+
+      # Verificando se o Número de Dimensões e Discretização foram passadas Corretamente
+      if len(dimensions) != 2:
+         raise ValueError('A Rectangle needs exactly 2 dimensions (width and height).')
+      if len(discretization) != 2:
+         raise ValueError('A Rectangle needs exactly 2 discretization values (number of elements in width and height).')
+
+      # Atribuindo Atributos
+      self.element_type = element_type
+      self.dimensions = dimensions
+      self.discretization = discretization
+      self.model = SimulationModel()
+      self._coordinates = Rectangle.supported_elements[element_type]['coordinates']
+      self._incidence = Rectangle.supported_elements[element_type]['incidence']
+      self.reference = searcher.get_database('translation_reference')
+
+   def coordinates(self):
+      return self._coordinates(self)
+   
+   def incidence(self, i: int) -> list[int]:
+      return self._incidence(self, i)
+   
+   def geometry(self) -> int:
+      element_info = self.reference['dat']['elements'][self.element_type]
+      return self.model.add_element_geometry(**element_info)
+
+   def generate(self):
+      # Renomeando Atributos
+      nx, ny = self.discretization
+
+      # Gerando Coordenadas e Nodes
+      self.coordinates()
+
+      # Configurações dos Elementos
+      geometry_ide = self.geometry()
+      self.model.add_element_group(1, geometry_ide, None)
+
+      # Gerando Elementos
+      for i in range(nx * ny):
+         # Gerando Incidência
+         nodal_incidence = self.incidence(i + 1)
+
+         # Cadastrando Elemento
+         self.model.add_element(
+            group_ide = 1,
+            ide = i + 1,
+            node_ides = nodal_incidence
+         )
+
+      # Escrevendo Dados do .dat
+      dati = DAT_Interpreter()
+      dati.model = self.model
+      self.data = dati.write()
+
+# --------------------------------------------------
+# 4 - Classes do Artefato "cuboid"
 # --------------------------------------------------
 class Cuboid(Artifact):
    # Funções de Geração de Coordenadas e Incidência de Elementos
@@ -330,7 +457,7 @@ class Cuboid(Artifact):
       geometry_ide = self.geometry()
       self.model.add_element_group(1, geometry_ide, None)
 
-      # Gerando Elementos (BRICK20)
+      # Gerando Elementos
       for i in range(nx * ny * nz):
          # Gerando Incidência
          nodal_incidence = self.incidence(i + 1)
@@ -348,7 +475,7 @@ class Cuboid(Artifact):
       self.data = dati.write()
 
 # --------------------------------------------------
-# 4 - Classes do Artefato "nurbs_rectangle"
+# 5 - Classes do Artefato "nurbs_rectangle"
 # --------------------------------------------------
 class NURBS_Rectangle(Artifact):
    def __init__(
@@ -459,7 +586,7 @@ class NURBS_Rectangle(Artifact):
       self.data = dati.write()
    
 # --------------------------------------------------
-# 5 - Classes do Artefato "nurbs_cuboid"
+# 6 - Classes do Artefato "nurbs_cuboid"
 # --------------------------------------------------
 class NURBS_Cuboid(Artifact):
    def __init__(

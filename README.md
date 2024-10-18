@@ -258,7 +258,24 @@ $ lmcv_tools generate virtual_laminas [params] [path/to/virtual_laminas]
 - hashin_shtrikman_lower_bound
 - hashin_shtrikman_upper_bound
 
-#### 2.3.2 - Cuboid
+#### 2.3.2 - Rectangle
+Rectangles are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of rectangles in .dat format.
+
+Proper Syntax:
+
+```text
+$ lmcv_tools generate rectangles [params] [path/to/cuboid]
+```
+
+| Parameters   | Type  | Description                   |
+| ---          |---    | ---                           |
+| Element Type | str   | Supported: Q8.                |
+| Width        | float | Cuboid Width (x).             |
+| Height       | float | Cuboid Height (y).            |
+| Nx           | int   | Number of Elements in Width.  |
+| Ny           | int   | Number of Elements in Height. |
+
+#### 2.3.3 - Cuboid
 Cuboids are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of cuboids in .dat format.
 
 Proper Syntax:
@@ -277,7 +294,7 @@ $ lmcv_tools generate cuboid [params] [path/to/cuboid]
 | Ny           | int   | Number of Elements in Height. |
 | Nz           | int   | Number of Elements in Deep.   |
 
-#### 2.3.3 - NURBS Rectangles
+#### 2.3.4 - NURBS Rectangles
 NURBS Rectangles are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of NURBS meshes of Rectangles in .dat format.
 
 Proper Syntax:
@@ -295,7 +312,7 @@ $ lmcv_tools generate cuboid [params] [path/to/nurbs_rectangle]
 | Nx           | int   | Number of Elements in Width.  |
 | Ny           | int   | Number of Elements in Height. |
 
-#### 2.3.4 - NURBS Cuboid
+#### 2.3.5 - NURBS Cuboid
 NURBS Cuboids are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of NURBS meshes of Cuboids in .dat format.
 
 Proper Syntax:

@@ -5,6 +5,7 @@ from ..models.custom_errors import CommandError
 from ..models.artifacts import (
    VirtualLaminas,
    ElementConfiguration,
+   Rectangle,
    Cuboid,
    NURBS_Rectangle,
    NURBS_Cuboid
@@ -54,6 +55,20 @@ def generate_virtual_laminas(
 
    return virtual_laminas
 
+def generate_rectangle(
+   element_type: str, 
+   dimensions: list[float], 
+   discretization: list[int]
+) -> Rectangle:
+   # Instanciando Artefato
+   rectangle = Rectangle(element_type, dimensions, discretization)
+
+   # Gerando Artefato
+   rectangle.generate()
+
+   # Retornando Artefato
+   return rectangle
+
 def generate_cuboid(
    element_type: str, 
    dimensions: list[float], 
@@ -62,10 +77,10 @@ def generate_cuboid(
    # Instanciando Artefato
    cuboid = Cuboid(element_type, dimensions, discretization)
 
-   # Gerando Cuboid
+   # Gerando Artefato
    cuboid.generate()
 
-   # Retornando Cuboid
+   # Retornando Artefato
    return cuboid
 
 def generate_nurbs_rectangle(
@@ -76,10 +91,10 @@ def generate_nurbs_rectangle(
    # Instanciando Artefato
    nurbs_rectangle = NURBS_Rectangle(degrees, dimensions, discretization)
 
-   # Gerando Rectangle
+   # Gerando Artefato
    nurbs_rectangle.generate()
 
-   # Retornando Rectangle
+   # Retornando Artefato
    return nurbs_rectangle
 
 def generate_nurbs_cuboid(
@@ -90,10 +105,10 @@ def generate_nurbs_cuboid(
    # Instanciando Artefato
    nurbs_cuboid = NURBS_Cuboid(degrees, dimensions, discretization)
 
-   # Gerando Cuboid
+   # Gerando Artefato
    nurbs_cuboid.generate()
 
-   # Retornando Cuboid
+   # Retornando Artefato
    return nurbs_cuboid
 
 # Funções de Parâmetros de Artefatos
@@ -129,12 +144,29 @@ def params_virtual_laminas(args: list[str]) -> dict:
    
    return params, args
 
+def params_rectangle(args: list[str]) -> dict:
+   # Iniciando Parâmetros
+   params = dict()
+
+   # Tentando Converter Tipos de Dados
+   try:
+      params['element_type'] = args[0]
+   except IndexError:
+      raise ValueError(f'A Rectangle needs an element type.')
+   params['dimensions'] = list(map(float, args[1:3]))
+   params['discretization'] = list(map(int, args[3:5]))
+   
+   return params, args[5:]
+
 def params_cuboid(args: list[str]) -> dict:
    # Iniciando Parâmetros
    params = dict()
 
    # Tentando Converter Tipos de Dados
-   params['element_type'] = args[0]
+   try:
+      params['element_type'] = args[0]
+   except IndexError:
+      raise ValueError(f'A Cuboid needs an element type.')
    params['dimensions'] = list(map(float, args[1:4]))
    params['discretization'] = list(map(int, args[4:7]))
    
@@ -167,6 +199,10 @@ artifacts = {
    'virtual_laminas': {
       'params': params_virtual_laminas,
       'generate': generate_virtual_laminas
+   },
+   'rectangle': {
+      'params': params_rectangle,
+      'generate': generate_rectangle
    },
    'cuboid': {
       'params': params_cuboid,
