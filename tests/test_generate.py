@@ -80,6 +80,15 @@ class TestVirtualLaminas(DefaultTest):
       args = ['100', 'Shell', '3.5', '3', '5', 'voigt', '90.0', '380.0', '0.27', '0.30', '2000', '1000', 'True']
       self.default_test(test_id, args)
 
+class TestRectangle(DefaultTest):
+   def default_test(self, test_id: str, args: list):
+      super().default_test('rectangle', 'dat', test_id, args)
+
+   def test_q8(self):
+      test_id = 'q8'
+      args = ['Q8', '16', '9', '8', '4']
+      self.default_test(test_id, args)
+
 class TestCuboid(DefaultTest):
    def default_test(self, test_id: str, args: list):
       super().default_test('cuboid', 'dat', test_id, args)
