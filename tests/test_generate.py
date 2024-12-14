@@ -130,3 +130,12 @@ class TestNURBS_Cuboid(DefaultTest):
       test_id = 'nurbs_cuboid'
       args = ['2', '7', '5', '0.333', '0.6789', '1.314159', '2', '3', '4']
       self.default_test(test_id, args)
+
+class TestCylindricalPanel(DefaultTest):
+   def default_test(self, test_id: str, args: list):
+      super().default_test('cyl_panel', 'dat', test_id, args)
+
+   def test_semi_cyl_panel(self):
+      test_id = 'semi_cyl_panel'
+      args = ['Q8', '5.0', '3', '5', '1.5', '180.0', '0.0']
+      self.default_test(test_id, args)

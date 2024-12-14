@@ -333,6 +333,25 @@ $ lmcv_tools generate cuboid [params] [path/to/nurbs_cuboid]
 | Ny           | int   | Number of Elements in Height. |
 | Nz           | int   | Number of Elements in Deep.   |
 
+#### 2.3.6 - Cylindrical Panel
+Cylindrical panels are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of cylindrical panels in .dat format.
+
+Proper Syntax:
+
+```text
+$ lmcv_tools generate cyl_panels [params] [path/to/cuboid]
+```
+
+| Parameters   | Type  | Description                     |
+| ---          |---    | ---                             |
+| Element Type | str   | Supported: Q8.                  |
+| Height       | float | Cuboid Height (y).              |
+| Nx           | int   | Number of Elements in Width.    |
+| Ny           | int   | Number of Elements in Height.   |
+| Radius       | float | Panel Raius.                    |
+| Start Angle  | float | Angle to start panel (Degrees). |
+| Stop Angle   | float | Angle to stop panel (Degrees).  |
+
 ### 2.4 - Reorder
 
 The command **reorder**, in short, aims to add a node solver order in .dat files to reduce the stiffiness matrix bandwidth and, consequently, the time spent to execute the simulation.

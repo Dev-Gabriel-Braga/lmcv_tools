@@ -83,7 +83,7 @@
       "usage": "generate [artifact name] [args] [path/to/artifact]",
       "topics": {
          "Possible Arguments": {
-            "[artifact name]": "Required argument. Name of the artifact. Supported artifacts: virtual_laminas, cuboid, nurbs_rectanle, nurbs_cuboid",
+            "[artifact name]": "Required argument. Name of the artifact. Supported artifacts: virtual_laminas, cuboid, nurbs_rectanle, nurbs_cuboid, cyl_panel",
             "[args]": "Series of arguments that depend on the artifact. See the topics bellow for more details",
             "[path/to/artifact]": "Optional argument. Relative path to artifact output files. If it is not given, it will be the file with the same name of artifact in the current directory"
          },
@@ -136,6 +136,15 @@
             "[Number of Elements in Width]": "Required integer argument",
             "[Number of Elements in Height]": "Required integer argument",
             "[Number of Elements in Deep]": "Required integer argument"
+         },
+         "Arguments for cyl_panel": {
+            "[Element Type]": "Required string argument. Supported element types: Q8",
+            "[Height]": "Required float point argument",
+            "[Number of Elements in Width]": "Required integer argument",
+            "[Number of Elements in Height]": "Required integer argument",
+            "[Radius]": "Required float point argument",
+            "[Start Angle]": "Required float point argument (Degrees)",
+            "[Stop Angle]": "Required float point argument (Degrees)"
          }
       }
    },

@@ -1,3 +1,4 @@
+from math import sin, cos, pi
 from ..interface import searcher
 from .simulation import (
    SimulationModel,
@@ -702,6 +703,145 @@ class NURBS_Cuboid(Artifact):
                   knot_span = [ks1 + 1, ks2 + 1, ks3 + 1]
                )
                ide += 1
+
+      # Escrevendo Dados do .dat
+      dati = DAT_Interpreter()
+      dati.model = self.model
+      self.data = dati.write()
+
+# --------------------------------------------------
+# 6 - Classes do Artefato "cyl_panel"
+# --------------------------------------------------
+class CylindricalPanel(Artifact):
+      # Funções de Geração de Coordenadas e Incidência de Elementos
+   def _q8_coordinates(self):
+      # Renomeando Atributos
+      height = self.height
+      nx, ny = self.discretization
+      R = self.radius
+      a1, a2 = self.angles
+
+      # Calculando Valores Necessários (Espaço Paramétrico)
+      delta_x = 1.0 / nx
+      delta_y = 1.0 / ny
+      x_values = [delta_x / 2 * i for i in range(2 * nx + 1)]
+      y_values = [delta_y / 2 * i for i in range(2 * ny + 1)]
+
+      # Gerando Coordenadas
+      ide = 1
+      for i_y, y in enumerate(y_values):
+         # Mudando Valores de x com base em y
+         xs = x_values if i_y % 2 == 0 else x_values[::2]
+
+         for x in xs:
+            # Convertendo Coordenadas do Espaço Paramétrico para o Real
+            theta = a1 + x * (a2 - a1)
+            x_r = R * cos(theta / 180 * pi)
+            z_r = R * sin(theta / 180 * pi)
+            y_r = y * height
+
+            self.model.add_node(ide, x_r, y_r, z_r)
+            ide += 1
+
+   def _q8_incidence(self, i: int) -> list[int]:
+      # Inicializando Variáveis
+      nx, _ = self.discretization
+      inc = [0] * 8
+      x_order = i % nx
+      if x_order == 0: x_order = nx
+      y_order = i // nx
+      if i % nx != 0: y_order += 1
+      
+      # Determinando Nó Inicial
+      inc[0] = (2 * x_order - 1) + (y_order - 1) * (3 * nx + 2)
+
+      # Determinando Restante da Incidência
+      inc[1] = inc[0] + 1
+      inc[2] = inc[0] + 2
+      inc[3] = inc[0] + 2 * nx + 3 - x_order
+      inc[4] = inc[3] + nx + 1 + x_order
+      inc[5] = inc[4] - 1
+      inc[6] = inc[4] - 2
+      inc[7] = inc[3] - 1
+
+      # Ordenando Conforme o FAST
+      fast_order = [0, 1, 2, 3, 4, 5, 6, 7]
+      inc = [inc[i] for i in fast_order]
+
+      return inc
+
+   # Elementos Suportados
+   supported_elements = {
+      'Q8': {
+         'coordinates': _q8_coordinates,
+         'incidence': _q8_incidence
+      }
+   }
+
+   def __init__(
+      self,
+      element_type: str,
+      height: float,
+      discretization: list[int],
+      radius: float,
+      angles: list[float]
+   ):
+      # Chamando Construtor da Superclasse
+      super().__init__('cyl_panel', 'dat')
+
+      # Verificando se Tipo de Elemento Fornecido é Suportado
+      if element_type not in CylindricalPanel.supported_elements.keys():
+         raise ValueError(f'Element Type "{element_type}" is not supported for rectangle generation.')   
+
+      # Verificando se os Parâmetros foram passados Corretamente
+      if len(discretization) != 2:
+         raise ValueError('A Cylindrical Panel needs exactly 2 discretization values (number of elements in width and height).')
+      if len(angles) != 2:
+         raise ValueError('A Cylindrical Panel needs exactly 2 angle values (start angle and stop angle).')
+
+      # Atribuindo Atributos
+      self.element_type = element_type
+      self.height = height
+      self.discretization = discretization
+      self.radius = radius
+      self.angles = angles
+      self.model = SimulationModel()
+      self._coordinates = CylindricalPanel.supported_elements[element_type]['coordinates']
+      self._incidence = CylindricalPanel.supported_elements[element_type]['incidence']
+      self.reference = searcher.get_database('translation_reference')
+
+   def coordinates(self):
+      return self._coordinates(self)
+   
+   def incidence(self, i: int) -> list[int]:
+      return self._incidence(self, i)
+   
+   def geometry(self) -> int:
+      element_info = self.reference['dat']['elements'][self.element_type]
+      return self.model.add_element_geometry(**element_info)
+
+   def generate(self):
+      # Renomeando Atributos
+      nx, ny = self.discretization
+
+      # Gerando Coordenadas e Nodes
+      self.coordinates()
+
+      # Configurações dos Elementos
+      geometry_ide = self.geometry()
+      self.model.add_element_group(1, geometry_ide, None)
+
+      # Gerando Elementos
+      for i in range(nx * ny):
+         # Gerando Incidência
+         nodal_incidence = self.incidence(i + 1)
+
+         # Cadastrando Elemento
+         self.model.add_element(
+            group_ide = 1,
+            ide = i + 1,
+            node_ides = nodal_incidence
+         )
 
       # Escrevendo Dados do .dat
       dati = DAT_Interpreter()

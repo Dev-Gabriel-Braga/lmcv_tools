@@ -8,7 +8,8 @@ from ..models.artifacts import (
    Rectangle,
    Cuboid,
    NURBS_Rectangle,
-   NURBS_Cuboid
+   NURBS_Cuboid,
+   CylindricalPanel
 )
 from ..models.simulation import (
    IsotropicMaterial,
@@ -111,6 +112,22 @@ def generate_nurbs_cuboid(
    # Retornando Artefato
    return nurbs_cuboid
 
+def generate_cyl_panel(
+   element_type: str,
+   height: float,
+   discretization: list[int],
+   radius: float,
+   angles: list[float]
+) -> CylindricalPanel:
+   # Instanciando Artefato
+   cyl_panel = CylindricalPanel(element_type, height, discretization, radius, angles)
+
+   # Gerando Artefato
+   cyl_panel.generate()
+
+   # Retornando Artefato
+   return cyl_panel
+
 # Funções de Parâmetros de Artefatos
 def params_virtual_laminas(args: list[str]) -> dict:
    # Iniciando Parâmetros
@@ -194,6 +211,28 @@ def params_nurbs_cuboid(args: list[str]) -> dict:
    
    return params, args[9:]
 
+def params_cyl_panel(args: list[str]) -> dict:
+   # Iniciando Parâmetros
+   params = dict()
+
+   # Tentando Converter Tipos de Dados
+   try:
+      params['element_type'] = args[0]
+   except IndexError:
+      raise ValueError(f'A Cylindrical Panel needs an element type.')
+   try:
+      params['height'] = float(args[1])
+   except IndexError:
+      raise ValueError(f'A Cylindrical Panel needs a height.')
+   params['discretization'] = list(map(int, args[2:4]))
+   try:
+      params['radius'] = float(args[4])
+   except IndexError:
+      raise ValueError(f'A Cylindrical Panel needs a radius.')
+   params['angles'] = list(map(float, args[5:7]))
+   
+   return params, args[7:]
+
 # Relação Artefato/Funções
 artifacts = {
    'virtual_laminas': {
@@ -215,6 +254,10 @@ artifacts = {
    'nurbs_cuboid': {
       'params': params_nurbs_cuboid,
       'generate': generate_nurbs_cuboid
+   },
+   'cyl_panel': {
+      'params': params_cyl_panel,
+      'generate': generate_cyl_panel
    }
 }
 
