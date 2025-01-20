@@ -139,3 +139,12 @@ class TestCylindricalPanel(DefaultTest):
       test_id = 'semi_cyl_panel'
       args = ['Q8', '5.0', '3', '5', '1.5', '180.0', '0.0']
       self.default_test(test_id, args)
+
+class TestSlitAnnularPlate(DefaultTest):
+   def default_test(self, test_id: str, args: list):
+      super().default_test('slit_annular_plate', 'dat', test_id, args)
+
+   def test_semi_cyl_panel(self):
+      test_id = 'q8_6_10_2x6'
+      args = ['Q8', '6', '10', '2', '6']
+      self.default_test(test_id, args)

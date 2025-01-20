@@ -264,7 +264,7 @@ Rectangles are geometric shapes frequently used in simulation tests. Therefore, 
 Proper Syntax:
 
 ```text
-$ lmcv_tools generate rectangles [params] [path/to/cuboid]
+$ lmcv_tools generate rectangle [params] [path/to/rectangle]
 ```
 
 | Parameters   | Type  | Description                   |
@@ -300,7 +300,7 @@ NURBS Rectangles are geometric shapes frequently used in simulation tests. There
 Proper Syntax:
 
 ```text
-$ lmcv_tools generate cuboid [params] [path/to/nurbs_rectangle]
+$ lmcv_tools generate nurbs_rectangle [params] [path/to/nurbs_rectangle]
 ```
 
 | Parameters   | Type  | Description                   |
@@ -318,7 +318,7 @@ NURBS Cuboids are geometric shapes frequently used in simulation tests. Therefor
 Proper Syntax:
 
 ```text
-$ lmcv_tools generate cuboid [params] [path/to/nurbs_cuboid]
+$ lmcv_tools generate nurbs_cuboid [params] [path/to/nurbs_cuboid]
 ```
 
 | Parameters   | Type  | Description                   |
@@ -339,7 +339,7 @@ Cylindrical panels are geometric shapes frequently used in simulation tests. The
 Proper Syntax:
 
 ```text
-$ lmcv_tools generate cyl_panels [params] [path/to/cuboid]
+$ lmcv_tools generate cyl_panel [params] [path/to/cyl_panel]
 ```
 
 | Parameters   | Type  | Description                     |
@@ -348,9 +348,26 @@ $ lmcv_tools generate cyl_panels [params] [path/to/cuboid]
 | Height       | float | Cuboid Height (y).              |
 | Nx           | int   | Number of Elements in Width.    |
 | Ny           | int   | Number of Elements in Height.   |
-| Radius       | float | Panel Raius.                    |
+| Radius       | float | Panel Radius.                   |
 | Start Angle  | float | Angle to start panel (Degrees). |
 | Stop Angle   | float | Angle to stop panel (Degrees).  |
+
+#### 2.3.7 - Slit Annular Plate
+Slit annular plates are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of cylindrical panels in .dat format.
+
+Proper Syntax:
+
+```text
+$ lmcv_tools generate slit_annular_plate [params] [path/to/slit_annular_plate]
+```
+
+| Parameters   | Type  | Description                             |
+| ---          |---    | ---                                     |
+| Element Type | str   | Supported: Q8.                          |
+| Inner Radius | float | Plate Inner Radius.                     |
+| Outer Radius | float | Plate Outer Radius.                     |
+| Nr           | int   | Number of Elements along Radius.        |
+| Nc           | int   | Number of Elements along Circunference. |
 
 ### 2.4 - Reorder
 

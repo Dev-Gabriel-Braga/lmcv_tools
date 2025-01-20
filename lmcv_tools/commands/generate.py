@@ -9,7 +9,8 @@ from ..models.artifacts import (
    Cuboid,
    NURBS_Rectangle,
    NURBS_Cuboid,
-   CylindricalPanel
+   CylindricalPanel,
+   SlitAnnularPlate
 )
 from ..models.simulation import (
    IsotropicMaterial,
@@ -128,6 +129,21 @@ def generate_cyl_panel(
    # Retornando Artefato
    return cyl_panel
 
+def generate_slit_annular_plate(
+   element_type: str,
+   inner_radius: float,
+   outer_radius: float,
+   discretization: list[int]
+) -> SlitAnnularPlate:
+   # Instanciando Artefato
+   slit_annular_plate = SlitAnnularPlate(element_type, inner_radius, outer_radius, discretization)
+
+   # Gerando Artefato
+   slit_annular_plate.generate()
+
+   # Retornando Artefato
+   return slit_annular_plate
+
 # Funções de Parâmetros de Artefatos
 def params_virtual_laminas(args: list[str]) -> dict:
    # Iniciando Parâmetros
@@ -233,6 +249,27 @@ def params_cyl_panel(args: list[str]) -> dict:
    
    return params, args[7:]
 
+def params_slit_annular_plate(args: list[str]) -> dict:
+   # Iniciando Parâmetros
+   params = dict()
+
+   # Tentando Converter Tipos de Dados
+   try:
+      params['element_type'] = args[0]
+   except IndexError:
+      raise ValueError(f'A Slit Annular Plate needs an element type.')
+   try:
+      params['inner_radius'] = float(args[1])
+   except IndexError:
+      raise ValueError(f'A Slit Annular Plate Panel needs a inner radius.')
+   try:
+      params['outer_radius'] = float(args[2])
+   except IndexError:
+      raise ValueError(f'A Slit Annular Plate Panel needs a outer radius.')
+   params['discretization'] = list(map(int, args[3:5]))
+   
+   return params, args[5:]
+
 # Relação Artefato/Funções
 artifacts = {
    'virtual_laminas': {
@@ -258,6 +295,10 @@ artifacts = {
    'cyl_panel': {
       'params': params_cyl_panel,
       'generate': generate_cyl_panel
+   },
+   'slit_annular_plate': {
+      'params': params_slit_annular_plate,
+      'generate': generate_slit_annular_plate
    }
 }
 
