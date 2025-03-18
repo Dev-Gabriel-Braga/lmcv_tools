@@ -138,7 +138,7 @@
             "[Number of Elements in Deep]": "Required integer argument"
          },
          "Arguments for cyl_panel": {
-            "[Element Type]": "Required string argument. Supported element types: Q8",
+            "[Element Type]": "Required string argument. Supported element types: Q8, Q4",
             "[Height]": "Required float point argument",
             "[Number of Elements in Width]": "Required integer argument",
             "[Number of Elements in Height]": "Required integer argument",

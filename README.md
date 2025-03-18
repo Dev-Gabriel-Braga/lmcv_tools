@@ -344,7 +344,7 @@ $ lmcv_tools generate cyl_panel [params] [path/to/cyl_panel]
 
 | Parameters   | Type  | Description                     |
 | ---          |---    | ---                             |
-| Element Type | str   | Supported: Q8.                  |
+| Element Type | str   | Supported: Q8, Q4.              |
 | Height       | float | Cuboid Height (y).              |
 | Nx           | int   | Number of Elements in Width.    |
 | Ny           | int   | Number of Elements in Height.   |

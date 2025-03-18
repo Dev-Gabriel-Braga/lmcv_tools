@@ -713,7 +713,7 @@ class NURBS_Cuboid(Artifact):
 # 6 - Classes do Artefato "cyl_panel"
 # --------------------------------------------------
 class CylindricalPanel(Artifact):
-      # Funções de Geração de Coordenadas e Incidência de Elementos
+   # Funções de Geração de Coordenadas e Incidência de Elementos
    def _q8_coordinates(self):
       # Renomeando Atributos
       height = self.height
@@ -769,12 +769,65 @@ class CylindricalPanel(Artifact):
       inc = [inc[i] for i in fast_order]
 
       return inc
+   
+   def _q4_coordinates(self):
+      # Renomeando Atributos
+      height = self.height
+      nx, ny = self.discretization
+      R = self.radius
+      a1, a2 = self.angles
+
+      # Calculando Valores Necessários (Espaço Paramétrico)
+      delta_x = 1.0 / nx
+      delta_y = 1.0 / ny
+      x_values = [delta_x * i for i in range(nx + 1)]
+      y_values = [delta_y * i for i in range(ny + 1)]
+
+      # Gerando Coordenadas
+      ide = 1
+      for y in y_values:
+         for x in x_values:
+            # Convertendo Coordenadas do Espaço Paramétrico para o Real
+            theta = a1 + x * (a2 - a1)
+            x_r = R * cos(theta / 180 * pi)
+            z_r = R * sin(theta / 180 * pi)
+            y_r = y * height
+
+            self.model.add_node(ide, x_r, y_r, z_r)
+            ide += 1
+
+   def _q4_incidence(self, i: int) -> list[int]:
+      # Inicializando Variáveis
+      nx, _ = self.discretization
+      inc = [0] * 4
+      x_order = i % nx
+      if x_order == 0: x_order = nx
+      y_order = i // nx
+      if i % nx != 0: y_order += 1
+      
+      # Determinando Nó Inicial
+      inc[0] = (x_order) + (y_order - 1) * (nx + 1)
+
+      # Determinando Restante da Incidência
+      inc[1] = inc[0] + 1
+      inc[2] = inc[0] + (nx + 1)
+      inc[3] = inc[2] + 1
+
+      # Ordenando Conforme o FAST
+      fast_order = [0, 1, 3, 2]
+      inc = [inc[i] for i in fast_order]
+
+      return inc
 
    # Elementos Suportados
    supported_elements = {
       'Q8': {
          'coordinates': _q8_coordinates,
          'incidence': _q8_incidence
+      },
+      'Q4': {
+         'coordinates': _q4_coordinates,
+         'incidence': _q4_incidence
       }
    }
 
