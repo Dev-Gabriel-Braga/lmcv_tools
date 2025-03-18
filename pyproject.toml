@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "lmcv_tools"
-version = "0.0.28"
+version = "0.0.29"
 authors = [
   { name = "Dev-Gabriel-Braga", email = "gabriel.braga.matos@gmail.com" },
 ]
