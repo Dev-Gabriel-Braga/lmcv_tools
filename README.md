@@ -369,6 +369,24 @@ $ lmcv_tools generate slit_annular_plate [params] [path/to/slit_annular_plate]
 | Nr           | int   | Number of Elements along Radius.        |
 | Nc           | int   | Number of Elements along Circunference. |
 
+#### 2.3.8 - NURBS Slit Annular Plate
+NURBS slit annular plates are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of cylindrical panels in .dat format.
+
+Proper Syntax:
+
+```text
+$ lmcv_tools generate nurbs_slit_annular_plate [params] [path/to/nurbs_slit_annular_plate]
+```
+
+| Parameters   | Type  | Description                                     |
+| ---          |---    | ---                                             |
+| Inner Radius | float | Plate Inner Radius.                             |
+| Outer Radius | float | Plate Outer Radius.                             |
+| Dr           | int   | Element Degree along Radius.                    |
+| Dc           | int   | Element Degree along Circunference quarter.     |
+| Nr           | int   | Number of Elements along Radius.                |
+| Nc           | int   | Number of Elements along Circunference quarter. |
+
 ### 2.4 - Reorder
 
 The command **reorder**, in short, aims to add a node solver order in .dat files to reduce the stiffiness matrix bandwidth and, consequently, the time spent to execute the simulation.

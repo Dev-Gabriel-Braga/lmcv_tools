@@ -1,3 +1,4 @@
+import copy
 from math import sin, cos, pi
 from ..interface import searcher
 from .simulation import (
@@ -710,7 +711,7 @@ class NURBS_Cuboid(Artifact):
       self.data = dati.write()
 
 # --------------------------------------------------
-# 6 - Classes do Artefato "cyl_panel"
+# 7 - Classes do Artefato "cyl_panel"
 # --------------------------------------------------
 class CylindricalPanel(Artifact):
    # Funções de Geração de Coordenadas e Incidência de Elementos
@@ -902,7 +903,7 @@ class CylindricalPanel(Artifact):
       self.data = dati.write()
 
 # --------------------------------------------------
-# 6 - Classes do Artefato "slit_annular_plate"
+# 8 - Classes do Artefato "slit_annular_plate"
 # --------------------------------------------------
 class SlitAnnularPlate(Artifact):
       # Funções de Geração de Coordenadas e Incidência de Elementos
@@ -1030,6 +1031,172 @@ class SlitAnnularPlate(Artifact):
             ide = i + 1,
             node_ides = nodal_incidence
          )
+
+      # Escrevendo Dados do .dat
+      dati = DAT_Interpreter()
+      dati.model = self.model
+      self.data = dati.write()
+
+# --------------------------------------------------
+# 9 - Classes do Artefato "nurbs_slit_annular_plate"
+# --------------------------------------------------
+class NURBS_SlitAnnularPlate(Artifact):
+   def __init__(
+      self,
+      inner_radius: float,
+      outer_radius: float,
+      degrees: list[int],
+      discretization: list[int]
+   ):
+      # Chamando Construtor da Superclasse
+      super().__init__('nurbs_slit_annular_plate', 'dat')
+
+      # Verificando se o número de dimensões e discretização foram passadas corretamente
+      if len(degrees) != 2:
+         raise ValueError('A NURBS Slit Annular Plate needs exactly 2 degrees (along radius and circumference quarter).')
+      if degrees[1] < 2:
+         raise ValueError('A NURBS Slit Annular Plate a degree >= 2 along circumference.')
+      if len(discretization) != 2:
+         raise ValueError('A NURBS Slit Annular Plate needs exactly 2 discretization values (number of elements along radius and circumference quarter).')
+
+      # Atribuindo Atributos
+      self.inner_radius = inner_radius
+      self.outer_radius = outer_radius
+      self.degrees = degrees
+      self.discretization = discretization
+      self.model = SimulationModel()
+
+   def coordinates(self) -> list[NURBS_Curve]:
+      # Renomeando Atributos
+      r_i, r_o = self.inner_radius, self.outer_radius
+      dx, dy = self.degrees
+      nx, ny = self.discretization
+
+      # Calculando raios paramétricos necessários (Direção u)
+      nurbs_x = NURBS_Curve(1, [0, 0, 1, 1], [[r_i], [r_o]], [1.0, 1.0])
+      nurbs_x.degree_elevation(dx - 1)
+      x_knots = [i / nx for i in range(1, nx)]
+      nurbs_x.knot_insertions(x_knots)
+      radius = [cp[0] for cp in nurbs_x.control_points]
+
+      # Calculando pontos de raio unitário (Direção v)
+      # Fase 1 - Um quarto da geometria
+      quarter = NURBS_Curve(
+         degree = 2,
+         knot_vector = [0, 0, 0, 1, 1, 1],
+         control_points = [
+            [1.0, 0.0],
+            [1.0, 1.0],
+            [0.0, 1.0],
+         ],
+         weights = [
+            1.0,
+            (2 ** 0.5 / 2),
+            1.0
+         ]
+      )
+
+      # Fase 2 - Elevação de grau
+      quarter.degree_elevation(dy - 2)
+
+      # Fase 3 - Discretização
+      y_knots = [i / ny for i in range(1, ny)]
+      quarter.knot_insertions(y_knots)
+
+      # Fase 4 - Composição da geometria completa
+      # Fase 4.1 - Weights
+      weights = quarter.weights.copy()
+      repeat = weights[1:]
+      for _ in range(3):
+         weights.extend(repeat)
+
+      # Fase 4.2 - Knot Vector
+      repeat = [k / 4 for k in y_knots] + [1/4] * dy
+      knot_vector = [0] * (1 + quarter.basis.degree)
+      for _ in range(4):
+         knot_vector.extend(repeat)
+         repeat = [k + 1/4 for k in repeat]
+      knot_vector = knot_vector[:-dy]
+      knot_vector.extend([1] * (1 + quarter.basis.degree))
+
+      # Fase 4.3 - Control Points
+      control_points = copy.deepcopy(quarter.control_points)
+      repeat = copy.deepcopy(control_points)
+      repeat = repeat[-2::-1]
+      for i in range(len(repeat)):
+         repeat[i][0] = -repeat[i][0]
+      control_points.extend(repeat)
+      repeat = copy.deepcopy(control_points)
+      repeat = repeat[-2::-1]
+      for i in range(len(repeat)):
+         repeat[i][1] = -repeat[i][1]
+      control_points.extend(repeat)
+
+      # Fase 4.4 - Efetivando criação do círculo
+      degree = quarter.basis.degree
+      nurbs_y = NURBS_Curve(degree, knot_vector, control_points, weights)
+
+      # Gerando Coordenadas
+      ide = 1
+      for unit_point, w in zip(nurbs_y.control_points, nurbs_y.weights):
+         for r in radius:
+            x = unit_point[0] * r
+            y = unit_point[1] * r
+            self.model.add_node(ide, x, y, 0.0, w)
+            ide += 1
+
+      return nurbs_x, nurbs_y
+
+   def generate(self):
+      # Renomeando Atributos
+      dx, dy = self.degrees
+      nx, ny = self.discretization
+      ny *= 4
+
+      # Gerando Coordenadas e Nodes
+      nurbs_x, nurbs_y = self.coordinates()
+
+      # Configurações dos Elementos
+      node_space = list(
+         map(
+            lambda n: n + 1,
+            range(len(self.model.nodes))
+         )
+      )
+      geometry_ide = self.model.add_element_geometry(
+         shape = 'Quadrilateral',
+         base = 'BSpline',
+         grade = [nurbs_x.basis.degree, nurbs_y.basis.degree],
+         n_nodes = (nurbs_x.basis.degree + 1) * (nurbs_y.basis.degree + 1),
+         n_dimensions = 2,
+         knot_vectors = [nurbs_x.basis.knot_vector, nurbs_y.basis.knot_vector],
+         node_space = node_space,
+      )
+      self.model.add_element_group(1, geometry_ide, 'ShallowShell')
+
+      # Gerando Matriz do Node Space
+      node_space_matrix = list()
+      for i in range(0, len(node_space), nx + dx):
+         node_space_matrix.append(node_space[i:i + nx + dx])
+
+      # Gerando Elementos
+      ide = 1
+      for ks2 in range(ny):
+         for ks1 in range(nx):
+            # Determinando Nodes do Elemento
+            node_ides = list()
+            for i in range(ks2, ks2 + dy + 1):
+               for j in range(ks1, ks1 + dx + 1):
+                  node_ides.append(node_space_matrix[i][j])
+
+            # Cadastrando Elemento
+            self.model.add_element(
+               group_ide = 1,
+               ide = ide,
+               node_ides = node_ides,
+               knot_span = [ks1 + 1, ks2 + 1]
+            )
+            ide += 1
 
       # Escrevendo Dados do .dat
       dati = DAT_Interpreter()
