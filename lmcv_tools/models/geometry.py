@@ -246,7 +246,7 @@ class NURBS_Curve(BSpline_Curve):
 
         # Calculando Denominador Comum da NURBS
         D = sum([
-            self.basis(self.degree, i, t) * self.weights[i]
+            self.basis(self.basis.degree, i, t) * self.weights[i]
             for i in range(self.basis.n_basis)
         ])
 

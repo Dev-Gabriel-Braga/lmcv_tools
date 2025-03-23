@@ -149,7 +149,16 @@ class TestSlitAnnularPlate(DefaultTest):
    def default_test(self, test_id: str, args: list):
       super().default_test('slit_annular_plate', 'dat', test_id, args)
 
-   def test_semi_cyl_panel(self):
+   def test_slit_annular_plate(self):
       test_id = 'q8_6_10_2x6'
       args = ['Q8', '6', '10', '2', '6']
+      self.default_test(test_id, args)
+   
+class TestNURBS_SlitAnnularPlate(DefaultTest):
+   def default_test(self, test_id: str, args: list):
+      super().default_test('nurbs_slit_annular_plate', 'dat', test_id, args)
+
+   def test_nurbs_slit_annular_plate(self):
+      test_id = '6_10_2x2_2x2'
+      args = ['6', '10', '2', '2', '2', '2']
       self.default_test(test_id, args)
