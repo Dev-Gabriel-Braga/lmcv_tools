@@ -28,6 +28,20 @@ class BSpline_Basis:
         elif i >= (k + 1):
             alpha = 0
         return alpha
+    
+    def knot_spans(self):
+        p = self.degree
+        for i in range(len(self.knot_vector) - p - 1):
+            k1 = self.knot_vector[i]
+            k2 = self.knot_vector[i + p + 1]
+            yield (k1, k2)
+
+    def not_null_spans(self, t: float):
+        not_null_knot_spans = list()
+        for i, (k1, k2) in enumerate(self.knot_spans()):
+            if t >= k1 and t <= k2:
+                not_null_knot_spans.append(i)
+        return not_null_knot_spans
 
     def __call__(self, p: int, i: int, t: float):
         # Recursão - Caso Base
@@ -129,7 +143,7 @@ class BSpline_Curve:
         for d in range(self.dimension):
             point.append(sum([
                 self.basis(self.basis.degree, i, t) * self.control_points[i][d]
-                for i in range(self.basis.n_basis)
+                for i in self.basis.not_null_spans(t)
             ]))
         return point
     
@@ -153,8 +167,8 @@ class BSpline_Surface:
                     self.basis[1](self.degree[1], j, v) *
                     self.control_points[i][j][d]
                 )
-                for j in range(self.n_basis[1])
-                for i in range(self.n_basis[0])
+                for j in self.basis[1].not_null_spans(v)
+                for i in self.basis[0].not_null_spans(u)
             ]))
         return point
 
@@ -254,7 +268,7 @@ class NURBS_Curve(BSpline_Curve):
         for d in range(self.dimension):
             N = sum([
                 self.basis(self.basis.degree, i, t) * self.control_points[i][d] * self.weights[i]
-                for i in range(self.basis.n_basis)
+                for i in self.basis.not_null_spans(t)
             ])
             point.append(N / D)
         
@@ -273,14 +287,18 @@ class NURBS_Surface(BSpline_Surface):
         
     def __call__(self, u: float, v: float) -> list[float]:
         point = list()
+        
+        # Calculando índices de Knot Spans não nulos
+        U_not_null_knot_spans = self.basis[0].not_null_spans(u)
+        V_not_null_knot_spans = self.basis[1].not_null_spans(v)
 
         # Calculando Denominador Comum da NURBS
         D = sum([
             self.basis[0](self.basis[0].degree, i, u) *
             self.basis[1](self.basis[1].degree, j, v) *
             self.weights[i][j]
-            for j in range(self.basis[1].n_basis)
-            for i in range(self.basis[0].n_basis)
+            for j in V_not_null_knot_spans
+            for i in U_not_null_knot_spans
         ])
 
         for d in range(self.dimension):
@@ -291,8 +309,8 @@ class NURBS_Surface(BSpline_Surface):
                     self.control_points[i][j][d] *
                     self.weights[i][j]
                 )
-                for j in range(self.basis[1].n_basis)
-                for i in range(self.basis[0].n_basis)
+                for j in V_not_null_knot_spans
+                for i in U_not_null_knot_spans
             ])
             point.append(N / D)
         return point
