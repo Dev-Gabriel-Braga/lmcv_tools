@@ -1,5 +1,5 @@
 import copy
-from math import sin, cos, pi
+from math import sin, cos, tan, atan2, sqrt, pi
 from ..interface import searcher
 from .simulation import (
    SimulationModel,
@@ -1055,7 +1055,7 @@ class NURBS_SlitAnnularPlate(Artifact):
       if len(degrees) != 2:
          raise ValueError('A NURBS Slit Annular Plate needs exactly 2 degrees (along radius and circumference quarter).')
       if degrees[1] < 2:
-         raise ValueError('A NURBS Slit Annular Plate a degree >= 2 along circumference.')
+         raise ValueError('A NURBS Slit Annular Plate needs a degree >= 2 along circumference.')
       if len(discretization) != 2:
          raise ValueError('A NURBS Slit Annular Plate needs exactly 2 discretization values (number of elements along radius and circumference quarter).')
 
@@ -1152,6 +1152,153 @@ class NURBS_SlitAnnularPlate(Artifact):
       dx, dy = self.degrees
       nx, ny = self.discretization
       ny *= 4
+
+      # Gerando Coordenadas e Nodes
+      nurbs_x, nurbs_y = self.coordinates()
+
+      # Configurações dos Elementos
+      node_space = list(
+         map(
+            lambda n: n + 1,
+            range(len(self.model.nodes))
+         )
+      )
+      geometry_ide = self.model.add_element_geometry(
+         shape = 'Quadrilateral',
+         base = 'BSpline',
+         grade = [nurbs_x.basis.degree, nurbs_y.basis.degree],
+         n_nodes = (nurbs_x.basis.degree + 1) * (nurbs_y.basis.degree + 1),
+         n_dimensions = 2,
+         knot_vectors = [nurbs_x.basis.knot_vector, nurbs_y.basis.knot_vector],
+         node_space = node_space,
+      )
+      self.model.add_element_group(1, geometry_ide, 'ShallowShell')
+
+      # Gerando Matriz do Node Space
+      node_space_matrix = list()
+      for i in range(0, len(node_space), nx + dx):
+         node_space_matrix.append(node_space[i:i + nx + dx])
+
+      # Gerando Elementos
+      ide = 1
+      for ks2 in range(ny):
+         for ks1 in range(nx):
+            # Determinando Nodes do Elemento
+            node_ides = list()
+            for i in range(ks2, ks2 + dy + 1):
+               for j in range(ks1, ks1 + dx + 1):
+                  node_ides.append(node_space_matrix[i][j])
+
+            # Cadastrando Elemento
+            self.model.add_element(
+               group_ide = 1,
+               ide = ide,
+               node_ides = node_ides,
+               knot_span = [ks1 + 1, ks2 + 1]
+            )
+            ide += 1
+
+      # Escrevendo Dados do .dat
+      dati = DAT_Interpreter()
+      dati.model = self.model
+      self.data = dati.write()
+
+# --------------------------------------------------
+# 10 - Classes do Artefato "nurbs_hemisfere"
+# --------------------------------------------------
+class NURBS_Hemisfere(Artifact):
+   def __init__(
+      self,
+      radius: float,
+      pole_angle: float,
+      degrees: list[int],
+      discretization: list[int]
+   ):
+      # Chamando Construtor da Superclasse
+      super().__init__('nurbs_hemisfere', 'dat')
+
+      # Verificando se o número de dimensões e discretização foram passadas corretamente
+      if len(degrees) != 2:
+         raise ValueError('A NURBS Hemisfere needs exactly 2 degrees (along radius and circumference quarter).')
+      if degrees[0] < 2 or degrees[1] < 2:
+         raise ValueError('A NURBS Hemisfere needs a degree >= 2.')
+      if len(discretization) != 2:
+         raise ValueError('A NURBS Hemisfere needs exactly 2 discretization values.')
+
+      # Atribuindo Atributos
+      self.radius = radius
+      self.pole_angle = pole_angle
+      self.degrees = degrees
+      self.discretization = discretization
+      self.model = SimulationModel()
+
+   def coordinates(self) -> list[NURBS_Curve]:
+      # Renomeando Atributos
+      r = self.radius
+      theta = self.pole_angle
+      theta = theta / 180 * pi
+      dx, dy = self.degrees
+      nx, ny = self.discretization
+
+      # Fase 1 - Quarto de círculo xy
+      nurbs_x = NURBS_Curve(
+         degree = 2,
+         knot_vector = [0, 0, 0, 1, 1, 1],
+         control_points = [
+            [r, 0.0],
+            [r, r],
+            [0.0, r],
+         ],
+         weights = [
+            1.0,
+            sqrt(2) / 2,
+            1.0
+         ]
+      )
+      nurbs_x.degree_elevation(dx - 2)
+      x_knots = [i / nx for i in range(1, nx)]
+      nurbs_x.knot_insertions(x_knots)
+
+      # Fase 2 - Arco de cículo xz
+      nurbs_y = NURBS_Curve(
+         degree = 2,
+         knot_vector = [0, 0, 0, 1, 1, 1],
+         control_points = [
+            [r, 0.0],
+            [r, r * tan(theta / 2)],
+            [r * cos(theta), r * sin(theta)],
+         ],
+         weights = [
+            1.0,
+            cos(theta / 2),
+            1.0
+         ]
+      )
+      nurbs_y.degree_elevation(dy - 2)
+      y_knots = [i / nx for i in range(1, ny)]
+      nurbs_y.knot_insertions(y_knots)
+
+      # Fase 3 - Gerando coordenadas
+      ide = 1  
+      for p1, w1 in zip(nurbs_y.control_points, nurbs_y.weights):
+         r_factor = p1[0] / r
+         for p2, w2 in zip(nurbs_x.control_points, nurbs_x.weights):
+            angle = atan2(p2[1], p2[0])
+            quarter_radius = (p2[0] ** 2 + p2[1] ** 2) ** 0.5
+            radius = quarter_radius * r_factor
+            x = radius * cos(angle)
+            y = radius * sin(angle)
+            z = p1[1]
+            w = w1 * w2
+            self.model.add_node(ide, x, y, z, w)
+            ide += 1
+
+      return nurbs_x, nurbs_y
+
+   def generate(self):
+      # Renomeando Atributos
+      dx, dy = self.degrees
+      nx, ny = self.discretization
 
       # Gerando Coordenadas e Nodes
       nurbs_x, nurbs_y = self.coordinates()

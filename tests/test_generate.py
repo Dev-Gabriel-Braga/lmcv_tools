@@ -162,3 +162,12 @@ class TestNURBS_SlitAnnularPlate(DefaultTest):
       test_id = '6_10_2x2_2x2'
       args = ['6', '10', '2', '2', '2', '2']
       self.default_test(test_id, args)
+
+class TestNURBS_Hemisfere(DefaultTest):
+   def default_test(self, test_id: str, args: list):
+      super().default_test('nurbs_hemisfere', 'dat', test_id, args)
+
+   def test_nurbs_hemisfere(self):
+      test_id = '10_72_2x2_2x2'
+      args = ['10', '72.0', '2', '2', '2', '2']
+      self.default_test(test_id, args)

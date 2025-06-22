@@ -160,6 +160,14 @@
             "[Element Degree along Circumference quarter]": "Required integer argument",
             "[Number of Elements along Radius]": "Required integer argument",
             "[Number of Elements along Circumference quarter]": "Required integer argument"
+         },
+         "Arguments for nurbs_hemisfere": {
+            "[Radius]": "Required float point argument",
+            "[Pole Angle]": "Required float point argument",
+            "[Element Degree along Longitudinal Circunference]": "Required integer argument",
+            "[Element Degree along Transversal Circunference]": "Required integer argument",
+            "[Number of Elements along Longitudinal Circunference]": "Required integer argument",
+            "[Number of Elements along Transversal Circunference]": "Required integer argument"
          }
       }
    },

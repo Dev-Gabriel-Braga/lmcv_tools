@@ -11,7 +11,8 @@ from ..models.artifacts import (
    NURBS_Cuboid,
    CylindricalPanel,
    SlitAnnularPlate,
-   NURBS_SlitAnnularPlate
+   NURBS_SlitAnnularPlate,
+   NURBS_Hemisfere,
 )
 from ..models.simulation import (
    IsotropicMaterial,
@@ -160,6 +161,21 @@ def generate_nurbs_slit_annular_plate(
    # Retornando Artefato
    return nurbs_slit_annular_plate
 
+def generate_nurbs_hemisfere(
+   radius: float,
+   pole_angle: float,
+   degrees: list[int],
+   discretization: list[int]
+) -> NURBS_Hemisfere:
+   # Instanciando Artefato
+   nurbs_hemisfere = NURBS_Hemisfere(radius, pole_angle, degrees, discretization)
+
+   # Gerando Artefato
+   nurbs_hemisfere.generate()
+
+   # Retornando Artefato
+   return nurbs_hemisfere
+
 # Funções de Parâmetros de Artefatos
 def params_virtual_laminas(args: list[str]) -> dict:
    # Iniciando Parâmetros
@@ -304,6 +320,24 @@ def params_nurbs_slit_annular_plate(args: list[str]) -> dict:
    
    return params, args[6:]
 
+def params_nurbs_hemisfere(args: list[str]) -> dict:
+   # Iniciando Parâmetros
+   params = dict()
+
+   # Tentando Converter Tipos de Dados
+   try:
+      params['radius'] = float(args[0])
+   except IndexError:
+      raise ValueError(f'A NURBS Hemisfere needs a radius.')
+   try:
+      params['pole_angle'] = float(args[1])
+   except IndexError:
+      raise ValueError(f'A NURBS Hemisfere needs a pole angle.')
+   params['degrees'] = list(map(int, args[2:4]))
+   params['discretization'] = list(map(int, args[4:6]))
+   
+   return params, args[6:]
+
 # Relação Artefato/Funções
 artifacts = {
    'virtual_laminas': {
@@ -337,6 +371,10 @@ artifacts = {
    'nurbs_slit_annular_plate': {
       'params': params_nurbs_slit_annular_plate,
       'generate': generate_nurbs_slit_annular_plate
+   },
+   'nurbs_hemisfere': {
+      'params': params_nurbs_hemisfere,
+      'generate': generate_nurbs_hemisfere
    }
 }
 

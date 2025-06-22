@@ -353,7 +353,7 @@ $ lmcv_tools generate cyl_panel [params] [path/to/cyl_panel]
 | Stop Angle   | float | Angle to stop panel (Degrees).  |
 
 #### 2.3.7 - Slit Annular Plate
-Slit annular plates are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of cylindrical panels in .dat format.
+Slit annular plates are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of slit annular plates in .dat format.
 
 Proper Syntax:
 
@@ -370,7 +370,7 @@ $ lmcv_tools generate slit_annular_plate [params] [path/to/slit_annular_plate]
 | Nc           | int   | Number of Elements along Circunference. |
 
 #### 2.3.8 - NURBS Slit Annular Plate
-NURBS slit annular plates are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of cylindrical panels in .dat format.
+NURBS slit annular plates are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of slit annular plates in .dat format.
 
 Proper Syntax:
 
@@ -386,6 +386,24 @@ $ lmcv_tools generate nurbs_slit_annular_plate [params] [path/to/nurbs_slit_annu
 | Dc           | int   | Element Degree along Circunference quarter.     |
 | Nr           | int   | Number of Elements along Radius.                |
 | Nc           | int   | Number of Elements along Circunference quarter. |
+
+#### 2.3.9 - NURBS Hemisfere
+NURBS hemisfere are geometric shapes frequently used in simulation tests. Therefore, this artifact was created to allow the generation of finite element meshes of hemisferes in .dat format.
+
+Proper Syntax:
+
+```text
+$ lmcv_tools generate nurbs_hemisfere [params] [path/to/nurbs_hemisfere]
+```
+
+| Parameters   | Type  | Description                                          |
+| ---          |---    | ---                                                  |
+| Radius       | float | Hemisfere Radius.                                    |
+| Pole Angle   | float | Hemisfere Pole Angle.                                |
+| Dl           | int   | Element Degree along Longitudinal Circunference.     |
+| Dt           | int   | Element Degree along Transversal Circunference.      |
+| Nl           | int   | Number of Elements along Longitudinal Circunference. |
+| Nt           | int   | Number of Elements along Transversal Circunference.  |
 
 ### 2.4 - Reorder
 
