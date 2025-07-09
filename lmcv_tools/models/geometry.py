@@ -63,6 +63,24 @@ class BSpline_Basis:
             N += N2 / D2 * self.__call__(p - 1, i + 1, t)
         return N
 
+    def derivative(self, t: float, i: int):
+        p = self.degree
+        C1, C2 = 0, 0
+        D1 = self.knot_vector[i + p] - self.knot_vector[i]
+        if D1 != 0.0:
+            C1 = p / D1 * self.__call__(p - 1, i, t)
+        D2 = self.knot_vector[i + p + 1] - self.knot_vector[i + 1]
+        if D2 != 0.0:
+            C2 = p / D2 * self.__call__(p - 1, i + 1, t)
+        return C1 - C2
+    
+    def greville_points(self):
+        p = self.degree
+        return [
+            sum(self.knot_vector[i + 1 : i + p + 1]) / p
+            for i in range(self.n_basis)
+        ]
+
 class BSpline_Curve:
     def __init__(self, degree: int, knot_vector: list[float], control_points: list[list]) -> None:
         self.basis = BSpline_Basis(degree, knot_vector)
@@ -314,6 +332,105 @@ class NURBS_Surface(BSpline_Surface):
             ])
             point.append(N / D)
         return point
+    
+    def derivative_u(self, u: float, v: float):
+        du = list()
+
+        # Calculando índices de Knot Spans não nulos
+        U_not_null_knot_spans = self.basis[0].not_null_spans(u)
+        V_not_null_knot_spans = self.basis[1].not_null_spans(v)
+
+        # Calculando Função de Peso Bivariante
+        W = sum([
+            self.basis[0](self.basis[0].degree, i, u) *
+            self.basis[1](self.basis[1].degree, j, v) *
+            self.weights[i][j]
+            for j in V_not_null_knot_spans
+            for i in U_not_null_knot_spans
+        ])
+
+        # Calculando derivada da Função de Peso Bivariante
+        dW = sum([
+            self.basis[0].derivative(u, i) *
+            self.basis[1](self.basis[1].degree, j, v) *
+            self.weights[i][j]
+            for j in V_not_null_knot_spans
+            for i in U_not_null_knot_spans
+        ])
+
+        for d in range(self.dimension):
+            component = sum([
+                (
+                    (self.weights[i][j] / W ** 2) *
+                    (
+                        (
+                            W *
+                            self.basis[0].derivative(u, i) *
+                            self.basis[1](self.basis[1].degree, j, v)
+                        ) - (
+                            dW *
+                            self.basis[0](self.basis[0].degree, i, u) *
+                            self.basis[1](self.basis[1].degree, j, v)
+                        )
+                    ) *
+                    self.control_points[i][j][d]
+                )
+                for j in V_not_null_knot_spans
+                for i in U_not_null_knot_spans
+            ])
+            du.append(component)
+
+        return du
+    
+    def derivative_v(self, u: float, v: float):
+        dv = list()
+
+        # Calculando índices de Knot Spans não nulos
+        U_not_null_knot_spans = self.basis[0].not_null_spans(u)
+        V_not_null_knot_spans = self.basis[1].not_null_spans(v)
+
+        # Calculando Função de Peso Bivariante
+        W = sum([
+            self.basis[0](self.basis[0].degree, i, u) *
+            self.basis[1](self.basis[1].degree, j, v) *
+            self.weights[i][j]
+            for j in V_not_null_knot_spans
+            for i in U_not_null_knot_spans
+        ])
+
+        # Calculando derivada da Função de Peso Bivariante
+        dW = sum([
+            self.basis[0](self.basis[0].degree, i, u) *
+            self.basis[1].derivative(v, j) *
+            self.weights[i][j]
+            for j in V_not_null_knot_spans
+            for i in U_not_null_knot_spans
+        ])
+
+        for d in range(self.dimension):
+            component = sum([
+                (
+                    (self.weights[i][j] / W ** 2) *
+                    (
+                        (
+                            W *
+                            self.basis[0](self.basis[0].degree, i, u) *
+                            self.basis[1].derivative(v, j)
+                        ) - (
+                            dW *
+                            self.basis[0](self.basis[0].degree, i, u) *
+                            self.basis[1](self.basis[1].degree, j, v)
+                        )
+                    ) *
+                    self.control_points[i][j][d]
+                )
+                for j in V_not_null_knot_spans
+                for i in U_not_null_knot_spans
+            ])
+            dv.append(component)
+
+        return dv
+
 
 # --------------------------------------------------
 # 3 - Curvas de Bézier - Funções Relacionadas

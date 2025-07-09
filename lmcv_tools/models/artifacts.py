@@ -1275,7 +1275,7 @@ class NURBS_Hemisfere(Artifact):
          ]
       )
       nurbs_y.degree_elevation(dy - 2)
-      y_knots = [i / nx for i in range(1, ny)]
+      y_knots = [i / ny for i in range(1, ny)]
       nurbs_y.knot_insertions(y_knots)
 
       # Fase 3 - Gerando coordenadas
